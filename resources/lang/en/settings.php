@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 return [
+    'advanced' => 'Advanced',
+    'collection' => 'Collection',
+    'consent_retention' => 'Consent and retention',
+    'developer' => 'Developer: endpoint, hashing and exclusions',
+    'recommended_privacy' => 'Recommended: require consent in every region and keep visitor hashing enabled. Existing choices are preserved until you save.',
+
     'automatic_click_tracking' => 'Automatic click tracking',
     'default_consent_region' => 'Default consent region',
     'enabled' => 'Enable insights',

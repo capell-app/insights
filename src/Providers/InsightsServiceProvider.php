@@ -9,9 +9,11 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Frontend\Enums\RenderHookLocation;
+use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
+use Capell\Insights\Listeners\PrepareInsightsConsentForRender;
 use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
@@ -21,6 +23,7 @@ use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Event;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 
@@ -48,6 +51,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
             ]);
     }
 
+    #[Override]
     public function registeringPackage(): void
     {
         parent::registeringPackage();
@@ -81,6 +85,8 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
         }
 
         if (config('capell-insights.enabled', true) === true && $this->app->bound(FrontendHookRegistrar::class)) {
+            Event::listen(FrontendRenderPreparing::class, PrepareInsightsConsentForRender::class);
+
             resolve(FrontendHookRegistrar::class)->contribute(
                 location: RenderHookLocation::BodyEnd,
                 extension: new RegisterInsightsTrackerHook,
@@ -109,6 +115,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
         return CapellCore::isPackageInstalled(self::$packageName);
     }
 
+    #[Override]
     protected function bootInstalledPackage(): self
     {
         $this->surface()->metricCollector(InsightsTrafficMetricsCollector::class);

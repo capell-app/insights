@@ -8,7 +8,9 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use PHPUnit\Framework\Assert;
 
 it('builds insights settings with consent retention and privacy controls', function (): void {
     $schema = InsightsSettingsSchema::make(Schema::make());
@@ -98,3 +100,21 @@ function insightSettingsComponentNames(array $components): array
         ->values()
         ->all();
 }
+
+it('leads with enabled and recommended consent before collapsed advanced groups', function (): void {
+    $schema = InsightsSettingsSchema::make(Schema::make());
+    $children = $schema[0]->getDefaultChildComponents();
+    Assert::assertIsArray($children);
+    Assert::assertInstanceOf(Toggle::class, $children[0]);
+    Assert::assertInstanceOf(Toggle::class, $children[1]);
+    Assert::assertInstanceOf(Section::class, $children[2]);
+    expect($children[0]->getName())->toBe('enabled')
+        ->and($children[1]->getName())->toBe('require_consent_for_all_regions')
+        ->and($children[2]->isCollapsed())->toBeTrue();
+    $groups = $children[2]->getDefaultChildComponents();
+    Assert::assertIsArray($groups);
+    foreach (['Collection', 'Consent and retention', 'Developer: endpoint, hashing and exclusions'] as $index => $heading) {
+        Assert::assertInstanceOf(Section::class, $groups[$index]);
+        expect($groups[$index]->getHeading())->toBe($heading);
+    }
+});

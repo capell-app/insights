@@ -4,66 +4,64 @@ This guide is for owners and operators who want to understand how their site and
 
 ## Using Insights (how-to)
 
-### How to open the Insights page
+### Choose one audience and period
 
-1. In the admin sidebar, open the **Monitoring** group.
-2. Click **Insights**.
-3. The page shows your overview stats, popular pages, recent visitor journeys, and live activity.
+Open **Monitoring > Insights**. Choose a **Site**, a **Language** (or all that
+site's languages), and **From** / **To** dates, then select **Update workspace**.
+The initial window is the last seven calendar days, including today. Windows
+are limited to 366 days. Changing site clears the language choice so a language
+from the previous site cannot silently filter the next report.
 
-### How to read the overview numbers
+Enable **Compare with the previous period** to compare with the immediately
+preceding period of the same length. Choose **Visitors**, **Page views**, or
+**Engagement (clicks)** as the **Trend metric**. All secondary sections share the
+same audience and date range.
 
-1. Open **Monitoring > Insights**.
-2. The **Insights overview** shows headline figures such as **Visits**, **Unique visits**, **Page views**, **Events**, and **Clicks**.
-3. Each figure is the recorded total for the dashboard window.
-4. Compare the figures across regular checks, not against a single isolated visit or event.
+### Read the overview
 
-![An administrator reviews analytics overview stats for seeded visits and events.](screenshots/insights-overview-dashboard-widgets.png)
+**What needs attention?** starts with Visitors (distinct recorded visits), Page
+views, and Engagement (clicks). The selected trend is the change in the chosen
+metric against the previous period, rather than a percentage with an undefined
+zero baseline.
 
-### How to find your most popular pages
+The workspace shows the latest recorded event in the selected window and warns
+when there was no event in its final 24 hours. Historical windows are evaluated
+against their end date, not today's date. Allow for the displayed aggregate
+cache interval and queue delay. A quiet or empty report does not prove nobody
+visited: consent and tracking choices affect what can be recorded.
 
-1. Open **Monitoring > Insights**.
-2. Find the **Popular pages** panel.
-3. It lists pages by **Path** with their **Page views**, so you can see which content earns the most traffic.
-4. The **Trending pages** panel highlights pages gaining attention right now.
+**Tracking is disabled** describes the effective runtime configuration. Existing
+reports remain available while collection is off. Saved settings are preserved;
+the consuming installation must apply its matching runtime configuration, as
+explained in [the operator reference](overview.admin.md).
 
-![An administrator identifies high-traffic pages from seeded page-view data.](screenshots/popular-pages-widget.png)
+### Explore a question
 
-### How to see which actions visitors take
+Expand a labelled section when you need detail:
 
-1. Open **Monitoring > Insights**.
-2. Find the **Top actions** panel.
-3. It lists the five most-recorded event names in the current dashboard window, with the number of **Events** for each one.
-4. Use it to see which tracked interactions happen most often before you decide what to improve.
+- **Popular / Trending** shows the five leading pages and, with comparison
+  enabled, pages whose views increased over the previous equal-length period.
+- **Journeys / Actions** shows up to five recent matching journeys (step counts
+  and last paths, without visitor identifiers), followed by the leading tracked
+  actions. Journey steps are limited to the selected dates and language.
+- **Acquisition** shows the leading sources, media, campaigns and referrers for
+  visits that started in the selected window.
+- **Funnel detail** accepts up to ten custom event names, one per line. Put the
+  starting action first, then select **Update workspace**. Each rate compares
+  distinct visitors at that action with visitors at the first action; it does
+  not claim the visitor completed an ordered sequence.
 
-### How to see where visits come from
-
-1. Open **Monitoring > Insights**.
-2. Find the **Acquisition sources** panel.
-3. It lists the five leading sources in the current dashboard window, including **Source**, **Medium**, **Campaign**, **Referrer**, and **Visits**.
-4. Compare these rows to understand which campaigns and referring sites are bringing people to the site.
-
-### How to follow recent visitor journeys
-
-1. Open **Monitoring > Insights**.
-2. Find the **Recent journeys** panel.
-3. Each entry follows one visit across pages and events, showing the **Steps** taken and the **Last path** reached.
-4. Use this to understand how visitors move through the site before they leave or convert.
-
-![An administrator follows recent visitor journeys across pages and events.](screenshots/recent-journeys-widget.png)
-
-### How to see live activity
-
-1. Open **Monitoring > Insights**.
-2. Find the **Live statistics** panel.
-3. It shows **Active visits in the last 15 minutes**, **Page views in the last 15 minutes**, and the **Top live page** right now.
-4. Use it to watch the effect of a launch or campaign as it happens.
+Each section explains empty results, hides the previous report while a refresh
+is loading, and repeats the stale-data warning when applicable. The separately
+registered overview, popular, trending, journeys, actions, acquisition and live
+statistics widgets remain available on the main admin dashboard.
 
 ### How to turn tracking on and choose what is measured
 
 1. Go to **Settings** in the admin and find the **Insights** section.
 2. Turn on **Enable insights**.
-3. Choose what to record using **Track page views**, **Track clicks**, and **Track forms**.
-4. Use **Ignored paths** to leave certain pages out of measurement, and **Ignored selectors** to leave out specific page elements from click tracking.
+3. Expand **Advanced > Collection** and choose what to record using **Track page views**, **Track clicks**, and **Track forms**.
+4. Under **Advanced > Developer: endpoint, hashing and exclusions**, use **Ignored paths** to leave certain pages out of measurement, and **Ignored selectors** to leave out specific page elements from click tracking.
 5. Save the settings.
 
 ![A site owner configures tracking, consent, retention, and beacon behavior.](screenshots/insights-settings-screen.png)
@@ -71,15 +69,15 @@ This guide is for owners and operators who want to understand how their site and
 ### How to set consent and privacy options
 
 1. Go to **Settings > Insights**.
-2. Set the **Default consent region** and turn on **Require consent for all regions** if you want everyone asked before any analytics runs.
-3. Turn on **Hash visitor data** to store visitor details in a disguised form, and set a **Hash salt** if your developer asks you to.
+2. Review the recommended **Require consent for all regions** choice beside **Enable insights**. Existing values are not changed automatically. Find **Default consent region** under **Advanced > Consent and retention**.
+3. Under **Advanced > Developer: endpoint, hashing and exclusions**, turn on **Hash visitor data** to store visitor details in a disguised form, and set a **Hash salt** if your developer asks you to.
 4. Update the **Policy version** when your privacy notice changes, so returning visitors are asked again.
 5. Save the settings. Visitors see a consent banner where they can accept analytics, reject non-essential tracking, or manage their choices before anything is recorded.
 
 ### How to set how long data is kept
 
 1. Go to **Settings > Insights**.
-2. Set **Retention** to the number of days you want to keep visit and event data.
+2. Under **Advanced > Consent and retention**, set **Retention** to the number of days you want to keep visit and event data.
 3. Save the settings. Older data is removed automatically once it passes the retention period, so review or note anything important before it ages out.
 
 ## Troubleshooting

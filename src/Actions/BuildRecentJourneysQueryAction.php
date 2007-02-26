@@ -43,7 +43,9 @@ final class BuildRecentJourneysQueryAction
             ->latest('last_seen_at');
 
         if ($window instanceof InsightsWindowData) {
-            $query->whereBetween('last_seen_at', [$window->startsAt, $window->endsAt]);
+            $query->whereHas('events', fn (Builder $query): Builder => $query
+                ->whereBetween('occurred_at', [$window->startsAt, $window->endsAt])
+                ->when($window->languageId !== null, fn (Builder $query): Builder => $query->where('language_id', $window->languageId)));
             $query->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId));
         }
 
@@ -53,8 +55,8 @@ final class BuildRecentJourneysQueryAction
 
         return $query
             ->get()
-            ->map(function (InsightsVisit $visit): array {
-                $timeline = BuildJourneyTimelineAction::run($visit);
+            ->map(function (InsightsVisit $visit) use ($window): array {
+                $timeline = BuildJourneyTimelineAction::run($visit, $window);
                 $lastStep = $timeline->last();
 
                 return [

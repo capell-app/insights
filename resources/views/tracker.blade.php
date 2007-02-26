@@ -1,9 +1,14 @@
 @php
     use Capell\Insights\Actions\GetInsightsTrackerScriptAction;
     use Capell\Insights\Enums\InsightsConsentRegion;
-    use Capell\Insights\Support\Consent\ConsentRegionResolver;
+    use Capell\Frontend\Facades\Frontend;
+    use Capell\Insights\Listeners\PrepareInsightsConsentForRender;
 
-    $consentRegion = app(ConsentRegionResolver::class)->resolve();
+    $configuredRegion = config('capell-insights.default_consent_region');
+    $consentRegion = is_string($configuredRegion) ? InsightsConsentRegion::tryFrom($configuredRegion) : null;
+    $preparedRegion = Frontend::getFrontendData(PrepareInsightsConsentForRender::CONTEXT_KEY);
+    // Direct renders without preparation must require consent, never resolve GeoIP here.
+    $consentRegion ??= $preparedRegion instanceof InsightsConsentRegion ? $preparedRegion : InsightsConsentRegion::Unknown;
     $consentRequired = config('capell-insights.require_consent_for_all_regions', false) === true
         || $consentRegion === InsightsConsentRegion::UkOrEurope
         || $consentRegion === InsightsConsentRegion::Unknown;

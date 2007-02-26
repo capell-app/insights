@@ -11,11 +11,14 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 final class InsightsSettingsSchema implements HasSchema
 {
+    /** @return list<Component> */
     public static function make(Schema $configurator): array
     {
         return [
@@ -27,46 +30,61 @@ final class InsightsSettingsSchema implements HasSchema
                             ->label(__('capell-insights::settings.enabled')),
                         'capell-insights::settings.enabled_helper',
                     ),
-                    Toggle::make('track_page_views')
-                        ->label(__('capell-insights::settings.track_page_views')),
-                    Toggle::make('track_clicks')
-                        ->label(__('capell-insights::settings.track_clicks')),
-                    Toggle::make('track_forms')
-                        ->label(__('capell-insights::settings.track_forms')),
-                    Toggle::make('automatic_click_tracking')
-                        ->label(__('capell-insights::settings.automatic_click_tracking')),
                     Toggle::make('require_consent_for_all_regions')
-                        ->label(__('capell-insights::settings.require_consent_for_all_regions')),
-                    Select::make('default_consent_region')
-                        ->label(__('capell-insights::settings.default_consent_region'))
-                        ->options(InsightsConsentRegion::class)
-                        ->nullable(),
-                    TextInput::make('policy_version')
-                        ->label(__('capell-insights::settings.policy_version'))
-                        ->required(),
-                    TextInput::make('retention_days')
-                        ->label(__('capell-insights::settings.retention_days'))
-                        ->integer()
-                        ->minValue(1)
-                        ->suffix(__('capell-admin::form.days')),
-                    Toggle::make('hash_visitor_data')
-                        ->label(__('capell-insights::settings.hash_visitor_data')),
-                    TextInput::make('hash_salt')
-                        ->label(__('capell-insights::settings.hash_salt'))
-                        ->nullable(),
-                    Textarea::make('ignored_paths')
-                        ->label(__('capell-insights::settings.ignored_paths'))
-                        ->formatStateUsing(self::listToTextarea(...))
-                        ->dehydrateStateUsing(self::textareaToList(...))
-                        ->rows(3),
-                    Textarea::make('ignored_selectors')
-                        ->label(__('capell-insights::settings.ignored_selectors'))
-                        ->formatStateUsing(self::listToTextarea(...))
-                        ->dehydrateStateUsing(self::textareaToList(...))
-                        ->rows(3),
-                    TextInput::make('route_prefix')
-                        ->label(__('capell-insights::settings.route_prefix'))
-                        ->required(),
+                        ->label(__('capell-insights::settings.require_consent_for_all_regions'))
+                        ->helperText(__('capell-insights::settings.recommended_privacy')),
+                    Section::make(__('capell-insights::settings.advanced'))
+                        ->columnSpanFull()
+                        ->collapsible()
+                        ->collapsed()
+                        ->schema([
+                            Section::make(__('capell-insights::settings.collection'))->columns(2)->schema([
+                                Toggle::make('track_page_views')
+                                    ->label(__('capell-insights::settings.track_page_views')),
+                                Toggle::make('track_clicks')
+                                    ->label(__('capell-insights::settings.track_clicks')),
+                                Toggle::make('track_forms')
+                                    ->label(__('capell-insights::settings.track_forms')),
+                                Toggle::make('automatic_click_tracking')
+                                    ->label(__('capell-insights::settings.automatic_click_tracking')),
+                            ]),
+                            Section::make(__('capell-insights::settings.consent_retention'))->columns(2)->schema([
+                                Select::make('default_consent_region')
+                                    ->label(__('capell-insights::settings.default_consent_region'))
+                                    ->options(collect(InsightsConsentRegion::cases())
+                                        ->mapWithKeys(fn (InsightsConsentRegion $region): array => [$region->value => $region->getLabel()])
+                                        ->all())
+                                    ->nullable(),
+                                TextInput::make('policy_version')
+                                    ->label(__('capell-insights::settings.policy_version'))
+                                    ->required(),
+                                TextInput::make('retention_days')
+                                    ->label(__('capell-insights::settings.retention_days'))
+                                    ->integer()
+                                    ->minValue(1)
+                                    ->suffix(__('capell-admin::form.days')),
+                            ]),
+                            Section::make(__('capell-insights::settings.developer'))->columns(2)->schema([
+                                Toggle::make('hash_visitor_data')
+                                    ->label(__('capell-insights::settings.hash_visitor_data')),
+                                TextInput::make('hash_salt')
+                                    ->label(__('capell-insights::settings.hash_salt'))
+                                    ->nullable(),
+                                Textarea::make('ignored_paths')
+                                    ->label(__('capell-insights::settings.ignored_paths'))
+                                    ->formatStateUsing(self::listToTextarea(...))
+                                    ->dehydrateStateUsing(self::textareaToList(...))
+                                    ->rows(3),
+                                Textarea::make('ignored_selectors')
+                                    ->label(__('capell-insights::settings.ignored_selectors'))
+                                    ->formatStateUsing(self::listToTextarea(...))
+                                    ->dehydrateStateUsing(self::textareaToList(...))
+                                    ->rows(3),
+                                TextInput::make('route_prefix')
+                                    ->label(__('capell-insights::settings.route_prefix'))
+                                    ->required(),
+                            ]),
+                        ]),
                 ]),
         ];
     }

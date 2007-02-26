@@ -12,14 +12,14 @@ final class RegisterInsightsTrackerHook implements RenderHookExtensionInterface
 {
     public function render(RenderHookContext $context): string
     {
-        if (! self::shouldRenderForCurrentRequest()) {
+        if (! $this->shouldRenderForCurrentRequest()) {
             return '';
         }
 
         return view('capell-insights::tracker')->render();
     }
 
-    private static function shouldRenderForCurrentRequest(): bool
+    public function shouldRenderForCurrentRequest(): bool
     {
         if (config('capell-insights.require_signed_beacons', false) === true) {
             return false;
