@@ -11,10 +11,13 @@ use Capell\Insights\Models\InsightsEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
+use OverflowException;
 
 final class BuildInsightsWorkspaceAction
 {
+    use AsFake;
     use AsObject;
 
     /** @param list<string> $funnelSteps */
@@ -74,6 +77,12 @@ final class BuildInsightsWorkspaceAction
             ->max('occurred_at');
         $latestEventAt = is_string($latest) ? CarbonImmutable::parse($latest) : null;
 
+        $trendChange = $compare ? ($current[$trendMetric]['value'] ?? 0) - ($previous[$trendMetric]['value'] ?? 0) : null;
+
+        if ($trendChange !== null && ! is_int($trendChange)) {
+            throw new OverflowException('The insight count difference exceeds the integer range.');
+        }
+
         return new InsightsWorkspaceData(
             digest: $digest,
             metrics: $metrics,
@@ -82,7 +91,7 @@ final class BuildInsightsWorkspaceAction
             stale: $latestEventAt instanceof CarbonImmutable && $latestEventAt->lessThan($window->endsAt->min(CarbonImmutable::now())->subDay()),
             trackingEnabled: (bool) config('capell-insights.enabled', true),
             consentRequiredEverywhere: (bool) config('capell-insights.require_consent_for_all_regions', false),
-            trendChange: $compare ? ($current[$trendMetric]['value'] ?? 0) - ($previous[$trendMetric]['value'] ?? 0) : null,
+            trendChange: $trendChange,
         );
     }
 
