@@ -10,9 +10,11 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Events\FrontendRenderPreparing;
+use Capell\Frontend\Events\RenderHookFragmentPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
+use Capell\Insights\Listeners\PrepareInsightsConsentForFragment;
 use Capell\Insights\Listeners\PrepareInsightsConsentForRender;
 use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
@@ -86,13 +88,15 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
 
         if (config('capell-insights.enabled', true) === true && $this->app->bound(FrontendHookRegistrar::class)) {
             Event::listen(FrontendRenderPreparing::class, PrepareInsightsConsentForRender::class);
+            Event::listen(RenderHookFragmentPreparing::class, PrepareInsightsConsentForFragment::class);
 
             resolve(FrontendHookRegistrar::class)->contribute(
                 location: RenderHookLocation::BodyEnd,
                 extension: new RegisterInsightsTrackerHook,
-                owner: 'capell-app/insights',
-                key: 'insights-tracker',
+                owner: RegisterInsightsTrackerHook::OWNER,
+                key: RegisterInsightsTrackerHook::KEY,
                 cacheSafe: false,
+                fragment: true,
             );
         }
 

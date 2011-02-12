@@ -6,10 +6,20 @@ namespace Capell\Insights\Support\RenderHooks;
 
 use Capell\Frontend\Contracts\RenderHookExtensionInterface;
 use Capell\Frontend\Data\RenderHookContext;
+use Capell\Frontend\Enums\RenderHookLocation;
 use Illuminate\Support\Str;
 
 final class RegisterInsightsTrackerHook implements RenderHookExtensionInterface
 {
+    public const string OWNER = 'capell-app/insights';
+
+    public const string KEY = 'insights-tracker';
+
+    public static function fragmentStableKey(): string
+    {
+        return RenderHookLocation::BodyEnd->value . ':' . self::OWNER . ':' . self::KEY;
+    }
+
     public function render(RenderHookContext $context): string
     {
         if (! $this->shouldRenderForCurrentRequest()) {

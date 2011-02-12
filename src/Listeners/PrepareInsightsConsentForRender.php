@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Listeners;
 
+use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Support\Consent\ConsentRegionResolver;
@@ -20,13 +21,18 @@ final readonly class PrepareInsightsConsentForRender
 
     public function handle(FrontendRenderPreparing $event): void
     {
+        $this->prepare($event->context);
+    }
+
+    public function prepare(FrontendContextReader $context): void
+    {
         // Request-scoped state, outside the shared public render-data cache.
-        $event->context->setFrontendData(self::CONTEXT_KEY, InsightsConsentRegion::Unknown);
+        $context->setFrontendData(self::CONTEXT_KEY, InsightsConsentRegion::Unknown);
 
         if (! $this->tracker->shouldRenderForCurrentRequest()) {
             return;
         }
 
-        $event->context->setFrontendData(self::CONTEXT_KEY, $this->resolver->resolve());
+        $context->setFrontendData(self::CONTEXT_KEY, $this->resolver->resolve());
     }
 }
