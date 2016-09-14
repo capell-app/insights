@@ -162,9 +162,15 @@ final class RecordInsightsEventsAction
     private function startNextSessionVisit(InsightsVisit $previousVisit, Request $request): InsightsVisit
     {
         $visit = CreateInsightsVisitAction::run($request, $previousVisit->consent_region);
+        $consent = $this->latestConsent($previousVisit);
+
+        if ($consent instanceof InsightsConsent) {
+            // A new session preserves the original decision, including its expiry and policy.
+            $visit->consents()->save($consent->replicate());
+        }
 
         $visit->forceFill([
-            'consent_status' => $previousVisit->consent_status,
+            'consent_status' => $consent->status ?? $previousVisit->consent_status,
         ])->save();
 
         Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
@@ -203,13 +209,7 @@ final class RecordInsightsEventsAction
             return false;
         }
 
-        foreach ($ignoredPaths as $ignoredPath) {
-            if (is_string($ignoredPath) && Str::is($ignoredPath, $path)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($ignoredPaths, static fn (mixed $ignoredPath): bool => is_string($ignoredPath) && Str::is($ignoredPath, $path));
     }
 
     private function isIgnoredIp(?string $ipAddress): bool
@@ -224,13 +224,7 @@ final class RecordInsightsEventsAction
             return false;
         }
 
-        foreach ($ignoredIps as $ignoredIp) {
-            if (is_string($ignoredIp) && Str::is($ignoredIp, $ipAddress)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($ignoredIps, static fn (mixed $ignoredIp): bool => is_string($ignoredIp) && Str::is($ignoredIp, $ipAddress));
     }
 
     private function isIgnoredUserAgent(?string $userAgent): bool
@@ -245,13 +239,7 @@ final class RecordInsightsEventsAction
             return false;
         }
 
-        foreach ($ignoredUserAgents as $ignoredUserAgent) {
-            if (is_string($ignoredUserAgent) && Str::is(strtolower($ignoredUserAgent), strtolower($userAgent))) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($ignoredUserAgents, static fn (mixed $ignoredUserAgent): bool => is_string($ignoredUserAgent) && Str::is(strtolower($ignoredUserAgent), strtolower($userAgent)));
     }
 
     private function isAssetPath(string $path): bool
@@ -282,9 +270,7 @@ final class RecordInsightsEventsAction
 
     private function hasInsightsConsent(InsightsVisit $visit): bool
     {
-        $latestConsent = $visit->consents()
-            ->latest('decided_at')
-            ->first();
+        $latestConsent = $this->latestConsent($visit);
 
         if ($latestConsent instanceof InsightsConsent) {
             return $latestConsent->categories->insights
@@ -293,6 +279,13 @@ final class RecordInsightsEventsAction
         }
 
         return $visit->consent_status === InsightsConsentStatus::AcceptedAll;
+    }
+
+    private function latestConsent(InsightsVisit $visit): ?InsightsConsent
+    {
+        return $visit->consents()
+            ->latest('decided_at')
+            ->first();
     }
 
     private function consentMatchesCurrentPolicy(InsightsConsent $consent): bool

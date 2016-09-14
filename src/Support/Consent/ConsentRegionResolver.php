@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Insights\Support\Consent;
 
 use Capell\Insights\Enums\InsightsConsentRegion;
+use Capell\Insights\Settings\InsightsSettings;
 use Throwable;
 
 final class ConsentRegionResolver
@@ -51,13 +52,27 @@ final class ConsentRegionResolver
 
     private function resolveConfiguredRegion(): ?InsightsConsentRegion
     {
-        $configuredRegion = config('capell-insights.default_consent_region');
+        // The admin setting is the editor-facing control; the config value is
+        // only a deployment fallback when no setting has been saved.
+        $configuredRegion = $this->settingsRegion() ?? config('capell-insights.default_consent_region');
 
         if (! is_string($configuredRegion)) {
             return null;
         }
 
         return InsightsConsentRegion::tryFrom($configuredRegion);
+    }
+
+    private function settingsRegion(): ?string
+    {
+        if (! app()->bound(InsightsSettings::class)) {
+            return null;
+        }
+
+        /** @var InsightsSettings $settings */
+        $settings = resolve(InsightsSettings::class);
+
+        return $settings->default_consent_region;
     }
 
     private function countryCodeFromLocation(mixed $location): ?string

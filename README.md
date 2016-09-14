@@ -65,6 +65,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `packages/insights/database/migrations/2026_05_10_190855_05_import_legacy_page_views.php`
 - `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`
 - `packages/insights/database/migrations/2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`
+- `packages/insights/database/migrations/2026_09_25_000001_invalidate_legacy_insights_html_cache.php`
 
 ### Settings migrations
 
@@ -101,10 +102,6 @@ Screenshot contract: `docs/screenshots.json`.
 
 - `packages/insights/routes/web.php`
 
-### Listeners
-
-- `PrepareInsightsConsentForRender`
-
 ### Actions
 
 - `AnonymizeInsightsVisitAction`
@@ -135,6 +132,7 @@ Screenshot contract: `docs/screenshots.json`.
 - `RecordPageViewAction`
 - `RememberInsightsDashboardAggregateAction`
 - `ResolveConsentRegionAction`
+- `ResolveInsightsConsentPolicyAction`
 - `ResolveInsightsHashSaltAction`
 - `UpdateInsightsConsentAction`
 - `ValidateInsightsBeaconRequestAction`
@@ -143,6 +141,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 - `InsightsBeaconData`
 - `InsightsConsentData`
+- `InsightsConsentPolicyData`
 - `InsightsDigestData`
 - `InsightsEventData`
 - `InsightsEventMetadataData`
@@ -207,7 +206,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`, `2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`.
+- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`, `2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`, `2026_09_25_000001_invalidate_legacy_insights_html_cache.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `insights:purge` (monthly; registered by the package provider).
 

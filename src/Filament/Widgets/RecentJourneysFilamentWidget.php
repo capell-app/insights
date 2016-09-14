@@ -60,10 +60,9 @@ final class RecentJourneysFilamentWidget extends BaseWidget implements CapellFil
                  * @param  array{id: int, visit: string, steps: int<0, max>, landing_url: string, last_path: string}  $journey
                  * @return array{id: string, visit: string, steps: int, landing_url: string, last_path: string}
                  */
-                fn (array $journey): array => [
-                    ...$journey,
+                fn (array $journey): array => array_replace($journey, [
                     'id' => 'journey-' . $journey['id'],
-                ],
+                ]),
             );
     }
 }

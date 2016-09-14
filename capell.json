@@ -74,9 +74,13 @@
         {
             "type": "route",
             "class": "Capell\\Insights\\Manifest\\InsightsRoutesContribution",
-            "routes": ["capell-insights.events", "capell-insights.consent"],
+            "routes": [
+                "capell-insights.events",
+                "capell-insights.consent",
+                "capell-insights.consent-policy"
+            ],
             "prefix": "capell/insights",
-            "methods": ["POST"],
+            "methods": ["POST", "GET"],
             "middleware": ["throttle:30,1"],
             "csrfExempt": true
         },
@@ -129,7 +133,8 @@
                 "2026_05_10_190855_03_create_insights_events_table",
                 "2026_05_10_190855_05_import_legacy_page_views",
                 "2026_06_06_000001_create_insights_daily_rollups_table",
-                "2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table"
+                "2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table",
+                "2026_09_25_000001_invalidate_legacy_insights_html_cache"
             ]
         }
     ],
@@ -159,13 +164,16 @@
         "insights-admin",
         "insights-frontend",
         "insights-privacy-center-mirror",
-        "beacon",
-        "cache-blocking"
+        "beacon"
     ],
     "security": {
         "riskTier": "sensitive",
         "publicSurface": {
-            "routeNames": ["capell-insights.consent", "capell-insights.events"],
+            "routeNames": [
+                "capell-insights.consent",
+                "capell-insights.events",
+                "capell-insights.consent-policy"
+            ],
             "auth": "public",
             "csrfExemptRoutes": [
                 "capell-insights.consent",
@@ -176,7 +184,8 @@
             "webhookRoutes": [],
             "throttledRoutes": [
                 "capell-insights.consent",
-                "capell-insights.events"
+                "capell-insights.events",
+                "capell-insights.consent-policy"
             ]
         },
         "sensitiveData": {
@@ -206,10 +215,19 @@
         "adminQueryBudget": 40,
         "cacheTags": ["insights"],
         "cacheSafety": {
-            "cacheable": false,
-            "variesBy": [],
+            "cacheable": true,
+            "variesBy": ["site", "locale"],
             "sensitiveOutput": false,
-            "invalidationSources": [],
+            "invalidationSources": [
+                {
+                    "model": "Capell\\Core\\Models\\Page",
+                    "events": ["saved", "deleted"]
+                },
+                {
+                    "model": "Capell\\Core\\Models\\Site",
+                    "events": ["saved", "deleted"]
+                }
+            ],
             "queueInvalidation": true
         }
     },

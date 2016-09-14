@@ -34,6 +34,14 @@ final class ExportInsightsDigestCsvAction
         ]);
     }
 
+    private static function csvValue(string|int|float|bool|null $value): string|int|float|bool|null
+    {
+        // Encode only at the spreadsheet boundary; retain scalar numbers and storage values.
+        return is_string($value) && preg_match('/^(?:[\x00-\x20]*[=+\-@]|[\x00-\x1f])/', $value) === 1
+            ? "'" . $value
+            : $value;
+    }
+
     /**
      * @return list<list<string>>
      */
@@ -124,7 +132,7 @@ final class ExportInsightsDigestCsvAction
         throw_if($stream === false, RuntimeException::class, 'Unable to open temporary CSV stream.');
 
         foreach ($rows as $row) {
-            fputcsv($stream, $row);
+            fputcsv($stream, array_map(self::csvValue(...), $row), escape: '');
         }
 
         rewind($stream);

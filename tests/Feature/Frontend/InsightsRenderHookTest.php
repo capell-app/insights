@@ -11,6 +11,7 @@ use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\PublicViewQueryGuard;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
+use Capell\Tests\Fixtures\Models\User;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Cache\DatabaseStore;
 use Illuminate\Database\Events\QueryExecuted;
@@ -69,7 +70,25 @@ it('renders the public tracker without querying the configured database cache st
         ->toContain("document.querySelector('[data-capell-insights-tracker]')");
 });
 
-it('prepares consent before guarded tracker rendering with a real database cache', function (?string $configuredRegion, string $country, bool $prepare, bool $forceConsent, bool $consentRequired, int $preparationQueries, bool $visible = true, string $requestPath = '/', bool $signed = false): void {
+it('keeps editor state out of the complete bootstrap for public visitors', function (bool $authenticated): void {
+    if ($authenticated) {
+        $this->actingAs(User::factory()->create());
+    }
+
+    /** @var RenderHookRegistry<RenderHookContext> $registry */
+    $registry = resolve(RenderHookRegistry::class);
+    $html = $registry->renderAll(RenderHookLocation::BodyEnd);
+
+    expect($html)->toContain('data-capell-insights-tracker')
+        ->toContain('"consentRequired":true')
+        ->not->toContain('CAPELL_FRAGMENT_')
+        ->not->toContain('data-capell-editor')
+        ->not->toContain('data-capell-model-id')
+        ->not->toContain('wire:snapshot')
+        ->not->toContain('signature=');
+})->with(['anonymous' => false, 'non-admin' => true]);
+
+it('keeps geography out of preparation and guarded public rendering', function (?string $configuredRegion, string $country, bool $prepare, bool $forceConsent, bool $visible = true, string $requestPath = '/', bool $signed = false): void {
     config([
         'cache.default' => 'database',
         'cache.stores.database.connection' => 'sqlite',
@@ -116,7 +135,7 @@ it('prepares consent before guarded tracker rendering with a real database cache
         Event::dispatch(new FrontendRenderPreparing($context, $renderContext));
     }
 
-    expect($queries)->toHaveCount($preparationQueries);
+    expect($queries)->toBe([]);
     $queries = [];
 
     $html = $guard->guard($renderContext, function () use ($guard): string {
@@ -127,7 +146,7 @@ it('prepares consent before guarded tracker rendering with a real database cache
 
     if ($visible) {
         expect($html)->toContain('data-capell-insights-tracker')
-            ->toContain('"consentRequired":' . ($consentRequired ? 'true' : 'false'))
+            ->toContain('"consentRequired":true')
             ->not->toContain($ip);
     } else {
         expect($html)->toBe('');
@@ -135,20 +154,20 @@ it('prepares consent before guarded tracker rendering with a real database cache
 
     expect($queries)->toBe([]);
 })->with([
-    'configured region bypasses GeoIP' => ['uk_or_europe', 'US', true, false, true, 0],
-    'configured region overrides cached country' => ['outside_uk_or_europe', 'GB', true, false, false, 0],
-    'prepared UK location requires consent' => [null, 'GB', true, false, true, 1],
-    'prepared US location preserves optional consent' => [null, 'US', true, false, false, 1],
-    'global requirement overrides prepared US location' => [null, 'US', true, true, true, 1],
-    'unprepared fallback requires consent without GeoIP' => [null, 'US', false, false, true, 0],
-    'invalid configured region fails closed without preparation' => ['invalid', 'US', false, false, true, 0],
-    'unknown prepared country requires consent' => [null, '', true, false, true, 1],
-    'configured fallback preserves precedence without preparation' => ['outside_uk_or_europe', 'GB', false, false, false, 0],
-    'ignored admin route skips preparation and tracker' => [null, 'US', true, false, true, 0, false, '/admin/pages'],
-    'signed beacon mode skips preparation and tracker' => [null, 'US', true, false, true, 0, false, '/', true],
+    'configured UK region' => ['uk_or_europe', 'US', true, false],
+    'configured outside region' => ['outside_uk_or_europe', 'GB', true, false],
+    'UK visitor' => [null, 'GB', true, false],
+    'US visitor' => [null, 'US', true, false],
+    'global requirement' => [null, 'US', true, true],
+    'direct render' => [null, 'US', false, false],
+    'invalid configuration' => ['invalid', 'US', false, false],
+    'unknown country' => [null, '', true, false],
+    'configured direct render' => ['outside_uk_or_europe', 'GB', false, false],
+    'ignored admin route' => [null, 'US', true, false, false, '/admin/pages'],
+    'signed beacon mode' => [null, 'US', true, false, false, '/', true],
 ]);
 
-it('does not require consent up front outside the UK and Europe', function (): void {
+it('starts with strict consent even when the configured region is outside the UK and Europe', function (): void {
     config()->set('capell-insights.default_consent_region', 'outside_uk_or_europe');
 
     /** @var RenderHookRegistry<RenderHookContext> $registry */
@@ -156,7 +175,7 @@ it('does not require consent up front outside the UK and Europe', function (): v
 
     $output = $registry->renderAll(RenderHookLocation::BodyEnd);
 
-    expect($output)->toContain('"consentRequired":false');
+    expect($output)->toContain('"consentRequired":true');
 });
 
 it('does not inject the frontend insights tracker on ignored admin paths', function (): void {

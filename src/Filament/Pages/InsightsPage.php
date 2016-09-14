@@ -152,6 +152,6 @@ final class InsightsPage extends Page
             $funnelSteps,
         );
 
-        return [...$viewData, 'workspace' => $workspace, 'sections' => $workspace->sections];
+        return array_replace($viewData, ['workspace' => $workspace, 'sections' => $workspace->sections]);
     }
 }

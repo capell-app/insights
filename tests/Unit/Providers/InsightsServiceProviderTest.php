@@ -27,7 +27,8 @@ it('loads the insights config', function (): void {
 
 it('registers insights routes', function (): void {
     expect(Route::has('capell-insights.events'))->toBeTrue()
-        ->and(Route::has('capell-insights.consent'))->toBeTrue();
+        ->and(Route::has('capell-insights.consent'))->toBeTrue()
+        ->and(Route::has('capell-insights.consent-policy'))->toBeTrue();
 });
 
 it('places insights first in monitoring navigation', function (): void {

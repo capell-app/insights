@@ -1,11 +1,11 @@
 # Tracking And Consent
 
-Insights records first-party activity through two public endpoints and a frontend render hook. The package should stay invisible to admin pages, Livewire traffic, debug tooling, and any path listed in `capell-insights.ignored_paths`.
+Insights records first-party activity through public policy, consent and event endpoints and a frontend render hook. The package should stay invisible to admin pages, Livewire traffic, debug surfaces, and any path listed in `capell-insights.ignored_paths`.
 
 ## Runtime Flow
 
-1. `RegisterInsightsTrackerHook` injects the tracker when `capell-insights.enabled` is true and the frontend render hook registry is bound.
-2. The browser posts event batches to `POST /capell/insights/events` by default.
+1. `RegisterInsightsTrackerHook` injects a deterministic, cache-safe tracker when `capell-insights.enabled` is true and the frontend render hook registry is bound. Public rendering does not resolve visitor geography or create an Insights fragment sidecar.
+2. The browser requests `GET /capell/insights/consent-policy` without cookies. Its private, no-store JSON contains only `consent_required`, using the existing configured region, GeoIP and all-regions policy. The browser API and banner are available immediately, but event queueing and flushing wait for this decision. Missing, malformed or failed responses and the five-second timeout settle on consent required; a late response cannot relax that fallback. Permitted event batches post to `POST /capell/insights/events`.
 3. Consent changes post to `POST /capell/insights/consent`.
 4. Controllers turn request payloads into `InsightsBeaconData`, `InsightsConsentData`, and `InsightsEventData`; consent jurisdiction is resolved server-side rather than trusted from the browser.
 5. Actions write `InsightsVisit`, `InsightsConsent`, and `InsightsEvent` rows.
@@ -13,7 +13,11 @@ Insights records first-party activity through two public endpoints and a fronten
 7. When `honor_privacy_signals` is enabled, the browser tracker exits before registering listeners if Global Privacy Control or Do-Not-Track is active, and the beacon endpoint drops requests carrying `Sec-GPC: 1`, `DNT: 1`, or `X-Do-Not-Track: 1`.
 8. Server-side event recording only treats stored analytics consent as current when the saved `policy_version` matches config and `decided_at` is within `consent_expires_days`.
 
-The route prefix comes from `capell-insights.route_prefix`. Both endpoints use the `web` middleware group, skip CSRF, and apply `throttle:60,1`.
+The route prefix comes from `capell-insights.route_prefix`. The policy GET uses `throttle:60,1` without session or cookie middleware. The consent POST uses `web` and `throttle:60,1`; the event POST uses encrypted/queued cookies and the configurable ingest throttle (30 per minute by default). Both POST endpoints skip CSRF verification.
+
+Acknowledged choices and categories take precedence over the regional default, including rejection outside the UK and Europe. An early acceptance waits for the policy decision and records the initial page view once. Acknowledgements remain effective for the current page when local storage is unavailable. GPC and DNT stop the browser before the policy request when privacy signals are honoured.
+
+The package upgrade migration invalidates frontend output caches before the fragment-to-public transition is recorded, so an obsolete Insights sidecar cannot survive the deployment and silently omit the tracker. The HTML-cache invalidator fails the migration if any cache artefact cannot be removed; subsequent requests rebuild complete public HTML through the normal cache path. Rebuild shared HTML after changing tracker configuration or its policy version as well as rebuilding application configuration. Consuming applications should verify two visitor regions against the same cached page and include the policy GET, consent, CSRF and deferred requests in complete-visit load measurements. Queue workers and the stale-cache processor still need deployment-level verification; package tests do not establish production throughput.
 
 ## Config Keys
 
@@ -109,6 +113,7 @@ Use the package command for cleanup in the host app. In this repository, test th
 
 ```bash
 vendor/bin/pest packages/insights/tests --configuration=phpunit.xml
+node --test tests/JavaScript/insights-consent-policy.test.mjs
 ```
 
 The runtime command is `insights:purge {--days=}` in the host application. This repository does not run `php artisan`.

@@ -150,7 +150,7 @@ it('preserves digest schema when rolling back the corrective migration', functio
 it('registers the canonical migration filenames', function (): void {
     $package = new Package;
 
-    (new InsightsServiceProvider(app()))->configurePackage($package);
+    new InsightsServiceProvider(app())->configurePackage($package);
 
     $migrationsDirectory = dirname(__DIR__, 3) . '/database/migrations';
 
@@ -161,6 +161,7 @@ it('registers the canonical migration filenames', function (): void {
         '2026_05_10_190855_05_import_legacy_page_views',
         '2026_06_06_000001_create_insights_daily_rollups_table',
         '2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table',
+        '2026_09_25_000001_invalidate_legacy_insights_html_cache',
     ]);
 
     foreach ($package->migrationFileNames as $migrationFileName) {

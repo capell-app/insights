@@ -7,6 +7,7 @@ use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Http\Controllers\InsightsBeaconController;
 use Capell\Insights\Http\Controllers\InsightsConsentController;
+use Capell\Insights\Http\Controllers\InsightsConsentPolicyController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -21,6 +22,10 @@ $throttle = is_numeric($configuredThrottle) ? max(1, (int) $configuredThrottle) 
 
 Route::prefix($routePrefix)
     ->group(function () use ($throttle): void {
+        Route::get('consent-policy', InsightsConsentPolicyController::class)
+            ->middleware('throttle:60,1')
+            ->name('capell-insights.consent-policy');
+
         Route::post('events', InsightsBeaconController::class)
             ->middleware([
                 EncryptCookies::class,

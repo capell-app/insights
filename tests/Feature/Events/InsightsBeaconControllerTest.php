@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Data\InsightsEventMetadataData;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
@@ -410,6 +411,7 @@ it('queues event batches for established visits', function (): void {
     if (! $queuedJob instanceof ProcessInsightsBeaconJob) {
         throw new RuntimeException('Expected a queued insights beacon job.');
     }
+
     $queuedJob->handle();
 
     expect(InsightsEvent::query()->count())->toBe(1)
@@ -458,6 +460,57 @@ it('can sample event ingestion before persistence or queue dispatch', function (
     Queue::assertNothingPushed();
     expect(InsightsEvent::query()->count())->toBe(0);
 });
+
+it('preserves consent evidence when a visit rolls over', function (InsightsConsentStatus $status, bool $allowsInsights, int $decisionAgeDays, string $policyVersion, int $expectedEvents): void {
+    $this->travelTo(CarbonImmutable::parse('2026-09-26 12:00:00'));
+    config()->set('capell-insights.session_timeout_minutes', 30);
+    config()->set('capell-insights.consent_expires_days', 30);
+    config()->set('capell-insights.policy_version', '2026-09');
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::UkOrEurope,
+        'consent_status' => $status,
+        'last_seen_at' => now()->subHour()->toImmutable(),
+    ]);
+    $consent = InsightsConsent::factory()->create([
+        'visit_id' => $visit->getKey(),
+        'status' => $status,
+        'categories' => new InsightsConsentData(insights: $allowsInsights, preferences: true),
+        'policy_version' => $policyVersion,
+        'decided_at' => now()->subDays($decisionAgeDays)->toImmutable(),
+        'terms_accepted_at' => now()->subDays($decisionAgeDays + 1)->toImmutable(),
+    ]);
+
+    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertSuccessful();
+
+    $nextVisit = InsightsVisit::query()->whereKeyNot($visit->getKey())->sole();
+
+    expect(InsightsEvent::query()->count())->toBe($expectedEvents)
+        ->and($nextVisit->consent_status)->toBe($status)
+        ->and($visit->consents()->count())->toBe(1)
+        ->and($nextVisit->consents()->count())->toBe(1);
+
+    $preservedConsent = $nextVisit->consents()->sole();
+
+    expect($preservedConsent->categories->toArray())->toBe($consent->categories->toArray())
+        ->and($preservedConsent->status)->toBe($consent->status)
+        ->and($preservedConsent->policy_version)->toBe($policyVersion)
+        ->and($preservedConsent->decided_at?->equalTo($consent->decided_at))->toBeTrue()
+        ->and($preservedConsent->terms_accepted_at?->equalTo($consent->terms_accepted_at))->toBeTrue()
+        ->and($preservedConsent->ip_hash)->toBe($consent->ip_hash)
+        ->and($preservedConsent->user_agent_hash)->toBe($consent->user_agent_hash);
+
+    $this->postJson(route('capell-insights.events'), pageViewPayload($nextVisit))
+        ->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe($expectedEvents * 2);
+})->with([
+    'current granular allowance' => [InsightsConsentStatus::Granular, true, 1, '2026-09', 1],
+    'rejected insights' => [InsightsConsentStatus::RejectedNonEssential, false, 1, '2026-09', 0],
+    'expired accepted-all' => [InsightsConsentStatus::AcceptedAll, true, 31, '2026-09', 0],
+    'old-policy accepted-all' => [InsightsConsentStatus::AcceptedAll, true, 1, '2026-08', 0],
+]);
 
 it('clamps client event timestamps to the configured ingestion window', function (): void {
     $now = CarbonImmutable::parse('2026-07-10 12:00:00');

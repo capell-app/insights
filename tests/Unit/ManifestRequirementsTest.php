@@ -212,9 +212,9 @@ it('declares the shipped admin page, widgets, models, routes, and overview stats
         InsightsDailyRollup::class,
     ])->and(insightsContribution($manifest, 'route'))
         ->toMatchArray([
-            'routes' => ['capell-insights.events', 'capell-insights.consent'],
+            'routes' => ['capell-insights.events', 'capell-insights.consent', 'capell-insights.consent-policy'],
             'prefix' => 'capell/insights',
-            'methods' => ['POST'],
+            'methods' => ['POST', 'GET'],
             'middleware' => ['throttle:30,1'],
             'csrfExempt' => true,
         ]);

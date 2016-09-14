@@ -61,7 +61,7 @@ it('initializes the packaged consent banner controls', function (): void {
         ->toContain('data-capell-insights-consent-action')
         ->toContain('data-capell-insights-consent-choices')
         ->toContain('banner.hidden = false')
-        ->toContain('var hadVisitId = Boolean(currentVisitId())')
+        ->toContain('submitConsent(consentPayloadForAction(action, banner)')
         ->toContain('banner.hidden = true');
 });
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Capell\Insights\Actions\ResolveConsentRegionAction;
 use Capell\Insights\Enums\InsightsConsentRegion;
+use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Support\Consent\ConsentRegionResolver;
 
 it('returns forced uk or europe consent region from config', function (): void {
@@ -44,4 +45,18 @@ it('maps non-listed country codes to outside uk or europe consent region', funct
 
     expect($resolver->resolveFromLocation(['iso_code' => 'US']))
         ->toBe(InsightsConsentRegion::OutsideUkOrEurope);
+});
+
+it('prefers the saved admin consent region over the config fallback', function (): void {
+    config()->set('capell-insights.default_consent_region');
+
+    $settings = resolve(InsightsSettings::class);
+    $settings->default_consent_region = InsightsConsentRegion::OutsideUkOrEurope->value;
+    $settings->save();
+
+    expect(ResolveConsentRegionAction::run())->toBe(InsightsConsentRegion::OutsideUkOrEurope);
+
+    config()->set('capell-insights.default_consent_region', InsightsConsentRegion::UkOrEurope->value);
+
+    expect(ResolveConsentRegionAction::run())->toBe(InsightsConsentRegion::OutsideUkOrEurope);
 });

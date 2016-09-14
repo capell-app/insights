@@ -9,13 +9,9 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Frontend\Enums\RenderHookLocation;
-use Capell\Frontend\Events\FrontendRenderPreparing;
-use Capell\Frontend\Events\RenderHookFragmentPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
-use Capell\Insights\Listeners\PrepareInsightsConsentForFragment;
-use Capell\Insights\Listeners\PrepareInsightsConsentForRender;
 use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
@@ -25,7 +21,6 @@ use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Event;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 
@@ -50,6 +45,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_10_190855_05_import_legacy_page_views',
                 '2026_06_06_000001_create_insights_daily_rollups_table',
                 '2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table',
+                '2026_09_25_000001_invalidate_legacy_insights_html_cache',
             ]);
     }
 
@@ -87,16 +83,12 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
         }
 
         if (config('capell-insights.enabled', true) === true && $this->app->bound(FrontendHookRegistrar::class)) {
-            Event::listen(FrontendRenderPreparing::class, PrepareInsightsConsentForRender::class);
-            Event::listen(RenderHookFragmentPreparing::class, PrepareInsightsConsentForFragment::class);
-
             resolve(FrontendHookRegistrar::class)->contribute(
                 location: RenderHookLocation::BodyEnd,
                 extension: new RegisterInsightsTrackerHook,
                 owner: RegisterInsightsTrackerHook::OWNER,
                 key: RegisterInsightsTrackerHook::KEY,
-                cacheSafe: false,
-                fragment: true,
+                cacheSafe: true,
             );
         }
 

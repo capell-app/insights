@@ -21,6 +21,7 @@
 
     config.eventsUrl = currentOriginUrl(config.eventsUrl)
     config.consentUrl = currentOriginUrl(config.consentUrl)
+    config.consentRequired = true
 
     var defaultIgnoredSelectors = ['[data-capell-insights-ignore]']
     var sequence = 0
@@ -31,6 +32,9 @@
     var visitCookieName = 'capell_insights_visit'
     var consentStorageKey = 'capell_insights_consent'
     var consentBannerSelector = '[data-capell-insights-consent-banner]'
+    var policyResolved = false
+    var initialPageViewQueued = false
+    var acknowledgedConsent = null
 
     function privacySignalEnabled() {
         if (!config.honorPrivacySignals) {
@@ -90,6 +94,10 @@
     }
 
     function currentConsentDecision() {
+        if (acknowledgedConsent) {
+            return acknowledgedConsent
+        }
+
         var storedConsent = null
 
         try {
@@ -116,35 +124,46 @@
     }
 
     function trackingAllowed() {
-        // Regions that don't require prior consent keep the opt-out default.
-        if (!config.consentRequired) {
-            return true
+        if (!policyResolved) {
+            return false
         }
 
-        // In consent-required regions (e.g. UK/EU) nothing is tracked until the
-        // visitor has actively granted the analytics category.
         var consentDecision = currentConsentDecision()
 
-        return Boolean(
-            consentDecision &&
-            consentIncludesInsights(consentDecision.categories),
-        )
+        return consentDecision
+            ? consentIncludesInsights(consentDecision.categories)
+            : !config.consentRequired
+    }
+
+    function applyConsentDecision(status, categories) {
+        acknowledgedConsent = {
+            status: status,
+            categories: categories || [],
+            policy_version: config.policyVersion,
+            decided_at: new Date().toISOString(),
+        }
     }
 
     function storeConsentDecision(status, categories) {
+        applyConsentDecision(status, categories)
+
         try {
             window.localStorage.setItem(
                 consentStorageKey,
-                JSON.stringify({
-                    status: status,
-                    categories: categories || [],
-                    policy_version: config.policyVersion,
-                    decided_at: new Date().toISOString(),
-                }),
+                JSON.stringify(acknowledgedConsent),
             )
         } catch (error) {
             // Storage may be unavailable in private browsing or strict environments.
         }
+    }
+
+    function discardQueuedEvents() {
+        if (flushTimer) {
+            window.clearTimeout(flushTimer)
+            flushTimer = null
+        }
+
+        eventQueue = []
     }
 
     function consentIncludesInsights(categories) {
@@ -229,6 +248,11 @@
             Object.assign({ policy_version: config.policyVersion }, payload),
         )
 
+        if (status === 'rejected_non_essential') {
+            storeConsentDecision(status, [])
+            discardQueuedEvents()
+        }
+
         fetch(config.consentUrl, {
             method: 'POST',
             body: consentJson,
@@ -248,6 +272,8 @@
                             status,
                             response.enabled_categories,
                         )
+                        trackPageView()
+                        flushEvents()
 
                         if (afterConsent) {
                             afterConsent(response)
@@ -274,10 +300,36 @@
         )
     }
 
+    function reconcileConsentBanner() {
+        var banner = document.querySelector(consentBannerSelector)
+
+        if (
+            !banner ||
+            !policyResolved ||
+            config.consentRequired ||
+            currentConsentDecision()
+        ) {
+            return
+        }
+
+        banner.hidden = true
+        clearBannerHeight()
+    }
+
     function initializeConsentBanner() {
         var banner = document.querySelector(consentBannerSelector)
 
-        if (!banner || currentConsentDecision()) {
+        if (!banner) {
+            return
+        }
+
+        if (
+            currentConsentDecision() ||
+            (policyResolved && !config.consentRequired)
+        ) {
+            banner.hidden = true
+            clearBannerHeight()
+
             return
         }
 
@@ -332,20 +384,7 @@
                 return
             }
 
-            var hadVisitId = Boolean(currentVisitId())
-
             submitConsent(consentPayloadForAction(action, banner), function () {
-                var consentDecision = currentConsentDecision()
-
-                if (
-                    !hadVisitId &&
-                    consentDecision &&
-                    consentIncludesInsights(consentDecision.categories)
-                ) {
-                    queueEvent({ type: 'page_view' })
-                    flushEvents()
-                }
-
                 banner.hidden = true
                 clearBannerHeight()
             })
@@ -356,6 +395,11 @@
         if (flushTimer) {
             window.clearTimeout(flushTimer)
             flushTimer = null
+        }
+
+        if (!trackingAllowed()) {
+            discardQueuedEvents()
+            return
         }
 
         if (!eventQueue.length) {
@@ -392,6 +436,10 @@
     }
 
     function queueEvent(eventPayload) {
+        if (!trackingAllowed()) {
+            return
+        }
+
         sequence += 1
 
         eventQueue.push(
@@ -556,6 +604,7 @@
 
     function trackPageView() {
         if (
+            initialPageViewQueued ||
             !config.trackPageViews ||
             !trackingAllowed() ||
             ignoredBySelector(document.body)
@@ -563,7 +612,58 @@
             return
         }
 
+        initialPageViewQueued = true
         queueEvent({ type: 'page_view' })
+    }
+
+    function resolveConsentPolicy() {
+        var completed = false
+        var controller = new AbortController()
+        var timeout = window.setTimeout(function () {
+            complete(null)
+            controller.abort()
+        }, 5000)
+
+        function complete(policy) {
+            if (completed) {
+                return
+            }
+
+            completed = true
+            window.clearTimeout(timeout)
+            config.consentRequired =
+                !policy || policy.consent_required !== false
+            policyResolved = true
+            reconcileConsentBanner()
+            trackPageView()
+        }
+
+        if (!config.consentPolicyUrl) {
+            complete(null)
+            return
+        }
+
+        fetch(currentOriginUrl(config.consentPolicyUrl), {
+            method: 'GET',
+            credentials: 'omit',
+            cache: 'no-store',
+            signal: controller.signal,
+            headers: { Accept: 'application/json' },
+        })
+            .then(function (response) {
+                return response.ok ? response.json() : null
+            })
+            .then(function (policy) {
+                if (!policy || typeof policy.consent_required !== 'boolean') {
+                    complete(null)
+                    return
+                }
+
+                complete(policy)
+            })
+            .catch(function () {
+                complete(null)
+            })
     }
 
     window.CapellInsights = {
@@ -593,4 +693,6 @@
         initializeConsentBanner()
         trackPageView()
     }
+
+    resolveConsentPolicy()
 })()
