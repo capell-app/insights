@@ -42,9 +42,6 @@
             "providers": [
                 "Capell\\Analytics\\Providers\\AnalyticsServiceProvider"
             ]
-        },
-        "branch-alias": {
-            "dev-main": "4.x-dev"
         }
     },
     "config": {

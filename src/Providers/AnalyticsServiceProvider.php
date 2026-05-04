@@ -35,6 +35,9 @@ class AnalyticsServiceProvider extends AbstractPackageServiceProvider
                 'create_analytics_visits_table',
                 'create_analytics_consents_table',
                 'create_analytics_events_table',
+                'add_analytics_reporting_indexes',
+                'import_legacy_page_views',
+                'add_page_url_hit_columns',
             ]);
     }
 
@@ -47,14 +50,26 @@ class AnalyticsServiceProvider extends AbstractPackageServiceProvider
     {
         $this
             ->registerPackageMetadata()
-            ->registerModels()
-            ->registerSettings()
-            ->registerSettingsMigrations()
-            ->registerProtectedTables();
+            ->registerSettingsMigrations();
+
+        $this->app->booted(function (): void {
+            if (! $this->isPackageInstalled()) {
+                return;
+            }
+
+            $this
+                ->registerModels()
+                ->registerSettings()
+                ->registerProtectedTables();
+        });
     }
 
     public function packageBooted(): void
     {
+        if (! $this->isPackageInstalled()) {
+            return;
+        }
+
         if (config('capell-analytics.enabled', true) === true && $this->app->bound(RenderHookRegistry::class)) {
             $this->app->make(RegisterAnalyticsTrackerHook::class)->register();
         }
@@ -83,6 +98,11 @@ class AnalyticsServiceProvider extends AbstractPackageServiceProvider
         );
 
         return $this;
+    }
+
+    private function isPackageInstalled(): bool
+    {
+        return CapellCore::isPackageInstalled(static::$packageName);
     }
 
     private function registerModels(): self
