@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Capell\Insights\Settings\InsightsSettings;
-use Spatie\LaravelSettings\Migrations\SettingsMigrationAssistant;
+use Spatie\LaravelSettings\Migrations\SettingsMigrator;
 
 it('loads insights settings defaults', function (): void {
-    /** @var SettingsMigrationAssistant $settingsMigrationAssistant */
-    $settingsMigrationAssistant = resolve(SettingsMigrationAssistant::class);
+    /** @var SettingsMigrator $settingsMigrator */
+    $settingsMigrator = resolve(SettingsMigrator::class);
     $expectedKeys = [
         'insights.enabled',
         'insights.track_page_views',
@@ -27,7 +27,7 @@ it('loads insights settings defaults', function (): void {
     ];
 
     foreach ($expectedKeys as $expectedKey) {
-        expect($settingsMigrationAssistant->exists($expectedKey))->toBeTrue();
+        expect($settingsMigrator->exists($expectedKey))->toBeTrue();
     }
 
     expect(resolve(InsightsSettings::class)->retention_days)->toBe(365);

@@ -7,10 +7,10 @@ namespace Capell\Insights\Filament\Settings;
 use Capell\Admin\Filament\Contracts\HasSchema;
 use Capell\Admin\Filament\Support\HelperText;
 use Capell\Insights\Enums\InsightsConsentRegion;
-use Filament\FormBuilder\Components\Select;
-use Filament\FormBuilder\Components\Textarea;
-use Filament\FormBuilder\Components\TextInput;
-use Filament\FormBuilder\Components\Toggle;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Schema;
 
