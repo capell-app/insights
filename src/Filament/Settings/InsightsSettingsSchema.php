@@ -11,7 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 final class InsightsSettingsSchema implements HasSchema
@@ -19,7 +19,7 @@ final class InsightsSettingsSchema implements HasSchema
     public static function make(Schema $configurator): array
     {
         return [
-            Fieldset::make(__('capell-insights::settings.fieldset'))
+            Grid::make(2)
                 ->columnSpanFull()
                 ->schema([
                     HelperText::apply(
