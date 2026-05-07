@@ -37,10 +37,16 @@ return new class extends Migration
         });
 
         if (! Schema::hasIndex($eventsTableName, 'insights_events_path_type_occurred_index')) {
-            DB::statement(sprintf(
-                'ALTER TABLE %s ADD INDEX `insights_events_path_type_occurred_index` (`path`(191), `type`, `occurred_at`)',
-                $this->quoteIdentifier($eventsTableName),
-            ));
+            if (DB::connection()->getDriverName() === 'mysql') {
+                DB::statement(sprintf(
+                    'ALTER TABLE %s ADD INDEX `insights_events_path_type_occurred_index` (`path`(191), `type`, `occurred_at`)',
+                    $this->quoteIdentifier($eventsTableName),
+                ));
+            } else {
+                Schema::table($eventsTableName, function (Blueprint $table): void {
+                    $table->index(['path', 'type', 'occurred_at'], 'insights_events_path_type_occurred_index');
+                });
+            }
         }
 
         Schema::table($visitsTableName, function (Blueprint $table): void {

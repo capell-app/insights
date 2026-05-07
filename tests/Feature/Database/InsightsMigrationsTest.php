@@ -18,7 +18,8 @@ it('loads insights migrations', function (): void {
         ->and(Schema::hasColumn('insights_visits', 'legacy_session_id'))->toBeTrue()
         ->and(Schema::hasColumn('insights_consents', 'categories'))->toBeTrue()
         ->and(Schema::hasColumn('insights_events', 'document_y'))->toBeTrue()
-        ->and(Schema::hasColumn('insights_events', 'legacy_page_view_id'))->toBeTrue();
+        ->and(Schema::hasColumn('insights_events', 'legacy_page_view_id'))->toBeTrue()
+        ->and(Schema::hasIndex('insights_events', 'insights_events_path_type_occurred_index'))->toBeTrue();
 });
 
 it('imports legacy page views idempotently into insights events', function (): void {
