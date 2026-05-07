@@ -48,7 +48,7 @@ final class BuildPopularPagesQueryAction
                 'path' => (string) $event->path,
                 'url' => (string) $event->url,
                 'page_views' => $event->page_views,
-                'unique_visits' => (int) $event->unique_visits,
+                'unique_visits' => $event->unique_visits,
                 'clicks' => $clicksByPath[$event->path] ?? 0,
             ])
             ->values();

@@ -7,10 +7,23 @@ namespace Capell\Insights\Models;
 use Capell\Insights\Database\Factories\InsightsVisitFactory;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property string $uuid
+ * @property string|null $ip_hash
+ * @property string|null $user_agent_hash
+ * @property int|null $site_id
+ * @property int|null $language_id
+ * @property string|null $landing_url
+ * @property InsightsConsentRegion $consent_region
+ * @property InsightsConsentStatus $consent_status
+ * @property CarbonImmutable|null $started_at
+ * @property CarbonImmutable|null $last_seen_at
+ */
 class InsightsVisit extends Model
 {
     /** @use HasFactory<InsightsVisitFactory> */

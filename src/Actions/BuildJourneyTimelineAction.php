@@ -36,7 +36,7 @@ final class BuildJourneyTimelineAction
                 $previousOccurredAt = $occurredAt;
 
                 return new InsightsJourneyStepData(
-                    sequence: (int) $event->sequence,
+                    sequence: $event->sequence,
                     type: $event->type,
                     url: (string) $event->url,
                     path: (string) $event->path,

@@ -64,7 +64,7 @@ final class BuildLiveInsightsStatsAction
             ->get()
             ->map(fn (InsightsEvent $event): array => [
                 'path' => (string) $event->path,
-                'page_views' => (int) $event->page_views,
+                'page_views' => $event->page_views,
             ]);
     }
 

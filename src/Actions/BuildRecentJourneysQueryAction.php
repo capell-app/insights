@@ -37,7 +37,7 @@ final class BuildRecentJourneysQueryAction
 
                 return [
                     'id' => (int) $visit->getKey(),
-                    'visit' => (string) $visit->uuid,
+                    'visit' => $visit->uuid,
                     'steps' => $timeline->count(),
                     'landing_url' => (string) $visit->landing_url,
                     'last_path' => $lastStep instanceof InsightsJourneyStepData ? $lastStep->path : '',

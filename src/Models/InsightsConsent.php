@@ -8,10 +8,20 @@ use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Database\Factories\InsightsConsentFactory;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property InsightsConsentRegion $consent_region
+ * @property InsightsConsentStatus $status
+ * @property InsightsConsentData $categories
+ * @property string|null $ip_hash
+ * @property string|null $user_agent_hash
+ * @property CarbonImmutable|null $terms_accepted_at
+ * @property CarbonImmutable|null $decided_at
+ */
 class InsightsConsent extends Model
 {
     /** @use HasFactory<InsightsConsentFactory> */

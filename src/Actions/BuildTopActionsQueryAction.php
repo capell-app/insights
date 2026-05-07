@@ -55,7 +55,7 @@ final class BuildTopActionsQueryAction
                 'event_name' => $event->event_name,
                 'label' => $event->label,
                 'location' => $event->location,
-                'events' => (int) $event->events,
+                'events' => $event->events,
             ])
             ->values();
     }
