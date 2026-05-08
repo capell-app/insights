@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Capell\Admin\Contracts\DashboardSettingsContributor;
+use Capell\Admin\Facades\CapellAdmin;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
-use Capell\Insights\Filament\Widgets\InsightsOverviewStatsWidget;
 use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
 use Capell\Insights\Filament\Widgets\PopularPagesWidget;
 use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
@@ -71,12 +71,16 @@ it('registers the insights dashboard settings contributor', function (): void {
         ->map(fn (DashboardSettingsContributor $contributor): string => $contributor::class);
 
     expect($contributors)->toContain(InsightsDashboardSettingsContributor::class);
+
+    expect(collect(CapellAdmin::getOverviewStats(false))->pluck('key')->all())
+        ->toContain('insights_overview.page-views')
+        ->toContain('insights_overview.unique-visits')
+        ->toContain('insights_overview.clicks');
 });
 
 it('renders insights dashboard widgets', function (string $widgetClass): void {
     Livewire::test($widgetClass)->assertOk();
 })->with([
-    InsightsOverviewStatsWidget::class,
     PopularPagesWidget::class,
     TrendingPagesWidget::class,
     LiveInsightsStatsWidget::class,
