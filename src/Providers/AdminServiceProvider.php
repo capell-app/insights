@@ -84,8 +84,8 @@ class AdminServiceProvider extends ServiceProvider
         foreach (['page-views' => 130, 'unique-visits' => 131, 'clicks' => 132] as $metricId => $sort) {
             CapellAdmin::registerOverviewStat(
                 key: 'insights_overview.' . $metricId,
-                label: fn (): string => (string) $this->insightsOverview()->firstWhere('id', $metricId)['label'],
-                value: fn (): int => (int) $this->insightsOverview()->firstWhere('id', $metricId)['value'],
+                label: fn (): string => $this->insightsOverview()->firstWhere('id', $metricId)['label'],
+                value: fn (): int => $this->insightsOverview()->firstWhere('id', $metricId)['value'],
                 group: fn (): string => __('capell-insights::settings.fieldset'),
                 sort: $sort,
                 settingsKey: 'insights_overview',
