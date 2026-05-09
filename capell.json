@@ -1,4 +1,5 @@
 {
+    "manifest-version": 2,
     "name": "capell-app/insights",
     "kind": "package",
     "capell-version": "^4.0",
@@ -6,10 +7,51 @@
     "tier": "premium",
     "bundle": "growth",
     "description": "Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.",
-    "contexts": ["admin", "frontend"],
-    "requires": ["capell-app/core", "capell-app/admin", "capell-app/frontend"],
+    "surfaces": [
+        "admin",
+        "frontend"
+    ],
+    "dependencies": {
+        "requires": [
+            "capell-app/core",
+            "capell-app/admin",
+            "capell-app/frontend"
+        ],
+        "optional": [],
+        "conflicts": []
+    },
+    "lifecycle": {
+        "activation": "manual",
+        "defaultStatus": "available",
+        "requiresInstallCommand": false
+    },
     "providers": {
-        "shared": ["Capell\\Insights\\Providers\\InsightsServiceProvider"],
-        "admin": ["Capell\\Insights\\Providers\\AdminServiceProvider"]
-    }
+        "metadata": [],
+        "install": [],
+        "runtime": [
+            "Capell\\Insights\\Providers\\InsightsServiceProvider"
+        ],
+        "admin": [
+            "Capell\\Insights\\Providers\\AdminServiceProvider"
+        ],
+        "frontend": []
+    },
+    "database": {
+        "migrations": true,
+        "settings": true,
+        "requiredTables": []
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "setupParams": [],
+        "demo": null,
+        "demoParams": [],
+        "health": null
+    },
+    "settings": [],
+    "permissions": [],
+    "capabilities": [],
+    "assets": [],
+    "healthChecks": []
 }
