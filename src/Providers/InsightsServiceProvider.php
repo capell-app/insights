@@ -32,12 +32,12 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
             ->hasViews(self::$name)
             ->hasRoute('web')
             ->hasMigrations([
-                'create_insights_visits_table',
-                'create_insights_consents_table',
-                'create_insights_events_table',
-                'add_insights_reporting_indexes',
-                'import_legacy_page_views',
-                'add_page_url_hit_columns',
+                '2026_05_10_190855_01_create_insights_visits_table',
+                '2026_05_10_190855_02_create_insights_consents_table',
+                '2026_05_10_190855_03_create_insights_events_table',
+                '2026_05_10_190855_04_add_insights_reporting_indexes',
+                '2026_05_10_190855_05_import_legacy_page_views',
+                '2026_05_10_190855_06_add_page_url_hit_columns',
             ]);
     }
 
@@ -82,7 +82,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         $provider = $this->app->make(InsightsSettingsMigrationProvider::class);
 
         $this->publishes([
-            $provider->path() . '/create_insights_settings.php' => database_path('settings/create_insights_settings.php'),
+            $provider->path() . '/2026_05_10_190856_01_create_insights_settings.php' => database_path('settings/2026_05_10_190856_01_create_insights_settings.php'),
         ], 'capell-insights-settings');
     }
 

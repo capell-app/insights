@@ -13,7 +13,7 @@ final class InsightsSettingsMigrationProvider implements SettingsMigrationProvid
      */
     public function getSettingMigrations(): array
     {
-        return ['create_insights_settings'];
+        return ['2026_05_10_190856_01_create_insights_settings'];
     }
 
     /**
