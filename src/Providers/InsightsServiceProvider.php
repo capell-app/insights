@@ -49,7 +49,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
     public function packageRegistered(): void
     {
         $this
-            ->registerPackageMetadata()
+
             ->registerSettingsMigrations();
 
         $this->app->booted(function (): void {
@@ -84,20 +84,6 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         $this->publishes([
             $provider->path() . '/2026_05_10_190856_01_create_insights_settings.php' => database_path('settings/2026_05_10_190856_01_create_insights_settings.php'),
         ], 'capell-insights-settings');
-    }
-
-    private function registerPackageMetadata(): self
-    {
-        CapellCore::registerPackage(
-            self::$packageName,
-            type: self::getType(),
-            serviceProviderClass: self::class,
-            path: realpath(__DIR__ . '/../..'),
-            version: CapellCore::getInstalledPrettyVersion(self::$packageName),
-            description: fn (): string => __('capell-insights::package.description'),
-        );
-
-        return $this;
     }
 
     private function isPackageInstalled(): bool
