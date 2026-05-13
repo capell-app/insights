@@ -50,6 +50,14 @@ Gives site operators practical traffic and journey insight without sending the w
 - Insights settings screen.
 - Frontend page with tracker active.
 
+## Screenshots
+
+![Insights dashboard page](../../../public/docs/screenshots/packages/insights/insights-overview-dashboard-widgets.png)
+
+![Insights settings screen](../../../public/docs/screenshots/packages/insights/insights-settings-screen.png)
+
+Widget-specific screenshots should be regenerated after analytics demo data is seeded; empty widget captures do not add useful documentation.
+
 ## Pitfalls
 
 - Exclude admin, Livewire, and insights routes from tracking.
