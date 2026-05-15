@@ -26,9 +26,12 @@ return new class extends Migration
             $table->string('utm_campaign')->nullable()->index();
             $table->string('ip_hash')->nullable();
             $table->string('user_agent_hash')->nullable();
+            $table->string('legacy_session_id', 64)->nullable();
             $table->dateTime('started_at')->index();
             $table->dateTime('last_seen_at')->nullable()->index();
             $table->timestamps();
+
+            $table->index('legacy_session_id', 'insights_visits_legacy_session_index');
         });
     }
 

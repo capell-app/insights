@@ -23,17 +23,17 @@ final class BuildInsightsOverviewStatsAction
         return collect([
             [
                 'id' => 'page-views',
-                'label' => __('capell-insights::widgets.page_views'),
+                'label' => (string) __('capell-insights::widgets.page_views'),
                 'value' => $this->countEvents($window, InsightsEventType::PageView),
             ],
             [
                 'id' => 'unique-visits',
-                'label' => __('capell-insights::widgets.unique_visits'),
+                'label' => (string) __('capell-insights::widgets.unique_visits'),
                 'value' => $this->countUniqueVisits($window),
             ],
             [
                 'id' => 'clicks',
-                'label' => __('capell-insights::widgets.clicks'),
+                'label' => (string) __('capell-insights::widgets.clicks'),
                 'value' => $this->countEvents($window, InsightsEventType::Click),
             ],
         ]);

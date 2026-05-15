@@ -35,7 +35,6 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_10_190855_01_create_insights_visits_table',
                 '2026_05_10_190855_02_create_insights_consents_table',
                 '2026_05_10_190855_03_create_insights_events_table',
-                '2026_05_10_190855_04_add_insights_reporting_indexes',
                 '2026_05_10_190855_05_import_legacy_page_views',
                 '2026_05_10_190855_06_add_page_url_hit_columns',
             ]);

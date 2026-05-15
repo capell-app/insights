@@ -16,9 +16,6 @@ final class BuildLiveInsightsStatsAction
 {
     use AsAction;
 
-    /**
-     * @return Collection<int, array<string, int|string>>
-     */
     public function handle(int $minutes = 15, ?int $siteId = null, ?int $limit = 5): Collection
     {
         $startsAt = now()->subMinutes($minutes)->toImmutable();
@@ -28,17 +25,17 @@ final class BuildLiveInsightsStatsAction
         return collect([
             [
                 'id' => 'live-page-views',
-                'metric' => __('capell-insights::widgets.live_page_views'),
+                'metric' => (string) __('capell-insights::widgets.live_page_views'),
                 'value' => $this->pageViews($startsAt, $endsAt, $siteId),
             ],
             [
                 'id' => 'live-active-visits',
-                'metric' => __('capell-insights::widgets.live_active_visits'),
+                'metric' => (string) __('capell-insights::widgets.live_active_visits'),
                 'value' => $this->activeVisits($startsAt, $endsAt, $siteId),
             ],
             [
                 'id' => 'live-top-page',
-                'metric' => __('capell-insights::widgets.live_top_page'),
+                'metric' => (string) __('capell-insights::widgets.live_top_page'),
                 'value' => $topPages->first()['path'] ?? '-',
             ],
         ]);

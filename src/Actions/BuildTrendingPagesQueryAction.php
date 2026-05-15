@@ -17,9 +17,6 @@ final class BuildTrendingPagesQueryAction
 {
     use AsAction;
 
-    /**
-     * @return Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int, change_percentage: float}>
-     */
     public function handle(InsightsWindowData $window, ?int $limit = null): Collection
     {
         $previousPageViews = $this->previousPageViews($window);

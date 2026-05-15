@@ -23,8 +23,8 @@ final class InsightsOverviewStatsWidget extends BaseWidget implements CapellWidg
 
     protected static string $settingsKey = 'insights_overview';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full'];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?int $sort = 1;
 

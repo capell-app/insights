@@ -16,9 +16,6 @@ final class BuildTopActionsQueryAction
 {
     use AsAction;
 
-    /**
-     * @return Collection<int, array{action: string, event_name: ?string, label: ?string, location: ?string, events: int}>
-     */
     public function handle(InsightsWindowData $window, ?int $limit = 5): Collection
     {
         $query = InsightsEvent::query()

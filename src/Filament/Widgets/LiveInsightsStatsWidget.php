@@ -21,8 +21,8 @@ final class LiveInsightsStatsWidget extends BaseWidget implements CapellWidgetCo
 
     protected static string $settingsKey = 'insights_live_stats';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = ['md' => 1];
 
     protected static ?int $sort = 4;
 

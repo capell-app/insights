@@ -23,8 +23,8 @@ final class TopActionsWidget extends BaseWidget implements CapellWidgetContract
 
     protected static string $settingsKey = 'insights_top_actions';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = ['md' => 1];
 
     protected static ?int $sort = 5;
 
