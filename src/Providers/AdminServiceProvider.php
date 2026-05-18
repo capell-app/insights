@@ -22,9 +22,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
+use Override;
 
 class AdminServiceProvider extends ServiceProvider
 {
+    #[Override]
     public function register(): void
     {
         //

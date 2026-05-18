@@ -12,6 +12,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * @property InsightsConsentRegion $consent_region
@@ -31,6 +32,7 @@ class InsightsConsent extends Model
 
     protected static string $factory = InsightsConsentFactory::class;
 
+    #[Override]
     public function getTable(): string
     {
         $tableName = config('capell-insights.tables.consents');
@@ -46,6 +48,7 @@ class InsightsConsent extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

@@ -58,6 +58,7 @@ class InsightsTestCase extends AbstractTestCase
      * @param  Application  $app
      * @return class-string[]
      */
+    #[Override]
     protected function getPackageProviders(mixed $app): array
     {
         return [

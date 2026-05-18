@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Override;
 
 /**
  * @property string $uuid
@@ -33,6 +34,7 @@ class InsightsVisit extends Model
 
     protected static string $factory = InsightsVisitFactory::class;
 
+    #[Override]
     public function getTable(): string
     {
         $tableName = config('capell-insights.tables.visits');
@@ -53,6 +55,7 @@ class InsightsVisit extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [

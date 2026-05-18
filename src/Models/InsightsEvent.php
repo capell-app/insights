@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
 
 /**
  * @property string|null $path
@@ -46,6 +47,7 @@ class InsightsEvent extends Model
 
     protected static string $factory = InsightsEventFactory::class;
 
+    #[Override]
     public function getTable(): string
     {
         $tableName = config('capell-insights.tables.events');
@@ -61,6 +63,7 @@ class InsightsEvent extends Model
     /**
      * @return array<string, string>
      */
+    #[Override]
     protected function casts(): array
     {
         return [
