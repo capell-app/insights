@@ -2,45 +2,47 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Filament\Widgets;
+namespace Capell\Insights\Filament\Widgets;
 
 use Capell\Admin\Contracts\CapellWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
-use Capell\Analytics\Actions\BuildTopActionsQueryAction;
-use Capell\Analytics\Filament\Widgets\Concerns\BuildsAnalyticsDashboardWindow;
+use Capell\Insights\Actions\BuildTopActionsQueryAction;
+use Capell\Insights\Filament\Widgets\Concerns\BuildsInsightsDashboardWindow;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Collection;
+use Override;
 
 final class TopActionsWidget extends BaseWidget implements CapellWidgetContract
 {
-    use BuildsAnalyticsDashboardWindow;
+    use BuildsInsightsDashboardWindow;
     use GatedByRoleAndSettings;
 
     /** @var list<string> */
     protected static array $rolesConfigKeys = ['admin', 'super_admin'];
 
-    protected static string $settingsKey = 'analytics_top_actions';
+    protected static string $settingsKey = 'insights_top_actions';
 
-    /** @var int|string|array<string, int|string|null> */
-    protected int|string|array $columnSpan = ['default' => 'full', 'md' => 1];
+    /** @var int|string|array<string, int|null> */
+    protected int|string|array $columnSpan = ['md' => 1];
 
     protected static ?int $sort = 5;
 
+    #[Override]
     public function table(Table $table): Table
     {
         return $table
             ->records(fn (): Collection => $this->getRecords())
-            ->queryStringIdentifier('analytics-top-actions')
+            ->queryStringIdentifier('insights-top-actions')
             ->paginated(false)
             ->searchable(false)
-            ->heading(__('capell-analytics::widgets.top_actions'))
+            ->heading(__('capell-insights::widgets.top_actions'))
             ->columns([
                 TextColumn::make('event_name')
-                    ->label(__('capell-analytics::widgets.action')),
+                    ->label(__('capell-insights::widgets.action')),
                 TextColumn::make('events')
-                    ->label(__('capell-analytics::widgets.events'))
+                    ->label(__('capell-insights::widgets.events'))
                     ->numeric(),
             ]);
     }
@@ -50,7 +52,7 @@ final class TopActionsWidget extends BaseWidget implements CapellWidgetContract
      */
     private function getRecords(): Collection
     {
-        return BuildTopActionsQueryAction::run($this->getAnalyticsWindow(), 5)
+        return BuildTopActionsQueryAction::run($this->getInsightsWindow(), 5)
             ->map(fn (array $summary, int $index): array => [
                 'id' => 'top-action-' . $index,
                 'event_name' => $summary['action'],

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Actions;
+namespace Capell\Insights\Actions;
 
-use Capell\Analytics\Data\AnalyticsJourneyStepData;
-use Capell\Analytics\Models\AnalyticsEvent;
-use Capell\Analytics\Models\AnalyticsVisit;
+use Capell\Insights\Data\InsightsJourneyStepData;
+use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -16,9 +16,9 @@ final class BuildJourneyTimelineAction
     use AsAction;
 
     /**
-     * @return Collection<int, AnalyticsJourneyStepData>
+     * @return Collection<int, InsightsJourneyStepData>
      */
-    public function handle(AnalyticsVisit $visit): Collection
+    public function handle(InsightsVisit $visit): Collection
     {
         $previousOccurredAt = null;
 
@@ -26,7 +26,7 @@ final class BuildJourneyTimelineAction
             ->orderBy('sequence')
             ->oldest('occurred_at')
             ->get()
-            ->map(function (AnalyticsEvent $event) use (&$previousOccurredAt): AnalyticsJourneyStepData {
+            ->map(function (InsightsEvent $event) use (&$previousOccurredAt): InsightsJourneyStepData {
                 $occurredAt = $event->occurred_at instanceof CarbonImmutable
                     ? $event->occurred_at
                     : CarbonImmutable::parse($event->occurred_at);
@@ -35,8 +35,8 @@ final class BuildJourneyTimelineAction
                     : null;
                 $previousOccurredAt = $occurredAt;
 
-                return new AnalyticsJourneyStepData(
-                    sequence: (int) $event->sequence,
+                return new InsightsJourneyStepData(
+                    sequence: $event->sequence,
                     type: $event->type,
                     url: (string) $event->url,
                     path: (string) $event->path,

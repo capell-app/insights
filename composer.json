@@ -1,14 +1,14 @@
 {
-    "name": "capell-app/analytics",
-    "description": "First-party analytics, visitor journeys, click tracking, and consent management.",
+    "name": "capell-app/insights",
+    "description": "First-party insights, visitor journeys, click tracking, and consent management.",
     "keywords": [
         "capell",
-        "analytics",
+        "insights",
         "laravel",
         "filamentphp",
         "cms"
     ],
-    "homepage": "https://github.com/capell-app/analytics",
+    "homepage": "https://github.com/capell-app/insights",
     "license": "proprietary",
     "authors": [
         {
@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "capell-app/admin": "^4.0",
         "capell-app/core": "^4.0",
         "capell-app/frontend": "^4.0",
@@ -28,19 +28,19 @@
     },
     "autoload": {
         "psr-4": {
-            "Capell\\Analytics\\": "src/",
-            "Capell\\Analytics\\Database\\Factories\\": "database/factories"
+            "Capell\\Insights\\": "src/",
+            "Capell\\Insights\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Capell\\Analytics\\Tests\\": "tests/"
+            "Capell\\Insights\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Capell\\Analytics\\Providers\\AnalyticsServiceProvider"
+                "Capell\\Insights\\Providers\\InsightsServiceProvider"
             ]
         }
     },

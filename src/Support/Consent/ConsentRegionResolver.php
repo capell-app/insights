@@ -2,62 +2,62 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Support\Consent;
+namespace Capell\Insights\Support\Consent;
 
-use Capell\Analytics\Enums\AnalyticsConsentRegion;
+use Capell\Insights\Enums\InsightsConsentRegion;
 use Throwable;
 
 final class ConsentRegionResolver
 {
-    private const UK_AND_EUROPE_COUNTRY_CODES = [
+    private const array UK_AND_EUROPE_COUNTRY_CODES = [
         'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE',
         'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT',
         'RO', 'SK', 'SI', 'ES', 'SE', 'GB', 'UK', 'IS', 'LI', 'NO', 'CH',
     ];
 
-    public function resolve(): AnalyticsConsentRegion
+    public function resolve(): InsightsConsentRegion
     {
         $configuredRegion = $this->resolveConfiguredRegion();
 
-        if ($configuredRegion instanceof AnalyticsConsentRegion) {
+        if ($configuredRegion instanceof InsightsConsentRegion) {
             return $configuredRegion;
         }
 
         if (! function_exists('geoip')) {
-            return AnalyticsConsentRegion::Unknown;
+            return InsightsConsentRegion::Unknown;
         }
 
         try {
             return $this->resolveFromLocation(geoip()->getLocation());
         } catch (Throwable) {
-            return AnalyticsConsentRegion::Unknown;
+            return InsightsConsentRegion::Unknown;
         }
     }
 
-    public function resolveFromLocation(mixed $location): AnalyticsConsentRegion
+    public function resolveFromLocation(mixed $location): InsightsConsentRegion
     {
         $countryCode = $this->countryCodeFromLocation($location);
 
         if ($countryCode === null) {
-            return AnalyticsConsentRegion::Unknown;
+            return InsightsConsentRegion::Unknown;
         }
 
         if (in_array($countryCode, self::UK_AND_EUROPE_COUNTRY_CODES, true)) {
-            return AnalyticsConsentRegion::UkOrEurope;
+            return InsightsConsentRegion::UkOrEurope;
         }
 
-        return AnalyticsConsentRegion::OutsideUkOrEurope;
+        return InsightsConsentRegion::OutsideUkOrEurope;
     }
 
-    private function resolveConfiguredRegion(): ?AnalyticsConsentRegion
+    private function resolveConfiguredRegion(): ?InsightsConsentRegion
     {
-        $configuredRegion = config('capell-analytics.default_consent_region');
+        $configuredRegion = config('capell-insights.default_consent_region');
 
         if (! is_string($configuredRegion)) {
             return null;
         }
 
-        return AnalyticsConsentRegion::tryFrom($configuredRegion);
+        return InsightsConsentRegion::tryFrom($configuredRegion);
     }
 
     private function countryCodeFromLocation(mixed $location): ?string

@@ -2,6 +2,6 @@
 
 declare(strict_types=1);
 
-use Capell\Analytics\Tests\AnalyticsTestCase;
+use Capell\Insights\Tests\InsightsTestCase;
 
-pest()->extend(AnalyticsTestCase::class)->group('analytics')->in(__DIR__);
+pest()->extend(InsightsTestCase::class)->group('insights')->in(__DIR__);

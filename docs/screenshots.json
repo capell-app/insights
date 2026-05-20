@@ -1,59 +1,69 @@
 {
-    "package": "analytics",
-    "composerName": "capell-app/analytics",
+    "package": "insights",
+    "composerName": "capell-app/insights",
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
-    "outputDirectory": "public/docs/screenshots/packages/analytics",
+    "outputDirectory": "public/docs/screenshots/packages/insights",
     "entries": [
         {
-            "id": "analytics-overview-dashboard-widgets",
-            "title": "Analytics overview dashboard widgets.",
-            "package": "analytics",
+            "id": "insights-overview-dashboard-widgets",
+            "title": "Insights overview dashboard widgets.",
+            "package": "insights",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator reviews analytics overview stats for seeded visits and events.",
+            "screenshotPath": "public/docs/screenshots/packages/insights/insights-overview-dashboard-widgets.png"
         },
         {
             "id": "popular-pages-widget",
             "title": "Popular pages widget.",
-            "package": "analytics",
+            "package": "insights",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator identifies high-traffic pages from seeded page-view data.",
+            "screenshotPath": "public/docs/screenshots/packages/insights/popular-pages-widget.png"
         },
         {
             "id": "recent-journeys-widget",
             "title": "Recent journeys widget.",
-            "package": "analytics",
+            "package": "insights",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "An administrator follows recent visitor journeys across pages and events.",
+            "screenshotPath": "public/docs/screenshots/packages/insights/recent-journeys-widget.png"
         },
         {
-            "id": "analytics-settings-screen",
-            "title": "Analytics settings screen.",
-            "package": "analytics",
+            "id": "insights-settings-screen",
+            "title": "Insights settings screen.",
+            "package": "insights",
             "surface": "admin",
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "A site owner configures tracking, consent, retention, and beacon behavior.",
+            "screenshotPath": "public/docs/screenshots/packages/insights/insights-settings-screen.png"
         },
         {
             "id": "frontend-page-with-tracker-active",
             "title": "Frontend page with tracker active.",
-            "package": "analytics",
+            "package": "insights",
             "surface": "frontend",
             "targetType": "frontend-url",
             "target": null,
             "required": true,
-            "notes": "Resolved by the deployment screenshot runner after the package is installed and demo data is prepared."
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "useCase": "A visitor loads a public page where the tracker script is active and consent rules are respected.",
+            "screenshotPath": "public/docs/screenshots/packages/insights/frontend-page-with-tracker-active.png"
         }
     ]
 }

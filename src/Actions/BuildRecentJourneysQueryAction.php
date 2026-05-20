@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Actions;
+namespace Capell\Insights\Actions;
 
-use Capell\Analytics\Data\AnalyticsJourneyStepData;
-use Capell\Analytics\Data\AnalyticsWindowData;
-use Capell\Analytics\Models\AnalyticsVisit;
+use Capell\Insights\Data\InsightsJourneyStepData;
+use Capell\Insights\Data\InsightsWindowData;
+use Capell\Insights\Models\InsightsVisit;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -18,11 +18,11 @@ final class BuildRecentJourneysQueryAction
     /**
      * @return Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}>
      */
-    public function handle(?int $limit = 5, ?AnalyticsWindowData $window = null): Collection
+    public function handle(?int $limit = 5, ?InsightsWindowData $window = null): Collection
     {
-        $query = AnalyticsVisit::query()
+        $query = InsightsVisit::query()
             ->whereHas('events')
-            ->when($window instanceof AnalyticsWindowData, fn (Builder $builder): Builder => $builder->whereBetween('last_seen_at', [$window->startsAt, $window->endsAt]))
+            ->when($window instanceof InsightsWindowData, fn (Builder $builder): Builder => $builder->whereBetween('last_seen_at', [$window->startsAt, $window->endsAt]))
             ->latest('last_seen_at');
 
         if ($limit !== null) {
@@ -31,16 +31,16 @@ final class BuildRecentJourneysQueryAction
 
         return $query
             ->get()
-            ->map(function (AnalyticsVisit $visit): array {
+            ->map(function (InsightsVisit $visit): array {
                 $timeline = BuildJourneyTimelineAction::run($visit);
                 $lastStep = $timeline->last();
 
                 return [
                     'id' => (int) $visit->getKey(),
-                    'visit' => (string) $visit->uuid,
-                    'steps' => $timeline->count(),
+                    'visit' => $visit->uuid,
+                    'steps' => (int) $timeline->count(),
                     'landing_url' => (string) $visit->landing_url,
-                    'last_path' => $lastStep instanceof AnalyticsJourneyStepData ? $lastStep->path : '',
+                    'last_path' => $lastStep instanceof InsightsJourneyStepData ? $lastStep->path : '',
                 ];
             })
             ->values();

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Actions;
+namespace Capell\Insights\Actions;
 
-use Capell\Analytics\Enums\AnalyticsConsentRegion;
-use Capell\Analytics\Enums\AnalyticsConsentStatus;
-use Capell\Analytics\Enums\AnalyticsEventType;
-use Capell\Analytics\Models\AnalyticsEvent;
-use Capell\Analytics\Models\AnalyticsVisit;
+use Capell\Insights\Enums\InsightsConsentRegion;
+use Capell\Insights\Enums\InsightsConsentStatus;
+use Capell\Insights\Enums\InsightsEventType;
+use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -25,8 +25,8 @@ final class ImportLegacyPageViewsAction
             return 0;
         }
 
-        $eventsTable = (new AnalyticsEvent)->getTable();
-        $visitsTable = (new AnalyticsVisit)->getTable();
+        $eventsTable = (new InsightsEvent)->getTable();
+        $visitsTable = (new InsightsVisit)->getTable();
         $imported = 0;
 
         DB::table('page_views')
@@ -64,8 +64,8 @@ final class ImportLegacyPageViewsAction
             [
                 'site_id' => $pageView->site_id,
                 'language_id' => $pageView->language_id,
-                'consent_region' => AnalyticsConsentRegion::Unknown->value,
-                'consent_status' => AnalyticsConsentStatus::Pending->value,
+                'consent_region' => InsightsConsentRegion::Unknown->value,
+                'consent_status' => InsightsConsentStatus::Pending->value,
                 'landing_url' => $pageView->url,
                 'referrer_url' => null,
                 'utm_source' => null,
@@ -98,7 +98,7 @@ final class ImportLegacyPageViewsAction
                 'visit_id' => $visitId,
                 'site_id' => $pageView->site_id,
                 'language_id' => $pageView->language_id,
-                'type' => AnalyticsEventType::PageView->value,
+                'type' => InsightsEventType::PageView->value,
                 'url' => $pageView->url,
                 'path' => $path,
                 'title' => null,

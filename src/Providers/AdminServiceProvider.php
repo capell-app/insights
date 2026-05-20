@@ -2,27 +2,31 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Providers;
+namespace Capell\Insights\Providers;
 
 use Capell\Admin\Contracts\DashboardSettingsContributor;
-use Capell\Admin\Data\AdminSurfaceContributionData;
 use Capell\Admin\Enums\DashboardEnum;
 use Capell\Admin\Facades\CapellAdmin;
-use Capell\Analytics\Console\Commands\PurgeAnalyticsDataCommand;
-use Capell\Analytics\Filament\Pages\AnalyticsPage;
-use Capell\Analytics\Filament\Settings\Contributors\AnalyticsDashboardSettingsContributor;
-use Capell\Analytics\Filament\Widgets\AnalyticsOverviewStatsWidget;
-use Capell\Analytics\Filament\Widgets\LiveAnalyticsStatsWidget;
-use Capell\Analytics\Filament\Widgets\PopularPagesWidget;
-use Capell\Analytics\Filament\Widgets\RecentJourneysWidget;
-use Capell\Analytics\Filament\Widgets\TopActionsWidget;
-use Capell\Analytics\Filament\Widgets\TrendingPagesWidget;
 use Capell\Core\Facades\CapellCore;
+use Capell\Insights\Actions\BuildInsightsOverviewStatsAction;
+use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
+use Capell\Insights\Data\InsightsWindowData;
+use Capell\Insights\Filament\Pages\InsightsPage;
+use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
+use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
+use Capell\Insights\Filament\Widgets\PopularPagesWidget;
+use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
+use Capell\Insights\Filament\Widgets\TopActionsWidget;
+use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
+use Override;
 
 class AdminServiceProvider extends ServiceProvider
 {
+    #[Override]
     public function register(): void
     {
         //
@@ -38,18 +42,19 @@ class AdminServiceProvider extends ServiceProvider
             ->registerDashboardSettingsContributor()
             ->registerCommands()
             ->registerPages()
+            ->registerOverviewStats()
             ->registerDashboardWidgets()
             ->registerSchedule();
     }
 
     private function isPackageInstalled(): bool
     {
-        return CapellCore::isPackageInstalled(AnalyticsServiceProvider::$packageName);
+        return CapellCore::isPackageInstalled(InsightsServiceProvider::$packageName);
     }
 
     private function registerDashboardSettingsContributor(): self
     {
-        $this->app->tag([AnalyticsDashboardSettingsContributor::class], DashboardSettingsContributor::TAG);
+        $this->app->tag([InsightsDashboardSettingsContributor::class], DashboardSettingsContributor::TAG);
 
         return $this;
     }
@@ -60,26 +65,61 @@ class AdminServiceProvider extends ServiceProvider
             return $this;
         }
 
-        $this->commands([PurgeAnalyticsDataCommand::class]);
+        $this->commands([PurgeInsightsDataCommand::class]);
 
         return $this;
     }
 
     private function registerDashboardWidgets(): self
     {
-        CapellAdmin::registerDashboardWidget(AnalyticsOverviewStatsWidget::class, DashboardEnum::Main);
         CapellAdmin::registerDashboardWidget(PopularPagesWidget::class, DashboardEnum::Main);
         CapellAdmin::registerDashboardWidget(TrendingPagesWidget::class, DashboardEnum::Main);
-        CapellAdmin::registerDashboardWidget(LiveAnalyticsStatsWidget::class, DashboardEnum::Main);
+        CapellAdmin::registerDashboardWidget(LiveInsightsStatsWidget::class, DashboardEnum::Main);
         CapellAdmin::registerDashboardWidget(RecentJourneysWidget::class, DashboardEnum::Main);
         CapellAdmin::registerDashboardWidget(TopActionsWidget::class, DashboardEnum::Main);
 
         return $this;
     }
 
+    private function registerOverviewStats(): self
+    {
+        foreach (['page-views' => 130, 'unique-visits' => 131, 'clicks' => 132] as $metricId => $sort) {
+            CapellAdmin::registerOverviewStat(
+                key: 'insights_overview.' . $metricId,
+                label: fn (): string => $this->insightsOverview()->firstWhere('id', $metricId)['label'],
+                value: fn (): int => $this->insightsOverview()->firstWhere('id', $metricId)['value'],
+                group: fn (): string => __('capell-insights::settings.fieldset'),
+                sort: $sort,
+                settingsKey: 'insights_overview',
+                settingsLabel: fn (): string => __('capell-insights::widgets.insights_overview'),
+            );
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, array{id: string, label: string, value: int}>
+     */
+    private function insightsOverview(): Collection
+    {
+        static $overview = null;
+
+        if ($overview instanceof Collection) {
+            return $overview;
+        }
+
+        $overview = BuildInsightsOverviewStatsAction::run(new InsightsWindowData(
+            startsAt: CarbonImmutable::now()->subDays(30)->startOfDay(),
+            endsAt: CarbonImmutable::now()->endOfDay(),
+        ));
+
+        return $overview;
+    }
+
     private function registerPages(): self
     {
-        CapellAdmin::contributeToAdminSurface(AdminSurfaceContributionData::page(AnalyticsPage::class));
+        CapellAdmin::registerExtensionPage(InsightsServiceProvider::$packageName, InsightsPage::class);
 
         return $this;
     }
@@ -87,7 +127,7 @@ class AdminServiceProvider extends ServiceProvider
     private function registerSchedule(): self
     {
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
-            $schedule->command('analytics:purge')->monthly();
+            $schedule->command('insights:purge')->monthly();
         });
 
         return $this;

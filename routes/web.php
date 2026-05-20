@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-use Capell\Analytics\Http\Controllers\AnalyticsBeaconController;
-use Capell\Analytics\Http\Controllers\AnalyticsConsentController;
+use Capell\Insights\Http\Controllers\InsightsBeaconController;
+use Capell\Insights\Http\Controllers\InsightsConsentController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
-$routePrefix = trim(config('capell-analytics.route_prefix', 'capell/analytics'), '/');
+$routePrefix = trim(config('capell-insights.route_prefix', 'capell/insights'), '/');
 
 Route::prefix($routePrefix)
     ->middleware(['web'])
     ->group(function (): void {
-        Route::post('events', AnalyticsBeaconController::class)
+        Route::post('events', InsightsBeaconController::class)
             ->middleware(['throttle:60,1'])
             ->withoutMiddleware([VerifyCsrfToken::class])
-            ->name('capell-analytics.events');
+            ->name('capell-insights.events');
 
-        Route::post('consent', AnalyticsConsentController::class)
+        Route::post('consent', InsightsConsentController::class)
             ->middleware(['throttle:60,1'])
             ->withoutMiddleware([VerifyCsrfToken::class])
-            ->name('capell-analytics.consent');
+            ->name('capell-insights.consent');
     });

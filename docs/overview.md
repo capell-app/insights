@@ -1,70 +1,78 @@
-# Analytics
+# Insights
 
 Status: **Available, schema-owning** · Kind: **package** · Tier: **premium** · Bundle: **growth** · Contexts: **admin, frontend** · Product group: **Capell Growth**
 
-This page is the consolidated implementation overview for the Analytics package. It is extracted from the package README, service providers, migrations, config files, routes, resources, models, actions, and the shared Capell ERD notes where available.
+This page is the consolidated implementation overview for the Insights package. It is extracted from the package README, service providers, migrations, config files, routes, resources, models, actions, and the shared Capell ERD notes where available.
 
 ## What This Plugin Adds
 
-Analytics records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
+Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
 
 - Frontend beacon endpoints for events and consent.
 - Render hook that can register the tracker.
 - Dashboard widgets for overview stats, popular pages, top actions, journeys, and trending pages.
-- Settings schema for analytics retention and behaviour.
+- Settings schema for insights retention and behaviour.
 
 ## Developer Notes
 
-Keeps analytics in Laravel actions and data objects, with explicit consent enums and configurable routes.
+Keeps insights in Laravel actions and data objects, with explicit consent enums and configurable routes.
 
-- AnalyticsServiceProvider and AdminServiceProvider register routes, settings, and widgets.
-- Config file: capell-analytics.php.
-- Routes: POST capell/analytics/events and POST capell/analytics/consent by default.
-- Models: AnalyticsVisit, AnalyticsConsent, AnalyticsEvent.
+- InsightsServiceProvider and AdminServiceProvider register routes, settings, and widgets.
+- Config file: capell-insights.php.
+- Routes: POST capell/insights/events and POST capell/insights/consent by default.
+- Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
-- PurgeAnalyticsDataCommand supports retention cleanup.
+- PurgeInsightsDataCommand supports retention cleanup.
 
 ## Operational Notes
 
 Gives site operators practical traffic and journey insight without sending the workflow through an external dashboard first.
 
-- Adds analytics tables and settings migration.
+- Adds insights tables and settings migration.
 - Adds beacon and consent public POST routes.
-- Adds dashboard widgets and analytics settings.
-- Uses capell-analytics config keys for route prefix, consent, hashing, retention, and ignored paths.
+- Adds dashboard widgets and insights settings.
+- Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.
 
 ## Data And Retention
 
-- analytics_visits stores site, language, consent, landing URL, hashed visitor data, and start time.
-- analytics_consents stores consent decisions for a visit.
-- analytics_events stores event type, URL, path, metadata, and occurrence time.
+- insights_visits stores site, language, consent, landing URL, hashed visitor data, and start time.
+- insights_consents stores consent decisions for a visit.
+- insights_events stores event type, URL, path, metadata, and occurrence time.
 - Visits relate to events and consents.
 - Retention is governed by retention_days and purge actions.
 
 ## Screenshot Plan
 
-- Analytics overview dashboard widgets.
+- Insights overview dashboard widgets.
 - Popular pages widget.
 - Recent journeys widget.
-- Analytics settings screen.
+- Insights settings screen.
 - Frontend page with tracker active.
+
+## Screenshots
+
+![Insights dashboard page](../../../public/docs/screenshots/packages/insights/insights-overview-dashboard-widgets.png)
+
+![Insights settings screen](../../../public/docs/screenshots/packages/insights/insights-settings-screen.png)
+
+Widget-specific screenshots should be regenerated after analytics demo data is seeded; empty widget captures do not add useful documentation.
 
 ## Pitfalls
 
-- Exclude admin, Livewire, and analytics routes from tracking.
+- Exclude admin, Livewire, and insights routes from tracking.
 - Set hash_salt deliberately before production data is recorded.
 - Consent settings must match the site privacy policy.
 
 ## Verification
 
-- Run `vendor/bin/pest packages/analytics/tests` when package tests exist.
+- Run `vendor/bin/pest packages/insights/tests` when package tests exist.
 - Run the relevant host-app migration or package install flow in a disposable database.
 - Open the listed admin or frontend surface and compare it with the screenshot plan.
 
 ## Package Manifest
 
-- Composer name: `capell-app/analytics`
+- Composer name: `capell-app/insights`
 - Product group: Capell Growth
 - Kind: package
 - Tier: premium
@@ -75,20 +83,23 @@ Gives site operators practical traffic and journey insight without sending the w
 
 ## Admin Surfaces
 
-- None proven in this package directory.
+- Extension page: `InsightsPage`.
+- Dashboard widgets: overview stats, live stats, popular pages, trending pages, recent journeys, and top actions.
+- Settings schema: `InsightsSettingsSchema`.
+- Overview stats: page views, unique visits, and clicks.
 
 ## Commands
 
-- `analytics:purge {--days= : Override analytics retention days}` (packages/analytics/src/Console/Commands/PurgeAnalyticsDataCommand.php)
+- `insights:purge {--days= : Override insights retention days}` (packages/insights/src/Console/Commands/PurgeInsightsDataCommand.php)
 
 ## Routes And Config
 
-- Config: packages/analytics/config/capell-analytics.php
-- Route file: packages/analytics/routes/web.php
+- Config: packages/insights/config/capell-insights.php
+- Route file: packages/insights/routes/web.php
 
 ## Permissions And Gates
 
-- Gate: AnalyticsOverviewStatsWidget: `admin`, `super_admin`
+- Gate: InsightsOverviewStatsWidget: `admin`, `super_admin`
 - Gate: PopularPagesWidget: `admin`, `super_admin`
 - Gate: RecentJourneysWidget: `admin`, `super_admin`
 - Gate: TopActionsWidget: `admin`, `super_admin`
@@ -96,10 +107,10 @@ Gives site operators practical traffic and journey insight without sending the w
 
 ## Migrations
 
-- Migration: 2026_04_20_000001_create_analytics_visits_table.php
-- Migration: 2026_04_20_000002_create_analytics_consents_table.php
-- Migration: 2026_04_20_000003_create_analytics_events_table.php
-- Settings migration: create_analytics_settings.php
+- Migration: 2026_04_20_000001_create_insights_visits_table.php
+- Migration: 2026_04_20_000002_create_insights_consents_table.php
+- Migration: 2026_04_20_000003_create_insights_events_table.php
+- Settings migration: create_insights_settings.php
 
 ## ERD Excerpt
 
@@ -140,10 +151,10 @@ erDiagram
 
 ## Screenshot Automation
 
-Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `public/docs/screenshots/packages/analytics`.
+Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `public/docs/screenshots/packages/insights`.
 
-- Analytics overview dashboard widgets.
+- Insights overview dashboard widgets.
 - Popular pages widget.
 - Recent journeys widget.
-- Analytics settings screen.
+- Insights settings screen.
 - Frontend page with tracker active.

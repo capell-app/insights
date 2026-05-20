@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Capell\Analytics\Actions;
+namespace Capell\Insights\Actions;
 
-use Capell\Analytics\Data\AnalyticsWindowData;
-use Capell\Analytics\Enums\AnalyticsEventType;
-use Capell\Analytics\Models\AnalyticsEvent;
+use Capell\Insights\Data\InsightsWindowData;
+use Capell\Insights\Enums\InsightsEventType;
+use Capell\Insights\Models\InsightsEvent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -16,19 +16,16 @@ final class BuildTopActionsQueryAction
 {
     use AsAction;
 
-    /**
-     * @return Collection<int, array{action: string, event_name: ?string, label: ?string, location: ?string, events: int}>
-     */
-    public function handle(AnalyticsWindowData $window, ?int $limit = 5): Collection
+    public function handle(InsightsWindowData $window, ?int $limit = 5): Collection
     {
-        $query = AnalyticsEvent::query()
+        $query = InsightsEvent::query()
             ->select([
                 'event_name',
                 'label',
                 'location',
                 DB::raw('COUNT(*) as events'),
             ])
-            ->where('type', '!=', AnalyticsEventType::PageView)
+            ->where('type', '!=', InsightsEventType::PageView)
             ->whereBetween('occurred_at', [$window->startsAt, $window->endsAt])
             ->where(function (Builder $builder): void {
                 $builder
@@ -50,17 +47,17 @@ final class BuildTopActionsQueryAction
 
         return $query
             ->get()
-            ->map(fn (AnalyticsEvent $event): array => [
+            ->map(fn (InsightsEvent $event): array => [
                 'action' => $this->actionName($event),
                 'event_name' => $event->event_name,
                 'label' => $event->label,
                 'location' => $event->location,
-                'events' => (int) $event->events,
+                'events' => $event->events,
             ])
             ->values();
     }
 
-    private function actionName(AnalyticsEvent $event): string
+    private function actionName(InsightsEvent $event): string
     {
         foreach ([$event->event_name, $event->label, $event->location] as $candidate) {
             if (is_string($candidate) && trim($candidate) !== '') {
