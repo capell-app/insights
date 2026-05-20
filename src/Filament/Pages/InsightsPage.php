@@ -24,6 +24,8 @@ final class InsightsPage extends Page
 
     protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::ChartBar;
 
+    protected static ?int $navigationSort = 1;
+
     protected string $view = 'capell-insights::filament.pages.insights';
 
     protected static ?string $slug = 'insights';

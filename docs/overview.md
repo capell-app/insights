@@ -83,7 +83,10 @@ Widget-specific screenshots should be regenerated after analytics demo data is s
 
 ## Admin Surfaces
 
-- None proven in this package directory.
+- Extension page: `InsightsPage`.
+- Dashboard widgets: overview stats, live stats, popular pages, trending pages, recent journeys, and top actions.
+- Settings schema: `InsightsSettingsSchema`.
+- Overview stats: page views, unique visits, and clicks.
 
 ## Commands
 

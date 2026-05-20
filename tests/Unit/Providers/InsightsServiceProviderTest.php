@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Capell\Core\Facades\CapellCore;
+use Capell\Insights\Filament\Pages\InsightsPage;
 use Capell\Insights\Providers\InsightsServiceProvider;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,9 @@ it('loads the insights config', function (): void {
 it('registers insights routes', function (): void {
     expect(Route::has('capell-insights.events'))->toBeTrue()
         ->and(Route::has('capell-insights.consent'))->toBeTrue();
+});
+
+it('places insights first in monitoring navigation', function (): void {
+    expect(InsightsPage::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_monitoring'))
+        ->and(InsightsPage::getNavigationSort())->toBe(1);
 });

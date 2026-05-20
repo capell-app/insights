@@ -134,7 +134,9 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 ## Admin And Access
 
-- None proven in this package directory.
+- Extension page: `InsightsPage`.
+- Dashboard widgets: overview stats, live stats, popular pages, trending pages, recent journeys, and top actions.
+- Settings schema: `InsightsSettingsSchema`.
 
 - Gate: InsightsOverviewStatsWidget: `admin`, `super_admin`
 - Gate: PopularPagesWidget: `admin`, `super_admin`
