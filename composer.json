@@ -50,5 +50,10 @@
     "scripts": {
         "test": "pest"
     },
-    "prefer-stable": true
+    "prefer-stable": true,
+    "type": "library",
+    "support": {
+        "source": "https://github.com/capell-app/capell-packages",
+        "docs": "https://docs.capell.app/packages/insights"
+    }
 }
