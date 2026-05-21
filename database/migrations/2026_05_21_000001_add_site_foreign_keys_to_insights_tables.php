@@ -40,7 +40,11 @@ return new class extends Migration
     public function down(): void
     {
         foreach ($this->tables as $tableName) {
-            if (! Schema::hasTable($tableName) || ! Schema::hasColumn($tableName, 'site_id')) {
+            if (! Schema::hasTable($tableName)) {
+                continue;
+            }
+
+            if (! Schema::hasColumn($tableName, 'site_id')) {
                 continue;
             }
 
