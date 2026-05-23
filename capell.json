@@ -13,7 +13,10 @@
         "bundle": "growth"
     },
     "namespace": "Capell\\Insights",
-    "surfaces": ["admin", "frontend"],
+    "surfaces": [
+        "admin",
+        "frontend"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
@@ -26,8 +29,12 @@
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": ["Capell\\Insights\\Providers\\InsightsServiceProvider"],
-        "admin": ["Capell\\Insights\\Providers\\AdminServiceProvider"],
+        "runtime": [
+            "Capell\\Insights\\Providers\\InsightsServiceProvider"
+        ],
+        "admin": [
+            "Capell\\Insights\\Providers\\AdminServiceProvider"
+        ],
         "frontend": []
     },
     "contributes": [],
@@ -44,14 +51,23 @@
     },
     "settings": [],
     "permissions": [],
-    "capabilities": ["insights", "insights-admin", "insights-frontend"],
+    "capabilities": [
+        "insights",
+        "insights-admin",
+        "insights-frontend"
+    ],
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["insights"],
+        "cacheTags": [
+            "insights"
+        ],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [
+                "site",
+                "locale"
+            ],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -74,8 +90,18 @@
     },
     "marketplace": {
         "summary": "Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.",
-        "screenshots": [],
-        "categories": ["admin", "frontend", "growth"]
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Insights extension preview image",
+                "caption": "Insights extension preview"
+            }
+        ],
+        "categories": [
+            "admin",
+            "frontend",
+            "growth"
+        ]
     },
     "contributionTraceability": {
         "deferredContributions": [
