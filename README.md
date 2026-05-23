@@ -11,6 +11,18 @@ Insights records first-party visits, events, consent decisions, page views, clic
 - Capell dependencies: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`
 - Third-party dependencies: `lorisleiva/laravel-actions`, `spatie/laravel-data`, `spatie/laravel-package-tools`
 
+## Why It Helps Your Capell Workflow
+
+- Records first-party visits, clicks, events, consent decisions, page views, and journey data for Capell sites.
+- Helps owners understand onsite behavior even when third-party analytics is blocked, delayed, or too coarse.
+- Gives developers clear server-side Actions and consent rules for analytics features that other growth packages can consume.
+
+## Best Used With
+
+- [Campaign Studio](../campaign-studio/README.md)
+- [GA4 Reports](../ga4-reports/README.md)
+- [SEO Suite](../seo-suite/README.md)
+
 ## What It Adds
 
 Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
@@ -152,6 +164,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 ## Docs
 
+- [docs index](docs/README.md)
 - [credits-and-acknowledgements.md](docs/credits-and-acknowledgements.md)
 - [overview.md](docs/overview.md)
 - [tracking-and-consent.md](docs/tracking-and-consent.md)
