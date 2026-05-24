@@ -11,7 +11,6 @@ use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -89,8 +88,6 @@ final class RecordInsightsEventsAction
             ->where('sequence', '<=', $eventRows[array_key_last($eventRows)]['sequence'])
             ->orderBy('sequence')
             ->get()
-            ->toBase()
-            ->filter(fn (Model $event): bool => $event instanceof InsightsEvent)
             ->values();
     }
 

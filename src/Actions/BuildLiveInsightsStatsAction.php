@@ -16,6 +16,9 @@ final class BuildLiveInsightsStatsAction
 {
     use AsAction;
 
+    /**
+     * @return Collection<array-key, mixed>
+     */
     public function handle(int $minutes = 15, ?int $siteId = null, ?int $limit = 5): Collection
     {
         $startsAt = now()->subMinutes($minutes)->toImmutable();
