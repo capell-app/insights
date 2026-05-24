@@ -8,6 +8,7 @@ use Capell\Insights\Data\InsightsJourneyStepData;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -26,7 +27,9 @@ final class BuildJourneyTimelineAction
             ->orderBy('sequence')
             ->oldest('occurred_at')
             ->get()
-            ->map(function (InsightsEvent $event) use (&$previousOccurredAt): InsightsJourneyStepData {
+            ->map(function (Model $event) use (&$previousOccurredAt): InsightsJourneyStepData {
+                throw_unless($event instanceof InsightsEvent);
+
                 $occurredAt = $event->occurred_at instanceof CarbonImmutable
                     ? $event->occurred_at
                     : CarbonImmutable::parse($event->occurred_at);

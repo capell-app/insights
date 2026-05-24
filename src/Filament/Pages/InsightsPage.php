@@ -37,7 +37,7 @@ final class InsightsPage extends Page
     }
 
     #[Override]
-    public static function getNavigationGroup(): ?string
+    public static function getNavigationGroup(): string
     {
         return __('capell-admin::navigation.group_monitoring');
     }
@@ -49,7 +49,7 @@ final class InsightsPage extends Page
     }
 
     #[Override]
-    public function getSubheading(): ?string
+    public function getSubheading(): string
     {
         return __('capell-insights::widgets.insights_hint');
     }

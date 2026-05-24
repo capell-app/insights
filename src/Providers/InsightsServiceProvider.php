@@ -86,7 +86,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         ], 'capell-insights-settings');
     }
 
-    private function isPackageInstalled(): bool
+    protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(static::$packageName);
     }
