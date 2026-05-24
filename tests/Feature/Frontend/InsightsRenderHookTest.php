@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 
@@ -11,7 +12,7 @@ it('injects the frontend insights tracker at the end of the body', function (): 
         '[wire\\:click]',
     ]);
 
-    /** @var RenderHookRegistry $registry */
+    /** @var RenderHookRegistry<RenderHookContext> $registry */
     $registry = resolve(RenderHookRegistry::class);
 
     $output = $registry->renderAll(RenderHookLocation::BodyEnd);
