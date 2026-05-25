@@ -15,6 +15,7 @@ use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 class InsightsServiceProvider extends AbstractPackageServiceProvider
@@ -86,6 +87,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         ], 'capell-insights-settings');
     }
 
+    #[Override]
     protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(static::$packageName);
