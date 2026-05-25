@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Providers;
 
+use Capell\Admin\Data\Extensions\ExtensionManagementSurfaceData;
+use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
@@ -111,6 +113,12 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
 
         $registry->registerSettingsClass('insights', InsightsSettings::class);
         $registry->register('insights', InsightsSettingsSchema::class);
+        CapellAdmin::registerExtensionManagementSurface(ExtensionManagementSurfaceData::settings(
+            packageName: self::$packageName,
+            label: 'capell-insights::settings.fieldset',
+            settingsGroup: 'insights',
+            icon: 'heroicon-o-chart-pie',
+        ));
 
         return $this;
     }

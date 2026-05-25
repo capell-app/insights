@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 use Capell\Admin\Enums\DashboardEnum;
 use Capell\Admin\Facades\CapellAdmin;
+use Capell\Admin\Support\Extensions\ExtensionManagementSurfaceRegistry;
 use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Insights\Filament\Pages\InsightsPage;
+use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
 use Capell\Insights\Providers\InsightsServiceProvider;
+use Capell\Insights\Settings\InsightsSettings;
 use Illuminate\Support\Facades\Route;
 
 it('registers the insights package metadata', function (): void {
@@ -34,4 +38,16 @@ it('places insights first in monitoring navigation', function (): void {
 it('registers insights widgets with marketing studio', function (): void {
     expect(CapellAdmin::getDashboardWidgets(DashboardEnum::MarketingStudio))
         ->toContain(LiveInsightsStatsWidget::class);
+});
+
+it('registers insights settings and extension settings surface', function (): void {
+    $settingsRegistry = resolve(SettingsSchemaRegistry::class);
+
+    expect($settingsRegistry->getSettingsClass('insights'))->toBe(InsightsSettings::class)
+        ->and($settingsRegistry->getSchemas('insights'))->toContain(InsightsSettingsSchema::class);
+
+    $surfaces = resolve(ExtensionManagementSurfaceRegistry::class)
+        ->surfacesForPackage(InsightsServiceProvider::$packageName);
+
+    expect($surfaces[0]->settingsGroup ?? null)->toBe('insights');
 });
