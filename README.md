@@ -134,6 +134,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 - Adds insights tables and settings migration.
 - Adds beacon and consent public POST routes.
+- Beacon posts validate request origin when present, can require signed event URLs, and load the embedded tracker script through a cached package Action.
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.

@@ -44,7 +44,13 @@
     },
     "settings": [],
     "permissions": [],
-    "capabilities": ["insights", "insights-admin", "insights-frontend"],
+    "capabilities": [
+        "insights",
+        "insights-admin",
+        "insights-frontend",
+        "beacon",
+        "cache-blocking"
+    ],
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,

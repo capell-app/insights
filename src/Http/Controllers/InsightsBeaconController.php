@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Insights\Http\Controllers;
 
 use Capell\Insights\Actions\RecordInsightsEventsAction;
+use Capell\Insights\Actions\ValidateInsightsBeaconRequestAction;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Enums\InsightsEventType;
 use Closure;
@@ -16,6 +17,8 @@ class InsightsBeaconController
 {
     public function __invoke(Request $request): Response
     {
+        ValidateInsightsBeaconRequestAction::run($request);
+
         $validated = $request->validate([
             'visit_id' => ['nullable', 'string', 'max:80'],
             'events' => ['required', 'array', 'max:25'],
