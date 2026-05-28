@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create($tableName, function (Blueprint $table) use ($visitsTableName): void {
             $table->id();
             $table->foreignId('visit_id')->nullable()->constrained($visitsTableName)->nullOnDelete();
-            $table->unsignedBigInteger('site_id')->nullable()->index();
+            $table->foreignId('site_id')->nullable()->constrained('sites')->nullOnDelete();
             $table->unsignedBigInteger('language_id')->nullable()->index();
             $table->string('type')->index();
             $table->string('url', 512)->index();
