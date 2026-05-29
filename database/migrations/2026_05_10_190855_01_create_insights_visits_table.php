@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create($tableName, function (Blueprint $table): void {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->unsignedBigInteger('site_id')->nullable()->index();
+            $table->foreignId('site_id')->nullable()->constrained('sites')->nullOnDelete();
             $table->unsignedBigInteger('language_id')->nullable()->index();
             $table->string('consent_region');
             $table->string('consent_status');

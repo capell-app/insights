@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Support\RenderHooks;
 
+use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 
 class RegisterInsightsTrackerHook
 {
+    /** @param RenderHookRegistry<RenderHookContext> $registry */
     public function __construct(private readonly RenderHookRegistry $registry) {}
 
     public function register(): void

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Providers;
 
+use Capell\Admin\Data\Extensions\ExtensionManagementSurfaceData;
+use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
@@ -15,6 +17,7 @@ use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 
 class InsightsServiceProvider extends AbstractPackageServiceProvider
@@ -37,6 +40,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_10_190855_03_create_insights_events_table',
                 '2026_05_10_190855_05_import_legacy_page_views',
                 '2026_05_10_190855_06_add_page_url_hit_columns',
+                '2026_05_21_000001_add_site_foreign_keys_to_insights_tables',
             ]);
     }
 
@@ -85,7 +89,8 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         ], 'capell-insights-settings');
     }
 
-    private function isPackageInstalled(): bool
+    #[Override]
+    protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(static::$packageName);
     }
@@ -108,6 +113,12 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
 
         $registry->registerSettingsClass('insights', InsightsSettings::class);
         $registry->register('insights', InsightsSettingsSchema::class);
+        CapellAdmin::registerExtensionManagementSurface(ExtensionManagementSurfaceData::settings(
+            packageName: self::$packageName,
+            label: 'capell-insights::settings.fieldset',
+            settingsGroup: 'insights',
+            icon: 'heroicon-o-chart-pie',
+        ));
 
         return $this;
     }

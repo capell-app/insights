@@ -8,6 +8,7 @@ use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
+use Illuminate\Support\Facades\URL;
 
 it('does not store a uk or europe event without insights consent', function (): void {
     $visit = InsightsVisit::factory()->create([
@@ -78,6 +79,55 @@ it('stores a page view after insights consent is granted', function (): void {
         ->and($event->url)->toBe('https://example.test/')
         ->and($event->path)->toBe('/')
         ->and($event->sequence)->toBe(1);
+});
+
+it('rejects beacon posts from invalid origins', function (): void {
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this
+        ->withHeader('Origin', 'https://evil.example')
+        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertForbidden();
+
+    expect(InsightsEvent::query()->count())->toBe(0);
+});
+
+it('allows configured beacon origins when referer contains a path', function (): void {
+    config()->set('capell-insights.allowed_beacon_origins', ['https://trusted.example']);
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this
+        ->withHeader('Referer', 'https://trusted.example/page')
+        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe(1);
+});
+
+it('can require signed beacon urls for event posts', function (): void {
+    config()->set('capell-insights.require_signed_beacons', true);
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertForbidden();
+
+    $this->postJson(
+        URL::temporarySignedRoute('capell-insights.events', now()->addMinute()),
+        pageViewPayload($visit),
+    )->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe(1);
 });
 
 it('stores a mixed event batch with one visit lookup and sequential events', function (): void {

@@ -40,6 +40,9 @@ class InsightsConsent extends Model
         return is_string($tableName) ? $tableName : 'insights_consents';
     }
 
+    /**
+     * @return BelongsTo<InsightsVisit, $this>
+     */
     public function visit(): BelongsTo
     {
         return $this->belongsTo(InsightsVisit::class, 'visit_id');

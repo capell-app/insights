@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "optional": [],
+        "supports": [],
         "conflicts": []
     },
     "providers": {
@@ -44,7 +44,13 @@
     },
     "settings": [],
     "permissions": [],
-    "capabilities": ["insights", "insights-admin", "insights-frontend"],
+    "capabilities": [
+        "insights",
+        "insights-admin",
+        "insights-frontend",
+        "beacon",
+        "cache-blocking"
+    ],
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
@@ -74,7 +80,13 @@
     },
     "marketplace": {
         "summary": "Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.",
-        "screenshots": [],
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Insights extension preview image",
+                "caption": "Insights extension preview"
+            }
+        ],
         "categories": ["admin", "frontend", "growth"]
     },
     "contributionTraceability": {

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Capell\Insights\Providers;
 
 use Capell\Admin\Contracts\DashboardSettingsContributor;
+use Capell\Admin\Data\MarketingStudioActionData;
 use Capell\Admin\Enums\DashboardEnum;
+use Capell\Admin\Enums\MarketingStudioSectionEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Insights\Actions\BuildInsightsOverviewStatsAction;
@@ -44,10 +46,11 @@ class AdminServiceProvider extends ServiceProvider
             ->registerPages()
             ->registerOverviewStats()
             ->registerDashboardWidgets()
+            ->registerMarketingStudioActions()
             ->registerSchedule();
     }
 
-    private function isPackageInstalled(): bool
+    protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(InsightsServiceProvider::$packageName);
     }
@@ -72,11 +75,25 @@ class AdminServiceProvider extends ServiceProvider
 
     private function registerDashboardWidgets(): self
     {
-        CapellAdmin::registerDashboardWidget(PopularPagesWidget::class, DashboardEnum::Main);
-        CapellAdmin::registerDashboardWidget(TrendingPagesWidget::class, DashboardEnum::Main);
-        CapellAdmin::registerDashboardWidget(LiveInsightsStatsWidget::class, DashboardEnum::Main);
-        CapellAdmin::registerDashboardWidget(RecentJourneysWidget::class, DashboardEnum::Main);
-        CapellAdmin::registerDashboardWidget(TopActionsWidget::class, DashboardEnum::Main);
+        CapellAdmin::registerDashboardWidget(PopularPagesWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardWidget(TrendingPagesWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardWidget(LiveInsightsStatsWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardWidget(RecentJourneysWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardWidget(TopActionsWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+
+        return $this;
+    }
+
+    private function registerMarketingStudioActions(): self
+    {
+        CapellAdmin::registerMarketingStudioAction(new MarketingStudioActionData(
+            key: 'insights.performance',
+            label: fn (): string => InsightsPage::getNavigationLabel(),
+            url: fn (): string => InsightsPage::getUrl(),
+            section: MarketingStudioSectionEnum::Performance,
+            icon: 'heroicon-o-presentation-chart-line',
+            sort: 20,
+        ));
 
         return $this;
     }

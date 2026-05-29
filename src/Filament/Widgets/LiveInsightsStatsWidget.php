@@ -27,8 +27,6 @@ final class LiveInsightsStatsWidget extends BaseWidget implements CapellWidgetCo
 
     protected static ?int $sort = 4;
 
-    private ?string $pollingInterval = '30s';
-
     #[Override]
     public function table(Table $table): Table
     {
@@ -44,5 +42,10 @@ final class LiveInsightsStatsWidget extends BaseWidget implements CapellWidgetCo
                 TextColumn::make('value')
                     ->label(__('capell-insights::widgets.value')),
             ]);
+    }
+
+    public function getPollingInterval(): string
+    {
+        return '30s';
     }
 }

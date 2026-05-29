@@ -42,11 +42,17 @@ class InsightsVisit extends Model
         return is_string($tableName) ? $tableName : 'insights_visits';
     }
 
+    /**
+     * @return HasMany<InsightsConsent, $this>
+     */
     public function consents(): HasMany
     {
         return $this->hasMany(InsightsConsent::class, 'visit_id');
     }
 
+    /**
+     * @return HasMany<InsightsEvent, $this>
+     */
     public function events(): HasMany
     {
         return $this->hasMany(InsightsEvent::class, 'visit_id');

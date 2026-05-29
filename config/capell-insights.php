@@ -5,6 +5,10 @@ declare(strict_types=1);
 return [
     'enabled' => true,
     'route_prefix' => 'capell/insights',
+    'validate_beacon_origin' => true,
+    'require_signed_beacons' => false,
+    'signed_beacon_ttl_minutes' => 60,
+    'allowed_beacon_origins' => [],
     'track_page_views' => true,
     'track_clicks' => true,
     'track_form-builder' => false,
