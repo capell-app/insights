@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Data\InsightsEventMetadataData;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Enums\InsightsEventType;
@@ -176,6 +177,9 @@ it('stores click location fields', function (): void {
         ->assertNoContent();
 
     $event = InsightsEvent::query()->firstOrFail();
+    $metadata = $event->metadata;
+
+    throw_unless($metadata instanceof InsightsEventMetadataData, RuntimeException::class, 'Expected click event metadata to be stored.');
 
     expect($event->type)->toBe(InsightsEventType::Click)
         ->and($event->event_name)->toBe('cta_click')
@@ -186,7 +190,7 @@ it('stores click location fields', function (): void {
         ->and($event->viewport_y)->toBe(50)
         ->and($event->document_x)->toBe(24)
         ->and($event->document_y)->toBe(650)
-        ->and($event->metadata->nearestLandmark)->toBe('main');
+        ->and($metadata->nearestLandmark)->toBe('main');
 });
 
 it('skips events on ignored paths', function (): void {

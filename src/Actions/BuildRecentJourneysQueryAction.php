@@ -7,7 +7,6 @@ namespace Capell\Insights\Actions;
 use Capell\Insights\Data\InsightsJourneyStepData;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Models\InsightsVisit;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -22,8 +21,11 @@ final class BuildRecentJourneysQueryAction
     {
         $query = InsightsVisit::query()
             ->whereHas('events')
-            ->when($window instanceof InsightsWindowData, fn (Builder $builder): Builder => $builder->whereBetween('last_seen_at', [$window->startsAt, $window->endsAt]))
             ->latest('last_seen_at');
+
+        if ($window instanceof InsightsWindowData) {
+            $query->whereBetween('last_seen_at', [$window->startsAt, $window->endsAt]);
+        }
 
         if ($limit !== null) {
             $query->limit($limit);

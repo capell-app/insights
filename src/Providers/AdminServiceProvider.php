@@ -25,6 +25,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 use Override;
+use RuntimeException;
 
 class AdminServiceProvider extends ServiceProvider
 {
@@ -103,8 +104,8 @@ class AdminServiceProvider extends ServiceProvider
         foreach (['page-views' => 130, 'unique-visits' => 131, 'clicks' => 132] as $metricId => $sort) {
             CapellAdmin::registerOverviewStat(
                 key: 'insights_overview.' . $metricId,
-                label: fn (): string => $this->insightsOverview()->firstWhere('id', $metricId)['label'],
-                value: fn (): int => $this->insightsOverview()->firstWhere('id', $metricId)['value'],
+                label: fn (): string => $this->insightsOverviewStat($metricId)['label'],
+                value: fn (): int => $this->insightsOverviewStat($metricId)['value'],
                 group: fn (): string => __('capell-insights::settings.fieldset'),
                 sort: $sort,
                 settingsKey: 'insights_overview',
@@ -132,6 +133,18 @@ class AdminServiceProvider extends ServiceProvider
         ));
 
         return $overview;
+    }
+
+    /**
+     * @return array{id: string, label: string, value: int}
+     */
+    private function insightsOverviewStat(string $metricId): array
+    {
+        $stat = $this->insightsOverview()->firstWhere('id', $metricId);
+
+        throw_unless(is_array($stat), RuntimeException::class, sprintf('Insights overview metric [%s] is not available.', $metricId));
+
+        return $stat;
     }
 
     private function registerPages(): self

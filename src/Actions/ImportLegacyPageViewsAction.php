@@ -128,7 +128,7 @@ final class ImportLegacyPageViewsAction
 
     private function legacyVisitUuid(string $sessionId): string
     {
-        $hash = md5('capell-legacy-page-view:' . $sessionId);
+        $hash = hash('sha256', 'capell-legacy-page-view:' . $sessionId);
 
         return sprintf(
             '%s-%s-%s-%s-%s',

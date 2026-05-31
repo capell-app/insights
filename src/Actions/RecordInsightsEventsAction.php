@@ -30,65 +30,67 @@ final class RecordInsightsEventsAction
             return collect();
         }
 
-        $visit = $this->resolveVisit($visitUuid);
+        return DB::transaction(function () use ($visitUuid, $events): Collection {
+            $visit = $this->resolveVisit($visitUuid);
 
-        if (! $visit instanceof InsightsVisit || ! $this->canRecordForVisit($visit)) {
-            return collect();
-        }
-
-        $eventRows = [];
-        $now = now()->toImmutable();
-        $sequence = ((int) $visit->events()->max('sequence')) + 1;
-
-        foreach ($events as $event) {
-            $eventData = $event['data'];
-
-            if ($this->isIgnoredPath($eventData->path())) {
-                continue;
+            if (! $visit instanceof InsightsVisit || ! $this->canRecordForVisit($visit)) {
+                return collect();
             }
 
-            $eventRows[] = [
-                'visit_id' => $visit->getKey(),
-                'site_id' => $visit->site_id,
-                'language_id' => $visit->language_id,
-                'type' => $eventData->type->value,
-                'url' => $eventData->url,
-                'path' => $eventData->path(),
-                'title' => $eventData->title,
-                'occurred_at' => $this->occurredAt($event['occurred_at']),
-                'sequence' => $sequence,
-                'event_name' => $eventData->eventName,
-                'label' => $eventData->label,
-                'location' => $eventData->location,
-                'target_selector' => $eventData->targetSelector,
-                'viewport_x' => $eventData->viewportX,
-                'viewport_y' => $eventData->viewportY,
-                'document_x' => $eventData->documentX,
-                'document_y' => $eventData->documentY,
-                'metadata' => $eventData->metadata !== null ? json_encode($eventData->metadata->toArray()) : null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            $eventRows = [];
+            $now = now()->toImmutable();
+            $sequence = ((int) $visit->events()->max('sequence')) + 1;
 
-            $sequence++;
-        }
+            foreach ($events as $event) {
+                $eventData = $event['data'];
 
-        if ($eventRows === []) {
-            return collect();
-        }
+                if ($this->isIgnoredPath($eventData->path())) {
+                    continue;
+                }
 
-        DB::table((new InsightsEvent)->getTable())->insert($eventRows);
+                $eventRows[] = [
+                    'visit_id' => $visit->getKey(),
+                    'site_id' => $visit->site_id,
+                    'language_id' => $visit->language_id,
+                    'type' => $eventData->type->value,
+                    'url' => $eventData->url,
+                    'path' => $eventData->path(),
+                    'title' => $eventData->title,
+                    'occurred_at' => $this->occurredAt($event['occurred_at']),
+                    'sequence' => $sequence,
+                    'event_name' => $eventData->eventName,
+                    'label' => $eventData->label,
+                    'location' => $eventData->location,
+                    'target_selector' => $eventData->targetSelector,
+                    'viewport_x' => $eventData->viewportX,
+                    'viewport_y' => $eventData->viewportY,
+                    'document_x' => $eventData->documentX,
+                    'document_y' => $eventData->documentY,
+                    'metadata' => $eventData->metadata !== null ? json_encode($eventData->metadata->toArray()) : null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
 
-        $visit->forceFill([
-            'last_seen_at' => $now,
-        ])->save();
+                $sequence++;
+            }
 
-        return $visit->events()
-            ->where('sequence', '>=', $eventRows[0]['sequence'])
-            ->where('sequence', '<=', $eventRows[array_key_last($eventRows)]['sequence'])
-            ->orderBy('sequence')
-            ->get()
-            ->values();
+            if ($eventRows === []) {
+                return collect();
+            }
+
+            DB::table((new InsightsEvent)->getTable())->insert($eventRows);
+
+            $visit->forceFill([
+                'last_seen_at' => $now,
+            ])->save();
+
+            return $visit->events()
+                ->where('sequence', '>=', $eventRows[0]['sequence'])
+                ->where('sequence', '<=', $eventRows[array_key_last($eventRows)]['sequence'])
+                ->orderBy('sequence')
+                ->get()
+                ->values();
+        });
     }
 
     private function resolveVisit(?string $visitUuid): ?InsightsVisit
@@ -99,6 +101,7 @@ final class RecordInsightsEventsAction
 
         return InsightsVisit::query()
             ->where('uuid', $visitUuid)
+            ->lockForUpdate()
             ->first();
     }
 
