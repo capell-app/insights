@@ -6,6 +6,10 @@ namespace Capell\Insights\Actions;
 
 use Capell\Core\Facades\CapellCore;
 use Capell\Insights\Models\InsightsConsent;
+use Capell\PrivacyCenter\Actions\RecordConsentAction;
+use Capell\PrivacyCenter\Data\ConsentRecordData;
+use Capell\PrivacyCenter\Enums\ConsentDecision;
+use Capell\PrivacyCenter\Enums\CookieCategory;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 final class MirrorInsightsConsentToPrivacyCenterAction
@@ -40,18 +44,18 @@ final class MirrorInsightsConsentToPrivacyCenterAction
     private function privacyCenterIsAvailable(): bool
     {
         return CapellCore::isPackageInstalled('capell-app/privacy-center')
-            && class_exists('Capell\\PrivacyCenter\\Actions\\RecordConsentAction')
-            && class_exists('Capell\\PrivacyCenter\\Data\\ConsentRecordData')
-            && class_exists('Capell\\PrivacyCenter\\Enums\\ConsentDecision')
-            && class_exists('Capell\\PrivacyCenter\\Enums\\CookieCategory');
+            && class_exists(RecordConsentAction::class)
+            && class_exists(ConsentRecordData::class)
+            && class_exists(ConsentDecision::class)
+            && class_exists(CookieCategory::class);
     }
 
     private function recordConsent(InsightsConsent $consent, string $insightsCategory, string $privacyCategory): bool
     {
-        $cookieCategoryClass = 'Capell\\PrivacyCenter\\Enums\\CookieCategory';
-        $consentDecisionClass = 'Capell\\PrivacyCenter\\Enums\\ConsentDecision';
-        $consentRecordDataClass = 'Capell\\PrivacyCenter\\Data\\ConsentRecordData';
-        $recordConsentActionClass = 'Capell\\PrivacyCenter\\Actions\\RecordConsentAction';
+        $cookieCategoryClass = CookieCategory::class;
+        $consentDecisionClass = ConsentDecision::class;
+        $consentRecordDataClass = ConsentRecordData::class;
+        $recordConsentActionClass = RecordConsentAction::class;
 
         $category = $cookieCategoryClass::tryFrom($privacyCategory);
         $decision = $consent->categories->{$insightsCategory}
