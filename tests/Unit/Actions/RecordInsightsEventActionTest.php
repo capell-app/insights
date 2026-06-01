@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Actions\RecordClickAction;
 use Capell\Insights\Actions\RecordInsightsEventAction;
 use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Data\InsightsEventData;
@@ -108,6 +109,50 @@ it('assigns the next sequence for a visit', function (): void {
     $event = RecordInsightsEventAction::run($visit->uuid, insightsEventData());
 
     expect($event?->sequence)->toBe(4);
+});
+
+it('records click events only when they include a meaningful target', function (): void {
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+    ]);
+
+    $missingTarget = RecordClickAction::run(
+        $visit->uuid,
+        new InsightsEventData(
+            type: InsightsEventType::Click,
+            url: 'https://example.test/pricing',
+            label: '   ',
+            location: null,
+            targetSelector: null,
+        ),
+    );
+    $wrongType = RecordClickAction::run($visit->uuid, insightsEventData());
+    $blankUrl = RecordClickAction::run(
+        $visit->uuid,
+        new InsightsEventData(
+            type: InsightsEventType::Click,
+            url: '   ',
+            label: 'Pricing CTA',
+        ),
+    );
+    $recorded = RecordClickAction::run(
+        $visit->uuid,
+        new InsightsEventData(
+            type: InsightsEventType::Click,
+            url: 'https://example.test/pricing',
+            label: 'Pricing CTA',
+            location: 'hero',
+            targetSelector: '[data-action="pricing"]',
+        ),
+    );
+
+    expect($missingTarget)->toBeNull()
+        ->and($wrongType)->toBeNull()
+        ->and($blankUrl)->toBeNull()
+        ->and($recorded)->toBeInstanceOf(InsightsEvent::class)
+        ->and($recorded?->type)->toBe(InsightsEventType::Click)
+        ->and($recorded?->label)->toBe('Pricing CTA')
+        ->and(InsightsEvent::query()->count())->toBe(1);
 });
 
 function insightsEventData(): InsightsEventData
