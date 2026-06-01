@@ -53,7 +53,11 @@ final class UpdateInsightsConsentAction
 
         Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
 
-        return $consent->load('visit');
+        $consent->load('visit');
+
+        MirrorInsightsConsentToPrivacyCenterAction::run($consent);
+
+        return $consent;
     }
 
     private function resolveVisit(Request $request, InsightsConsentRegion $region): InsightsVisit
