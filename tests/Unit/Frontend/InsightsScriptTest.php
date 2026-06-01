@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 it('contains the browser tracking primitives', function (): void {
-    $source = file_get_contents(__DIR__ . '/../../../resources/js/capell-insights.js');
+    $source = insightsScriptSource();
 
     expect($source)
         ->toContain('navigator.sendBeacon')
@@ -14,7 +14,7 @@ it('contains the browser tracking primitives', function (): void {
 });
 
 it('uses response-reading fetch for consent submissions', function (): void {
-    $source = file_get_contents(__DIR__ . '/../../../resources/js/capell-insights.js');
+    $source = insightsScriptSource();
     $consentSource = scriptFunctionBody($source, 'consent');
 
     expect($consentSource)
@@ -26,7 +26,7 @@ it('uses response-reading fetch for consent submissions', function (): void {
 });
 
 it('falls back to the server visit cookie when local storage is empty', function (): void {
-    $source = file_get_contents(__DIR__ . '/../../../resources/js/capell-insights.js');
+    $source = insightsScriptSource();
 
     expect($source)
         ->toContain("var visitCookieName = 'capell_insights_visit'")
@@ -36,7 +36,7 @@ it('falls back to the server visit cookie when local storage is empty', function
 });
 
 it('does not persist raw dom ids in target selectors', function (): void {
-    $source = file_get_contents(__DIR__ . '/../../../resources/js/capell-insights.js');
+    $source = insightsScriptSource();
     $selectorSource = scriptFunctionBody($source, 'selectorFor');
 
     expect($selectorSource)
@@ -58,4 +58,13 @@ function scriptFunctionBody(string $source, string $functionName): string
     preg_match($pattern, $source, $matches);
 
     return $matches['body'] ?? '';
+}
+
+function insightsScriptSource(): string
+{
+    $source = file_get_contents(__DIR__ . '/../../../resources/js/capell-insights.js');
+
+    throw_unless(is_string($source), RuntimeException::class, 'Expected capell-insights.js to be readable.');
+
+    return $source;
 }

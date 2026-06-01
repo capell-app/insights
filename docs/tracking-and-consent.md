@@ -9,6 +9,7 @@ Insights records first-party activity through two public endpoints and a fronten
 3. Consent changes post to `POST /capell/insights/consent`.
 4. Controllers turn request payloads into `InsightsBeaconData`, `InsightsConsentData`, and `InsightsEventData`.
 5. Actions write `InsightsVisit`, `InsightsConsent`, and `InsightsEvent` rows.
+6. When Privacy Center is installed, `MirrorInsightsConsentToPrivacyCenterAction` mirrors the submitted cookie-category decisions into `privacy_consent_records` using Privacy Center's public record action. If Privacy Center is not installed, the mirror returns without side effects.
 
 The route prefix comes from `capell-insights.route_prefix`. Both endpoints use the `web` middleware group, skip CSRF, and apply `throttle:60,1`.
 

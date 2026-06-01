@@ -22,7 +22,10 @@
     $insightsScript = GetInsightsTrackerScriptAction::run();
 @endphp
 
-<script type="application/json" data-capell-insights-tracker>
+<script
+    type="application/json"
+    data-capell-insights-tracker
+>
     {!! json_encode($insightsConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) !!}
 </script>
 <script>

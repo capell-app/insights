@@ -20,7 +20,7 @@
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": [],
+        "supports": ["capell-app/privacy-center"],
         "conflicts": []
     },
     "providers": {
@@ -48,6 +48,7 @@
         "insights",
         "insights-admin",
         "insights-frontend",
+        "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"
     ],

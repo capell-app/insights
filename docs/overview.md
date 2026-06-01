@@ -52,9 +52,9 @@ Gives site operators practical traffic and journey insight without sending the w
 
 ## Screenshots
 
-![Insights dashboard page](../../../public/docs/screenshots/packages/insights/insights-overview-dashboard-widgets.png)
+![Insights dashboard page](screenshots/insights-overview-dashboard-widgets.png)
 
-![Insights settings screen](../../../public/docs/screenshots/packages/insights/insights-settings-screen.png)
+![Insights settings screen](screenshots/insights-settings-screen.png)
 
 Widget-specific screenshots should be regenerated after analytics demo data is seeded; empty widget captures do not add useful documentation.
 
@@ -151,7 +151,7 @@ erDiagram
 
 ## Screenshot Automation
 
-Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `public/docs/screenshots/packages/insights`.
+Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `packages/insights/docs/screenshots`.
 
 - Insights overview dashboard widgets.
 - Popular pages widget.

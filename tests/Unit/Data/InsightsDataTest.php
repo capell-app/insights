@@ -64,9 +64,12 @@ it('casts event model metadata as data', function (): void {
     $event = new InsightsEvent([
         'metadata' => ['nearest_landmark' => 'main'],
     ]);
+    $metadata = $event->metadata;
+
+    throw_unless($metadata instanceof InsightsEventMetadataData, RuntimeException::class, 'Expected event metadata data to be cast.');
 
     expect($event->metadata)->toBeInstanceOf(InsightsEventMetadataData::class)
-        ->and($event->metadata->nearestLandmark)->toBe('main');
+        ->and($metadata->nearestLandmark)->toBe('main');
 });
 
 it('carries the full journey step shape', function (): void {

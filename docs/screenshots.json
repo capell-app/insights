@@ -3,7 +3,7 @@
     "composerName": "capell-app/insights",
     "generatedFor": "deployment-screenshot-runner",
     "requiresInstalledPackage": true,
-    "outputDirectory": "public/docs/screenshots/packages/insights",
+    "outputDirectory": "packages/insights/docs/screenshots",
     "entries": [
         {
             "id": "insights-overview-dashboard-widgets",
@@ -15,7 +15,7 @@
             "required": true,
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reviews analytics overview stats for seeded visits and events.",
-            "screenshotPath": "public/docs/screenshots/packages/insights/insights-overview-dashboard-widgets.png"
+            "screenshotPath": "packages/insights/docs/screenshots/insights-overview-dashboard-widgets.png"
         },
         {
             "id": "popular-pages-widget",
@@ -27,7 +27,7 @@
             "required": true,
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator identifies high-traffic pages from seeded page-view data.",
-            "screenshotPath": "public/docs/screenshots/packages/insights/popular-pages-widget.png"
+            "screenshotPath": "packages/insights/docs/screenshots/popular-pages-widget.png"
         },
         {
             "id": "recent-journeys-widget",
@@ -39,7 +39,7 @@
             "required": true,
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator follows recent visitor journeys across pages and events.",
-            "screenshotPath": "public/docs/screenshots/packages/insights/recent-journeys-widget.png"
+            "screenshotPath": "packages/insights/docs/screenshots/recent-journeys-widget.png"
         },
         {
             "id": "insights-settings-screen",
@@ -51,7 +51,7 @@
             "required": true,
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A site owner configures tracking, consent, retention, and beacon behavior.",
-            "screenshotPath": "public/docs/screenshots/packages/insights/insights-settings-screen.png"
+            "screenshotPath": "packages/insights/docs/screenshots/insights-settings-screen.png"
         },
         {
             "id": "frontend-page-with-tracker-active",
@@ -63,7 +63,7 @@
             "required": true,
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A visitor loads a public page where the tracker script is active and consent rules are respected.",
-            "screenshotPath": "public/docs/screenshots/packages/insights/frontend-page-with-tracker-active.png"
+            "screenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active.png"
         }
     ]
 }

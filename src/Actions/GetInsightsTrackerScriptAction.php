@@ -16,7 +16,8 @@ final class GetInsightsTrackerScriptAction
 
     public function handle(): string
     {
-        $path = dirname((new ReflectionClass(InsightsServiceProvider::class))->getFileName(), 3) . '/resources/js/capell-insights.js';
+        $providerPath = (new ReflectionClass(InsightsServiceProvider::class))->getFileName();
+        $path = dirname(is_string($providerPath) ? $providerPath : __DIR__, 3) . '/resources/js/capell-insights.js';
         $modifiedAt = file_exists($path) ? (int) filemtime($path) : 0;
 
         return Cache::rememberForever(

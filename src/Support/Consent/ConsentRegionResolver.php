@@ -28,7 +28,7 @@ final class ConsentRegionResolver
         }
 
         try {
-            return $this->resolveFromLocation(geoip()->getLocation());
+            return $this->resolveFromLocation(geoip(request()->ip()));
         } catch (Throwable) {
             return InsightsConsentRegion::Unknown;
         }
