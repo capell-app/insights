@@ -1,6 +1,6 @@
 {
     "name": "capell-app/insights",
-    "description": "First-party insights, visitor journeys, click tracking, and consent management.",
+    "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
     "keywords": [
         "capell",
         "insights",

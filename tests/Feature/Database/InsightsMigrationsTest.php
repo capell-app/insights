@@ -6,9 +6,11 @@ use Capell\Insights\Actions\ImportLegacyPageViewsAction;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
+use Capell\Insights\Providers\InsightsServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Spatie\LaravelPackageTools\Package;
 
 it('loads insights migrations', function (): void {
     expect(Schema::hasTable('insights_visits'))->toBeTrue()
@@ -22,6 +24,21 @@ it('loads insights migrations', function (): void {
         ->and(Schema::hasColumn('page_urls', 'hit_count'))->toBeTrue()
         ->and(Schema::hasColumn('page_urls', 'last_hit_at'))->toBeTrue()
         ->and(Schema::hasIndex('insights_events', 'insights_events_path_type_occurred_index'))->toBeTrue();
+});
+
+it('registers only migration names that exist on disk', function (): void {
+    $package = new Package;
+
+    (new InsightsServiceProvider(app()))->configurePackage($package);
+
+    $migrationsDirectory = dirname(__DIR__, 3) . '/database/migrations';
+
+    expect($package->migrationFileNames)->not->toBeEmpty();
+
+    foreach ($package->migrationFileNames as $migrationFileName) {
+        expect(file_exists($migrationsDirectory . '/' . $migrationFileName . '.php'))
+            ->toBeTrue("Registered migration '{$migrationFileName}' has no file on disk.");
+    }
 });
 
 it('imports legacy page views idempotently into insights events', function (): void {

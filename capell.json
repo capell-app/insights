@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^4.0",
     "version": "4.x-dev",
-    "description": "Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.",
+    "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
     "product": {
         "group": "Capell Growth",
         "tier": "premium",
@@ -80,12 +80,38 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.",
+        "summary": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
+        "description": "Insights gives Capell sites first-party traffic analytics that respect privacy by default: it records page views, clicks, and visitor journeys server-side, hashes visitor identifiers, and gates UK/EU tracking behind consent. Dashboards for popular pages, trending pages, top actions, and recent journeys live right inside the admin Marketing Studio — no Google Analytics, no cookie soup, no tag manager. Retention windows and an automatic purge keep data lean and compliant. When Privacy Center is installed, consent decisions are mirrored into your central consent ledger automatically.",
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
                 "alt": "Insights extension preview image",
                 "caption": "Insights extension preview"
+            },
+            {
+                "path": "docs/screenshots/insights-overview-dashboard-widgets.png",
+                "alt": "Insights overview dashboard widgets",
+                "caption": "Insights overview dashboard widgets."
+            },
+            {
+                "path": "docs/screenshots/popular-pages-widget.png",
+                "alt": "Popular pages widget",
+                "caption": "Popular pages widget."
+            },
+            {
+                "path": "docs/screenshots/recent-journeys-widget.png",
+                "alt": "Recent journeys widget",
+                "caption": "Recent journeys widget."
+            },
+            {
+                "path": "docs/screenshots/insights-settings-screen.png",
+                "alt": "Insights settings screen",
+                "caption": "Insights settings screen."
+            },
+            {
+                "path": "docs/screenshots/frontend-page-with-tracker-active.png",
+                "alt": "Frontend page with tracker active",
+                "caption": "Frontend page with tracker active."
             }
         ],
         "categories": ["admin", "frontend", "growth"]
