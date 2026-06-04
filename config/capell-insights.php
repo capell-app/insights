@@ -18,7 +18,7 @@ return [
     'policy_version' => '1.0',
     'retention_days' => 365,
     'hash_visitor_data' => true,
-    'hash_salt' => 'capell-insights',
+    'hash_salt' => null,
     'ignored_paths' => [
         '/admin*',
         '/livewire*',

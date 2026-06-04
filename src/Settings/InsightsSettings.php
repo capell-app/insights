@@ -30,7 +30,7 @@ final class InsightsSettings extends Settings implements SettingsContract
 
     public bool $hash_visitor_data = true;
 
-    public string $hash_salt = 'capell-insights';
+    public ?string $hash_salt = null;
 
     /** @var list<string> */
     public array $ignored_paths = ['/admin*', '/livewire*', '/capell/insights*', '/_debugbar*', '/_clockwork*', '/storage*'];

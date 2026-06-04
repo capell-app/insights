@@ -61,7 +61,8 @@ Widget-specific screenshots should be regenerated after analytics demo data is s
 ## Pitfalls
 
 - Exclude admin, Livewire, and insights routes from tracking.
-- Set hash_salt deliberately before production data is recorded.
+- Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before production data is recorded. Changing it later breaks visitor continuity.
+- Consent regions are resolved server-side from `default_consent_region` or GeoIP; browser-submitted region values are not authoritative.
 - Consent settings must match the site privacy policy.
 
 ## Verification
@@ -107,10 +108,11 @@ Widget-specific screenshots should be regenerated after analytics demo data is s
 
 ## Migrations
 
-- Migration: 2026_04_20_000001_create_insights_visits_table.php
-- Migration: 2026_04_20_000002_create_insights_consents_table.php
-- Migration: 2026_04_20_000003_create_insights_events_table.php
-- Settings migration: create_insights_settings.php
+- Migration: 2026_05_10_190855_01_create_insights_visits_table.php
+- Migration: 2026_05_10_190855_02_create_insights_consents_table.php
+- Migration: 2026_05_10_190855_03_create_insights_events_table.php
+- Migration: 2026_05_10_190855_05_import_legacy_page_views.php
+- Settings migration: 2026_05_10_190856_01_create_insights_settings.php
 
 ## ERD Excerpt
 

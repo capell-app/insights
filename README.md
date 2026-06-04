@@ -122,7 +122,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Retention is governed by retention_days and purge actions.
 
 - Models: `InsightsConsent`, `InsightsEvent`, `InsightsVisit`.
-- Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_04_add_insights_reporting_indexes.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_05_10_190855_06_add_page_url_hit_columns.php`.
+- Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`.
 - Config: `packages/insights/config/capell-insights.php`.
 - Data objects live in `src/Data/`; use them for payloads, form state, and view models.
 
@@ -160,7 +160,8 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Common Pitfalls
 
 - Exclude admin, Livewire, and insights routes from tracking.
-- Set hash_salt deliberately before production data is recorded.
+- Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before production data is recorded. Changing it later breaks visitor continuity.
+- Consent regions are resolved server-side from `default_consent_region` or GeoIP; do not trust browser-submitted jurisdiction values.
 - Consent settings must match the site privacy policy.
 
 ## Docs

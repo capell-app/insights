@@ -74,8 +74,6 @@ final class CreateInsightsVisitAction
 
     private function hashSalt(): string
     {
-        $salt = config('capell-insights.hash_salt', 'capell-insights');
-
-        return is_string($salt) && $salt !== '' ? $salt : 'capell-insights';
+        return ResolveInsightsHashSaltAction::run();
     }
 }

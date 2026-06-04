@@ -7,7 +7,7 @@ Insights records first-party activity through two public endpoints and a fronten
 1. `RegisterInsightsTrackerHook` injects the tracker when `capell-insights.enabled` is true and the frontend render hook registry is bound.
 2. The browser posts event batches to `POST /capell/insights/events` by default.
 3. Consent changes post to `POST /capell/insights/consent`.
-4. Controllers turn request payloads into `InsightsBeaconData`, `InsightsConsentData`, and `InsightsEventData`.
+4. Controllers turn request payloads into `InsightsBeaconData`, `InsightsConsentData`, and `InsightsEventData`; consent jurisdiction is resolved server-side rather than trusted from the browser.
 5. Actions write `InsightsVisit`, `InsightsConsent`, and `InsightsEvent` rows.
 6. When Privacy Center is installed, `MirrorInsightsConsentToPrivacyCenterAction` mirrors the submitted cookie-category decisions into `privacy_consent_records` using Privacy Center's public record action. If Privacy Center is not installed, the mirror returns without side effects.
 
@@ -27,7 +27,7 @@ The route prefix comes from `capell-insights.route_prefix`. Both endpoints use t
 | `capell-insights.policy_version`                  | Stored with consent records so policy updates can be audited.        |
 | `capell-insights.retention_days`                  | Default cleanup window for `insights:purge`.                         |
 | `capell-insights.hash_visitor_data`               | Hashes visitor identifiers before storage.                           |
-| `capell-insights.hash_salt`                       | Salt used for hashing. Set this before production traffic.           |
+| `capell-insights.hash_salt`                       | Optional private salt override for visitor hashing. When empty, Insights derives a stable salt from `APP_KEY`. |
 | `capell-insights.ignored_paths`                   | Paths that should never be tracked.                                  |
 | `capell-insights.ignored_selectors`               | Click targets the frontend tracker should skip.                      |
 | `capell-insights.tables.*`                        | Table-name overrides, also used when registering protected tables.   |
@@ -98,5 +98,6 @@ The runtime command is `insights:purge {--days=}` in the host application. This 
 ## Safety Notes
 
 - Keep admin, Livewire, debug, storage, and beacon paths in `ignored_paths`.
-- Set `hash_salt` before recording production data. Changing it later breaks visitor continuity.
+- Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before recording production data. Changing it later breaks visitor continuity.
+- Resolve consent jurisdiction on the server through `default_consent_region` or GeoIP; client-supplied region values are not authoritative.
 - Treat raw IP addresses and user agents as sensitive. Prefer hashed fields unless a product requirement says otherwise.

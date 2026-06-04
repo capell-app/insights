@@ -4,6 +4,7 @@ All notable changes to `capell-app/insights` will be documented in this file.
 
 ## Unreleased
 
+- Hardened privacy defaults: consent region is now resolved server-side instead of trusting the browser, and visitor hashes derive from `APP_KEY` when no private `hash_salt` override is configured.
 - Prepared package metadata and documentation for ongoing Capell 4.x package work.
 
 ## 2026-06-03
