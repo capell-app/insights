@@ -37,7 +37,7 @@ it('registers only migration names that exist on disk', function (): void {
 
     foreach ($package->migrationFileNames as $migrationFileName) {
         expect(file_exists($migrationsDirectory . '/' . $migrationFileName . '.php'))
-            ->toBeTrue("Registered migration '{$migrationFileName}' has no file on disk.");
+            ->toBeTrue(sprintf("Registered migration '%s' has no file on disk.", $migrationFileName));
     }
 });
 
