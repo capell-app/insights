@@ -12,7 +12,7 @@ it('uses a configured private insights hash salt when present', function (): voi
 });
 
 it('derives the insights hash salt from the application key by default', function (): void {
-    config()->set('capell-insights.hash_salt', null);
+    config()->set('capell-insights.hash_salt');
     config()->set('app.key', 'base64:application-key');
 
     expect(ResolveInsightsHashSaltAction::run())
@@ -28,7 +28,7 @@ it('ignores the public legacy salt when an application key is available', functi
 });
 
 it('falls back to the legacy salt only when no application key exists', function (): void {
-    config()->set('capell-insights.hash_salt', null);
+    config()->set('capell-insights.hash_salt');
     config()->set('app.key', '');
 
     expect(ResolveInsightsHashSaltAction::run())->toBe('capell-insights');

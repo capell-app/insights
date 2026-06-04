@@ -235,7 +235,7 @@ it('derives visitor hash salt from the application key when no private salt is c
 
     config()->set('app.key', $applicationKey);
     config()->set('capell-insights.hash_visitor_data', true);
-    config()->set('capell-insights.hash_salt', null);
+    config()->set('capell-insights.hash_salt');
 
     $response = $this
         ->withServerVariables([
