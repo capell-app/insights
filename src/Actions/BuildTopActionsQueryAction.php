@@ -21,6 +21,22 @@ final class BuildTopActionsQueryAction
      */
     public function handle(InsightsWindowData $window, ?int $limit = 5): Collection
     {
+        /** @var Collection<array-key, mixed> $topActions */
+        $topActions = RememberInsightsDashboardAggregateAction::run(
+            RememberInsightsDashboardAggregateAction::windowKey('top-actions', $window, [
+                'limit' => $limit,
+            ]),
+            fn (): Collection => $this->buildTopActions($window, $limit),
+        );
+
+        return $topActions;
+    }
+
+    /**
+     * @return Collection<array-key, mixed>
+     */
+    private function buildTopActions(InsightsWindowData $window, ?int $limit = 5): Collection
+    {
         $query = InsightsEvent::query()
             ->select([
                 'event_name',

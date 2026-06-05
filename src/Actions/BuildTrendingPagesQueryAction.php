@@ -22,6 +22,22 @@ final class BuildTrendingPagesQueryAction
      */
     public function handle(InsightsWindowData $window, ?int $limit = null): Collection
     {
+        /** @var Collection<array-key, mixed> $trendingPages */
+        $trendingPages = RememberInsightsDashboardAggregateAction::run(
+            RememberInsightsDashboardAggregateAction::windowKey('trending-pages', $window, [
+                'limit' => $limit,
+            ]),
+            fn (): Collection => $this->buildTrendingPages($window, $limit),
+        );
+
+        return $trendingPages;
+    }
+
+    /**
+     * @return Collection<array-key, mixed>
+     */
+    private function buildTrendingPages(InsightsWindowData $window, ?int $limit = null): Collection
+    {
         $previousPageViews = $this->previousPageViews($window);
 
         $summaries = InsightsEvent::query()

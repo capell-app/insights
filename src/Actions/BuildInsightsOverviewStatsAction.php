@@ -20,6 +20,20 @@ final class BuildInsightsOverviewStatsAction
      */
     public function handle(InsightsWindowData $window): Collection
     {
+        /** @var Collection<int, array{id: string, label: string, value: int}> $stats */
+        $stats = RememberInsightsDashboardAggregateAction::run(
+            RememberInsightsDashboardAggregateAction::windowKey('overview-stats', $window),
+            fn (): Collection => $this->buildStats($window),
+        );
+
+        return $stats;
+    }
+
+    /**
+     * @return Collection<int, array{id: string, label: string, value: int}>
+     */
+    private function buildStats(InsightsWindowData $window): Collection
+    {
         return collect([
             [
                 'id' => 'page-views',

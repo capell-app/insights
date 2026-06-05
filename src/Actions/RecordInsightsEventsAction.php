@@ -32,7 +32,7 @@ final class RecordInsightsEventsAction
             return collect();
         }
 
-        return DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion): Collection {
+        $recordedEvents = DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion): Collection {
             $recordableEvents = $this->recordableEvents($events);
 
             if ($recordableEvents === []) {
@@ -95,6 +95,12 @@ final class RecordInsightsEventsAction
                 ->get()
                 ->values();
         });
+
+        if ($recordedEvents->isNotEmpty()) {
+            RememberInsightsDashboardAggregateAction::flush();
+        }
+
+        return $recordedEvents;
     }
 
     private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion): ?InsightsVisit

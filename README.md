@@ -79,6 +79,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Routes: POST capell/insights/events and POST capell/insights/consent by default.
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
+- Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
 
@@ -138,7 +139,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Beacon posts validate request origin when present, can require signed event URLs, and load the embedded tracker script through a cached package Action.
 - Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
-- Uses capell-insights config keys for route prefix, consent, hashing, retention, purge batch size, and ignored paths.
+- Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.
 
 ## Install And Setup

@@ -57,6 +57,8 @@ final class UpdateInsightsConsentAction
 
         MirrorInsightsConsentToPrivacyCenterAction::run($consent);
 
+        RememberInsightsDashboardAggregateAction::flush();
+
         return $consent;
     }
 

@@ -21,6 +21,22 @@ final class BuildPopularPagesQueryAction
      */
     public function handle(InsightsWindowData $window, ?int $limit = null): Collection
     {
+        /** @var Collection<int, array{path: string, url: string, page_views: int, unique_visits: int, clicks: int}> $popularPages */
+        $popularPages = RememberInsightsDashboardAggregateAction::run(
+            RememberInsightsDashboardAggregateAction::windowKey('popular-pages', $window, [
+                'limit' => $limit,
+            ]),
+            fn (): Collection => $this->buildPopularPages($window, $limit),
+        );
+
+        return $popularPages;
+    }
+
+    /**
+     * @return Collection<int, array{path: string, url: string, page_views: int, unique_visits: int, clicks: int}>
+     */
+    private function buildPopularPages(InsightsWindowData $window, ?int $limit = null): Collection
+    {
         $clicksByPath = $this->clicksByPath($window);
 
         $query = InsightsEvent::query()

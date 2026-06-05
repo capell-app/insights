@@ -21,27 +21,19 @@ final class BuildLiveInsightsStatsAction
      */
     public function handle(int $minutes = 15, ?int $siteId = null, ?int $limit = 5): Collection
     {
-        $startsAt = now()->subMinutes($minutes)->toImmutable();
-        $endsAt = now()->toImmutable();
-        $topPages = $this->topPages($startsAt, $endsAt, $siteId, $limit);
+        /** @var Collection<array-key, mixed> $liveStats */
+        $liveStats = RememberInsightsDashboardAggregateAction::run(
+            RememberInsightsDashboardAggregateAction::key('live-stats', [
+                'locale' => app()->getLocale(),
+                'minute_bucket' => now()->startOfMinute()->toIso8601String(),
+                'minutes' => $minutes,
+                'site_id' => $siteId,
+                'limit' => $limit,
+            ]),
+            fn (): Collection => $this->buildLiveStats($minutes, $siteId, $limit),
+        );
 
-        return collect([
-            [
-                'id' => 'live-page-views',
-                'metric' => (string) __('capell-insights::widgets.live_page_views'),
-                'value' => $this->pageViews($startsAt, $endsAt, $siteId),
-            ],
-            [
-                'id' => 'live-active-visits',
-                'metric' => (string) __('capell-insights::widgets.live_active_visits'),
-                'value' => $this->activeVisits($startsAt, $endsAt, $siteId),
-            ],
-            [
-                'id' => 'live-top-page',
-                'metric' => (string) __('capell-insights::widgets.live_top_page'),
-                'value' => $topPages->first()['path'] ?? '-',
-            ],
-        ]);
+        return $liveStats;
     }
 
     /**
@@ -66,6 +58,34 @@ final class BuildLiveInsightsStatsAction
                 'path' => (string) $event->path,
                 'page_views' => $event->page_views,
             ]);
+    }
+
+    /**
+     * @return Collection<array-key, mixed>
+     */
+    private function buildLiveStats(int $minutes = 15, ?int $siteId = null, ?int $limit = 5): Collection
+    {
+        $startsAt = now()->subMinutes($minutes)->toImmutable();
+        $endsAt = now()->toImmutable();
+        $topPages = $this->topPages($startsAt, $endsAt, $siteId, $limit);
+
+        return collect([
+            [
+                'id' => 'live-page-views',
+                'metric' => (string) __('capell-insights::widgets.live_page_views'),
+                'value' => $this->pageViews($startsAt, $endsAt, $siteId),
+            ],
+            [
+                'id' => 'live-active-visits',
+                'metric' => (string) __('capell-insights::widgets.live_active_visits'),
+                'value' => $this->activeVisits($startsAt, $endsAt, $siteId),
+            ],
+            [
+                'id' => 'live-top-page',
+                'metric' => (string) __('capell-insights::widgets.live_top_page'),
+                'value' => $topPages->first()['path'] ?? '-',
+            ],
+        ]);
     }
 
     private function pageViews(CarbonImmutable $startsAt, CarbonImmutable $endsAt, ?int $siteId): int

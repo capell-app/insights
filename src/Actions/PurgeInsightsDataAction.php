@@ -39,7 +39,13 @@ final class PurgeInsightsDataAction
             $resolvedBatchSize,
         );
 
-        return $deletedEvents + $deletedConsents + $deletedVisits;
+        $deletedRecords = $deletedEvents + $deletedConsents + $deletedVisits;
+
+        if ($deletedRecords > 0) {
+            RememberInsightsDashboardAggregateAction::flush();
+        }
+
+        return $deletedRecords;
     }
 
     /** @param Builder<Model> $query */
