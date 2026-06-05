@@ -25,6 +25,7 @@ Keeps insights in Laravel actions and data objects, with explicit consent enums 
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
+- InsightsHealthCheck verifies tables, beacon routes, tracker render output, purge scheduling, and visitor-hash secret safety.
 
 ## Operational Notes
 
@@ -35,7 +36,7 @@ Gives site operators practical traffic and journey insight without sending the w
 - Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
-- May need scheduled cleanup if retention should be enforced automatically.
+- Schedules monthly retention cleanup through `insights:purge`.
 
 ## Data And Retention
 

@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Health\InsightsHealthCheck;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
@@ -14,7 +16,7 @@ it('reports a compatible capell api version', function (): void {
 it('runs real diagnostics returning check results', function (): void {
     $results = InsightsHealthCheck::runDiagnostics();
 
-    expect($results)->toHaveCount(3)
+    expect($results)->toHaveCount(5)
         ->and($results->every(static fn (mixed $result): bool => $result instanceof DoctorCheckResultData))->toBeTrue();
 });
 
@@ -40,6 +42,26 @@ it('confirms the public beacon and consent routes are registered', function (): 
 
     expect($check->missingBeaconRoutes())->toBe([])
         ->and($check->beaconRoutesCheck()->passed)->toBeTrue();
+});
+
+it('confirms the frontend tracker render hook emits tracker output', function (): void {
+    $check = new InsightsHealthCheck;
+
+    expect($check->hasFrontendTrackerRenderHook())->toBeTrue()
+        ->and($check->frontendTrackerRenderHookCheck()->passed)->toBeTrue()
+        ->and($check->hasFrontendTrackerRenderHook(new RenderHookRegistry))->toBeFalse();
+});
+
+it('confirms the retention purge command is scheduled monthly', function (): void {
+    $check = new InsightsHealthCheck;
+    $emptySchedule = new Schedule;
+    $scheduledPurge = new Schedule;
+    $scheduledPurge->command('insights:purge')->monthly();
+
+    expect($check->hasPurgeSchedule())->toBeTrue()
+        ->and($check->purgeScheduleCheck()->passed)->toBeTrue()
+        ->and($check->hasPurgeSchedule($emptySchedule))->toBeFalse()
+        ->and($check->hasPurgeSchedule($scheduledPurge))->toBeTrue();
 });
 
 it('fails the visitor hash secret check when only the public default salt is available', function (): void {
