@@ -78,6 +78,25 @@ it('uses settings retention days when no override is provided', function (): voi
         ->and(InsightsVisit::query()->whereKey($recentVisit->getKey())->exists())->toBeTrue();
 });
 
+it('purges eligible records across multiple batches', function (): void {
+    $oldTimestamp = now()->subDays(45)->toImmutable();
+
+    $oldVisits = InsightsVisit::factory()
+        ->count(3)
+        ->create([
+            'started_at' => $oldTimestamp,
+            'last_seen_at' => $oldTimestamp,
+        ]);
+
+    $deletedRecords = PurgeInsightsDataAction::run(30, 1);
+
+    expect($deletedRecords)->toBe(3);
+
+    $oldVisits->each(function (InsightsVisit $oldVisit): void {
+        expect(InsightsVisit::query()->whereKey($oldVisit->getKey())->exists())->toBeFalse();
+    });
+});
+
 it('rejects invalid purge command retention days before deleting records', function (string $daysOption): void {
     $oldVisit = InsightsVisit::factory()->create([
         'started_at' => now()->subDays(45)->toImmutable(),

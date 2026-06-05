@@ -23,7 +23,7 @@ Keeps insights in Laravel actions and data objects, with explicit consent enums 
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
-- PurgeInsightsDataCommand supports retention cleanup.
+- PurgeInsightsDataCommand supports chunked retention cleanup.
 
 ## Operational Notes
 
@@ -33,7 +33,7 @@ Gives site operators practical traffic and journey insight without sending the w
 - Adds beacon and consent public POST routes.
 - Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
-- Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
+- Uses capell-insights config keys for route prefix, consent, hashing, retention, purge batch size, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.
 
 ## Data And Retention
@@ -42,7 +42,7 @@ Gives site operators practical traffic and journey insight without sending the w
 - insights_consents stores consent decisions for a visit.
 - insights_events stores event type, URL, path, metadata, and occurrence time.
 - Visits relate to events and consents.
-- Retention is governed by retention_days and purge actions.
+- Retention is governed by retention_days, purge_batch_size, and purge actions.
 
 ## Screenshot Plan
 

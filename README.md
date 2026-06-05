@@ -80,7 +80,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
-- PurgeInsightsDataCommand supports retention cleanup.
+- PurgeInsightsDataCommand supports chunked retention cleanup.
 
 ## Code Map
 
@@ -120,7 +120,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - insights_consents stores consent decisions for a visit.
 - insights_events stores event type, URL, path, metadata, and occurrence time.
 - Visits relate to events and consents.
-- Retention is governed by retention_days and purge actions.
+- Retention is governed by retention_days, purge_batch_size, and purge actions.
 
 - Models: `InsightsConsent`, `InsightsEvent`, `InsightsVisit`.
 - Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`.
@@ -138,7 +138,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Beacon posts validate request origin when present, can require signed event URLs, and load the embedded tracker script through a cached package Action.
 - Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
-- Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
+- Uses capell-insights config keys for route prefix, consent, hashing, retention, purge batch size, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.
 
 ## Install And Setup

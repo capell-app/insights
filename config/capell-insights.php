@@ -18,6 +18,7 @@ return [
     'default_consent_region' => null,
     'policy_version' => '1.0',
     'retention_days' => 365,
+    'purge_batch_size' => 500,
     'hash_visitor_data' => true,
     'hash_salt' => null,
     'ignored_paths' => [
