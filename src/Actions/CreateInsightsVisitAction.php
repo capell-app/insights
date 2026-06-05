@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static InsightsVisit run(Request $request, InsightsConsentRegion $region)
+ */
 final class CreateInsightsVisitAction
 {
     use AsAction;

@@ -13,16 +13,19 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int<1, max>, change_percentage: float}> run(InsightsWindowData $window, ?int $limit = null)
+ */
 final class BuildTrendingPagesQueryAction
 {
     use AsAction;
 
     /**
-     * @return Collection<array-key, mixed>
+     * @return Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int<1, max>, change_percentage: float}>
      */
     public function handle(InsightsWindowData $window, ?int $limit = null): Collection
     {
-        /** @var Collection<array-key, mixed> $trendingPages */
+        /** @var Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int<1, max>, change_percentage: float}> $trendingPages */
         $trendingPages = RememberInsightsDashboardAggregateAction::run(
             RememberInsightsDashboardAggregateAction::windowKey('trending-pages', $window, [
                 'limit' => $limit,
@@ -34,7 +37,7 @@ final class BuildTrendingPagesQueryAction
     }
 
     /**
-     * @return Collection<array-key, mixed>
+     * @return Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int<1, max>, change_percentage: float}>
      */
     private function buildTrendingPages(InsightsWindowData $window, ?int $limit = null): Collection
     {

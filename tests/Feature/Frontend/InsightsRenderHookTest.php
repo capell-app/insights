@@ -50,6 +50,7 @@ it('can disable the frontend consent banner', function (): void {
     $output = $registry->renderAll(RenderHookLocation::BodyEnd);
 
     expect($output)
-        ->not->toContain('data-capell-insights-consent-banner')
+        ->not->toContain('class="capell-insights-consent-banner"')
+        ->not->toContain('role="dialog"')
         ->toContain('data-capell-insights-tracker');
 });

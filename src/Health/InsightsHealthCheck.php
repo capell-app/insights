@@ -6,6 +6,7 @@ namespace Capell\Insights\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Actions\ResolveInsightsHashSaltAction;
@@ -175,6 +176,9 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         return ResolveInsightsHashSaltAction::run() !== ResolveInsightsHashSaltAction::PUBLIC_DEFAULT_SALT;
     }
 
+    /**
+     * @param  RenderHookRegistry<RenderHookContext>|null  $registry
+     */
     public function hasFrontendTrackerRenderHook(?RenderHookRegistry $registry = null): bool
     {
         if (! $registry instanceof RenderHookRegistry && ! app()->bound(RenderHookRegistry::class)) {
@@ -209,9 +213,11 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             if (! $event instanceof Event) {
                 continue;
             }
+
             if (! is_string($event->command)) {
                 continue;
             }
+
             if (! str_contains((string) $event->command, 'insights:purge')) {
                 continue;
             }

@@ -12,16 +12,19 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, array{action: string, event_name: string|null, label: string|null, location: string|null, events: int}> run(InsightsWindowData $window, ?int $limit = 5)
+ */
 final class BuildTopActionsQueryAction
 {
     use AsAction;
 
     /**
-     * @return Collection<array-key, mixed>
+     * @return Collection<int, array{action: string, event_name: string|null, label: string|null, location: string|null, events: int}>
      */
     public function handle(InsightsWindowData $window, ?int $limit = 5): Collection
     {
-        /** @var Collection<array-key, mixed> $topActions */
+        /** @var Collection<int, array{action: string, event_name: string|null, label: string|null, location: string|null, events: int}> $topActions */
         $topActions = RememberInsightsDashboardAggregateAction::run(
             RememberInsightsDashboardAggregateAction::windowKey('top-actions', $window, [
                 'limit' => $limit,
@@ -33,7 +36,7 @@ final class BuildTopActionsQueryAction
     }
 
     /**
-     * @return Collection<array-key, mixed>
+     * @return Collection<int, array{action: string, event_name: string|null, label: string|null, location: string|null, events: int}>
      */
     private function buildTopActions(InsightsWindowData $window, ?int $limit = 5): Collection
     {

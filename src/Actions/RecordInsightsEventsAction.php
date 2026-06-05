@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, InsightsEvent> run(?string $visitUuid, iterable<int, array{data: InsightsEventData, occurred_at: string|null}> $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null)
+ */
 final class RecordInsightsEventsAction
 {
     use AsAction;
@@ -76,10 +79,6 @@ final class RecordInsightsEventsAction
                 ];
 
                 $sequence++;
-            }
-
-            if ($eventRows === []) {
-                return collect();
             }
 
             DB::table((new InsightsEvent)->getTable())->insert($eventRows);

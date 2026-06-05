@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static int run(?int $retentionDays = null, ?int $batchSize = null)
+ */
 final class PurgeInsightsDataAction
 {
     use AsAction;
@@ -48,28 +51,37 @@ final class PurgeInsightsDataAction
         return $deletedRecords;
     }
 
-    /** @param Builder<Model> $query */
+    /**
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     */
     private function deleteInBatches(Builder $query, int $batchSize): int
     {
         $deletedRecords = 0;
 
         do {
-            /** @var list<int> $ids */
-            $ids = (clone $query)
+            /** @var list<int|string> $rawIds */
+            $rawIds = (clone $query)
                 ->orderBy($query->getModel()->getKeyName())
                 ->limit($batchSize)
                 ->pluck($query->getModel()->getKeyName())
-                ->map(static fn (mixed $id): int => (int) $id)
+                ->values()
                 ->all();
+            $ids = array_map(static fn (int|string $id): int => (int) $id, $rawIds);
 
             if ($ids === []) {
                 break;
             }
 
-            $deletedRecords += $query->getModel()
+            $deletedRows = $query->getModel()
                 ->newQuery()
                 ->whereKey($ids)
                 ->delete();
+
+            if (is_int($deletedRows)) {
+                $deletedRecords += $deletedRows;
+            }
         } while (count($ids) === $batchSize);
 
         return $deletedRecords;

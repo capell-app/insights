@@ -12,16 +12,19 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, array{id: string, metric: string, value: int|string}> run(int $minutes = 15, ?int $siteId = null, ?int $limit = 5)
+ */
 final class BuildLiveInsightsStatsAction
 {
     use AsAction;
 
     /**
-     * @return Collection<array-key, mixed>
+     * @return Collection<int, array{id: string, metric: string, value: int|string}>
      */
     public function handle(int $minutes = 15, ?int $siteId = null, ?int $limit = 5): Collection
     {
-        /** @var Collection<array-key, mixed> $liveStats */
+        /** @var Collection<int, array{id: string, metric: string, value: int|string}> $liveStats */
         $liveStats = RememberInsightsDashboardAggregateAction::run(
             RememberInsightsDashboardAggregateAction::key('live-stats', [
                 'locale' => app()->getLocale(),
@@ -61,7 +64,7 @@ final class BuildLiveInsightsStatsAction
     }
 
     /**
-     * @return Collection<array-key, mixed>
+     * @return Collection<int, array{id: string, metric: string, value: int|string}>
      */
     private function buildLiveStats(int $minutes = 15, ?int $siteId = null, ?int $limit = 5): Collection
     {

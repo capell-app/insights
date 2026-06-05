@@ -8,6 +8,9 @@ use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Support\Consent\ConsentRegionResolver;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static InsightsConsentRegion run()
+ */
 final class ResolveConsentRegionAction
 {
     use AsAction;

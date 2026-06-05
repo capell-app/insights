@@ -11,6 +11,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, array{source: string, medium: string, campaign: string, referrer: string, visits: int}> run(InsightsWindowData $window, ?int $limit = 5)
+ */
 final class BuildAcquisitionSourcesQueryAction
 {
     use AsAction;
@@ -103,7 +106,10 @@ final class BuildAcquisitionSourcesQueryAction
             'medium' => $first['medium'],
             'campaign' => $first['campaign'],
             'referrer' => $first['referrer'],
-            'visits' => (int) $group->sum('visits'),
+            'visits' => $group->reduce(
+                static fn (int $visits, array $summary): int => $visits + $summary['visits'],
+                0,
+            ),
         ];
     }
 
