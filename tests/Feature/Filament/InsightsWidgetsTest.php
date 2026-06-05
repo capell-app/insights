@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Admin\Contracts\DashboardSettingsContributor;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
 use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
 use Capell\Insights\Filament\Widgets\PopularPagesWidget;
 use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
@@ -22,6 +23,7 @@ it('exposes insights dashboard settings keys with translated labels', function (
         'insights_live_stats',
         'insights_recent_journeys',
         'insights_top_actions',
+        'insights_acquisition_sources',
     ]);
 
     foreach ($entries as $entry) {
@@ -39,9 +41,15 @@ it('has concrete translations for insights widget labels', function (): void {
         'live_statistics',
         'recent_journeys',
         'top_actions',
+        'acquisition_sources',
         'metric',
         'value',
         'path',
+        'source',
+        'medium',
+        'campaign',
+        'referrer',
+        'visits',
         'page_views',
         'unique_visits',
         'clicks',
@@ -54,6 +62,8 @@ it('has concrete translations for insights widget labels', function (): void {
         'last_path',
         'action',
         'events',
+        'direct',
+        'referral',
         'live_page_views',
         'live_active_visits',
         'live_top_page',
@@ -86,6 +96,7 @@ it('renders insights dashboard widgets', function (string $widgetClass): void {
     LiveInsightsStatsWidget::class,
     RecentJourneysWidget::class,
     TopActionsWidget::class,
+    AcquisitionSourcesWidget::class,
 ]);
 
 it('renders trending pages with previous count column', function (): void {

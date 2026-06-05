@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Actions\BuildAcquisitionSourcesQueryAction;
 use Capell\Insights\Actions\BuildInsightsOverviewStatsAction;
 use Capell\Insights\Actions\BuildJourneyTimelineAction;
 use Capell\Insights\Actions\BuildPopularPagesQueryAction;
@@ -151,6 +152,59 @@ it('builds overview stats without double counting visits across pages', function
     expect($stats['page-views']['value'])->toBe(3)
         ->and($stats['unique-visits']['value'])->toBe(2)
         ->and($stats['clicks']['value'])->toBe(1);
+});
+
+it('groups acquisition sources by campaign then referrer and direct traffic', function (): void {
+    $window = insightsReportWindow();
+
+    InsightsVisit::factory()->create([
+        'started_at' => $window->startsAt->addHour(),
+        'utm_source' => 'newsletter',
+        'utm_medium' => 'email',
+        'utm_campaign' => 'spring',
+        'referrer_url' => 'https://mail.example.test/campaign',
+    ]);
+    InsightsVisit::factory()->create([
+        'started_at' => $window->startsAt->addHours(2),
+        'utm_source' => 'newsletter',
+        'utm_medium' => 'email',
+        'utm_campaign' => 'spring',
+        'referrer_url' => 'https://mail.example.test/other-path',
+    ]);
+    InsightsVisit::factory()->create([
+        'started_at' => $window->startsAt->addHours(3),
+        'referrer_url' => 'https://search.example.test/results?q=capell',
+    ]);
+    InsightsVisit::factory()->create([
+        'started_at' => $window->startsAt->addHours(4),
+        'referrer_url' => null,
+    ]);
+    InsightsVisit::factory()->create([
+        'started_at' => $window->startsAt->subDay(),
+        'utm_source' => 'outside',
+    ]);
+
+    $sources = BuildAcquisitionSourcesQueryAction::run($window);
+
+    expect($sources->pluck('source')->all())->toBe([
+        'newsletter',
+        'Direct',
+        'search.example.test',
+    ]);
+
+    expect($sources->firstWhere('source', 'newsletter'))->toMatchArray([
+        'medium' => 'email',
+        'campaign' => 'spring',
+        'referrer' => 'mail.example.test',
+        'visits' => 2,
+    ]);
+
+    expect($sources->firstWhere('source', 'search.example.test'))->toMatchArray([
+        'medium' => 'Referral',
+        'campaign' => '-',
+        'referrer' => 'search.example.test',
+        'visits' => 1,
+    ]);
 });
 
 function insightsReportWindow(): InsightsWindowData

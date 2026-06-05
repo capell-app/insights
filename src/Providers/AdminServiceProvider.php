@@ -15,6 +15,7 @@ use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Filament\Pages\InsightsPage;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
 use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
 use Capell\Insights\Filament\Widgets\PopularPagesWidget;
 use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
@@ -81,6 +82,7 @@ class AdminServiceProvider extends ServiceProvider
         CapellAdmin::registerDashboardWidget(LiveInsightsStatsWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
         CapellAdmin::registerDashboardWidget(RecentJourneysWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
         CapellAdmin::registerDashboardWidget(TopActionsWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardWidget(AcquisitionSourcesWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
 
         return $this;
     }

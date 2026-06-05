@@ -22,6 +22,7 @@ Keeps insights in Laravel actions and data objects, with explicit consent enums 
 - Routes: POST capell/insights/events and POST capell/insights/consent by default.
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
+- Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
@@ -40,7 +41,7 @@ Gives site operators practical traffic and journey insight without sending the w
 
 ## Data And Retention
 
-- insights_visits stores site, language, consent, landing URL, hashed visitor data, and start time.
+- insights_visits stores site, language, consent, landing URL, referrer, UTM campaign fields, hashed visitor data, and start time.
 - insights_consents stores consent decisions for a visit.
 - insights_events stores event type, URL, path, metadata, and occurrence time.
 - Visits relate to events and consents.

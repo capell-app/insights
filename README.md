@@ -79,6 +79,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Routes: POST capell/insights/events and POST capell/insights/consent by default.
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
+- Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
@@ -104,7 +105,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Admin Surface
 
 - Pages: `InsightsPage`.
-- Widgets: `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsWidget`, `LiveInsightsStatsWidget`, `PopularPagesWidget`, `RecentJourneysWidget`, `TopActionsWidget`, `TrendingPagesWidget`.
+- Widgets: `AcquisitionSourcesWidget`, `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsWidget`, `LiveInsightsStatsWidget`, `PopularPagesWidget`, `RecentJourneysWidget`, `TopActionsWidget`, `TrendingPagesWidget`.
 - Settings: `InsightsSettings`, `InsightsSettingsMigrationProvider`.
 
 ## Runtime Surface
@@ -118,7 +119,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 
 ## Data And Persistence
 
-- insights_visits stores site, language, consent, landing URL, hashed visitor data, and start time.
+- insights_visits stores site, language, consent, landing URL, referrer, UTM campaign fields, hashed visitor data, and start time.
 - insights_consents stores consent decisions for a visit.
 - insights_events stores event type, URL, path, metadata, and occurrence time.
 - Visits relate to events and consents.
