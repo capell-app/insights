@@ -76,7 +76,7 @@ it('fails the visitor hash secret check when only the public default salt is ava
 });
 
 it('fails the visitor hash secret check when no usable salt or app key is available', function (): void {
-    Config::set('capell-insights.hash_salt', null);
+    Config::set('capell-insights.hash_salt');
     Config::set('app.key', 'base64:');
 
     $check = new InsightsHealthCheck;

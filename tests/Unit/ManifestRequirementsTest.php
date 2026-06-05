@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Settings\InsightsSettings;
+
 function insightsPackagePath(string $path): string
 {
     return dirname(__DIR__, 2) . '/' . $path;
@@ -35,7 +37,7 @@ it('declares installed settings and page permission surfaces', function (): void
     $manifest = insightsPackageJson('capell.json');
 
     expect($manifest['settings'] ?? [])->toBe([
-        'Capell\\Insights\\Settings\\InsightsSettings',
+        InsightsSettings::class,
     ])->and($manifest['permissions'] ?? [])->toContain('View:InsightsPage')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-consent-banner')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-acquisition-reports');

@@ -209,8 +209,10 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             if (! $event instanceof Event) {
                 continue;
             }
-
-            if (! is_string($event->command) || ! str_contains($event->command, 'insights:purge')) {
+            if (! is_string($event->command)) {
+                continue;
+            }
+            if (! str_contains((string) $event->command, 'insights:purge')) {
                 continue;
             }
 
