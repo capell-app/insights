@@ -43,7 +43,7 @@ it('confirms the public beacon and consent routes are registered', function (): 
 });
 
 it('fails the visitor hash secret check when only the public default salt is available', function (): void {
-    Config::set('capell-insights.hash_salt', 'capell-insights');
+    Config::set('capell-insights.hash_salt', ' capell-insights ');
     Config::set('app.key', '');
 
     $check = new InsightsHealthCheck;
@@ -53,9 +53,31 @@ it('fails the visitor hash secret check when only the public default salt is ava
         ->and(InsightsHealthCheck::passed())->toBeFalse();
 });
 
+it('fails the visitor hash secret check when no usable salt or app key is available', function (): void {
+    Config::set('capell-insights.hash_salt', null);
+    Config::set('app.key', 'base64:');
+
+    $check = new InsightsHealthCheck;
+    $result = $check->visitorHashSecretCheck();
+
+    expect($check->hasSecureVisitorHashSecret())->toBeFalse()
+        ->and($result->passed)->toBeFalse()
+        ->and($result->message)->not->toContain('base64:');
+});
+
 it('passes the visitor hash secret check when a custom salt is configured', function (): void {
     Config::set('capell-insights.hash_salt', 'a-private-production-salt');
     Config::set('app.key', '');
+
+    $check = new InsightsHealthCheck;
+
+    expect($check->hasSecureVisitorHashSecret())->toBeTrue()
+        ->and($check->visitorHashSecretCheck()->passed)->toBeTrue();
+});
+
+it('passes the visitor hash secret check when the salt is derived from the application key', function (): void {
+    Config::set('capell-insights.hash_salt', 'capell-insights');
+    Config::set('app.key', 'base64:' . base64_encode(str_repeat('i', 32)));
 
     $check = new InsightsHealthCheck;
 

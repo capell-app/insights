@@ -6,6 +6,7 @@ namespace Capell\Insights\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Insights\Actions\ResolveInsightsHashSaltAction;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -126,15 +127,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
 
     public function hasSecureVisitorHashSecret(): bool
     {
-        $salt = config('capell-insights.hash_salt');
-
-        if (is_string($salt) && $salt !== '' && $salt !== 'capell-insights') {
-            return true;
-        }
-
-        $applicationKey = config('app.key');
-
-        return is_string($applicationKey) && $applicationKey !== '';
+        return ResolveInsightsHashSaltAction::run() !== ResolveInsightsHashSaltAction::PUBLIC_DEFAULT_SALT;
     }
 
     /**
