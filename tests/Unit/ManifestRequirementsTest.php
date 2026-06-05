@@ -36,7 +36,8 @@ it('declares installed settings and page permission surfaces', function (): void
 
     expect($manifest['settings'] ?? [])->toBe([
         'Capell\\Insights\\Settings\\InsightsSettings',
-    ])->and($manifest['permissions'] ?? [])->toContain('View:InsightsPage');
+    ])->and($manifest['permissions'] ?? [])->toContain('View:InsightsPage')
+        ->and($manifest['capabilities'] ?? [])->toContain('insights-consent-banner');
 });
 
 it('keeps marketplace screenshots backed by committed assets', function (): void {

@@ -22,6 +22,10 @@
     $insightsScript = GetInsightsTrackerScriptAction::run();
 @endphp
 
+@if (config('capell-insights.consent_banner_enabled', true) === true)
+    @include('capell-insights::components.consent-banner')
+@endif
+
 <script
     type="application/json"
     data-capell-insights-tracker

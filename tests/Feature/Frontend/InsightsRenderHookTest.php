@@ -18,6 +18,8 @@ it('injects the frontend insights tracker at the end of the body', function (): 
     $output = $registry->renderAll(RenderHookLocation::BodyEnd);
 
     expect($output)
+        ->toContain('data-capell-insights-consent-banner')
+        ->toContain('data-capell-insights-consent-action="accept"')
         ->toContain('data-capell-insights-tracker')
         ->toContain(route('capell-insights.events'))
         ->toContain(route('capell-insights.consent'))
@@ -33,7 +35,21 @@ it('can inject a signed event beacon url', function (): void {
     $output = $registry->renderAll(RenderHookLocation::BodyEnd);
 
     expect($output)
+        ->toContain('data-capell-insights-consent-banner')
         ->toContain('data-capell-insights-tracker')
         ->toContain('signature=')
         ->toContain(route('capell-insights.consent'));
+});
+
+it('can disable the frontend consent banner', function (): void {
+    config()->set('capell-insights.consent_banner_enabled', false);
+
+    /** @var RenderHookRegistry<RenderHookContext> $registry */
+    $registry = resolve(RenderHookRegistry::class);
+
+    $output = $registry->renderAll(RenderHookLocation::BodyEnd);
+
+    expect($output)
+        ->not->toContain('data-capell-insights-consent-banner')
+        ->toContain('data-capell-insights-tracker');
 });

@@ -9,7 +9,7 @@ This page is the consolidated implementation overview for the Insights package. 
 Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
 
 - Frontend beacon endpoints for events and consent.
-- Render hook that can register the tracker.
+- Render hook that registers the tracker and overrideable consent banner.
 - Dashboard widgets for overview stats, popular pages, top actions, journeys, and trending pages.
 - Settings schema for insights retention and behaviour.
 
@@ -22,6 +22,7 @@ Keeps insights in Laravel actions and data objects, with explicit consent enums 
 - Routes: POST capell/insights/events and POST capell/insights/consent by default.
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
+- The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports retention cleanup.
 
 ## Operational Notes
@@ -30,6 +31,7 @@ Gives site operators practical traffic and journey insight without sending the w
 
 - Adds insights tables and settings migration.
 - Adds beacon and consent public POST routes.
+- Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.

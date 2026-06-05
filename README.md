@@ -28,7 +28,7 @@ Insights records first-party visits, events, consent decisions, page views, clic
 Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
 
 - Frontend beacon endpoints for events and consent.
-- Render hook that can register the tracker.
+- Render hook that registers the tracker and overrideable consent banner.
 - Dashboard widgets for overview stats, popular pages, top actions, journeys, and trending pages.
 - Settings schema for insights retention and behaviour.
 
@@ -79,6 +79,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Routes: POST capell/insights/events and POST capell/insights/consent by default.
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
+- The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports retention cleanup.
 
 ## Code Map
@@ -135,6 +136,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Adds insights tables and settings migration.
 - Adds beacon and consent public POST routes.
 - Beacon posts validate request origin when present, can require signed event URLs, and load the embedded tracker script through a cached package Action.
+- Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
 - May need scheduled cleanup if retention should be enforced automatically.

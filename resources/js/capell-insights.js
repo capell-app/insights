@@ -22,6 +22,8 @@
     var maxBatchSize = 25
     var visitStorageKey = 'capell_insights_visit_id'
     var visitCookieName = 'capell_insights_visit'
+    var consentStorageKey = 'capell_insights_consent'
+    var consentBannerSelector = '[data-capell-insights-consent-banner]'
 
     function currentVisitId() {
         var storedVisitId = null
@@ -63,6 +65,54 @@
         }
     }
 
+    function currentConsentDecision() {
+        var storedConsent = null
+
+        try {
+            storedConsent = window.localStorage.getItem(consentStorageKey)
+        } catch (error) {
+            storedConsent = null
+        }
+
+        if (!storedConsent) {
+            return null
+        }
+
+        try {
+            var consentDecision = JSON.parse(storedConsent)
+
+            if (consentDecision.policy_version !== config.policyVersion) {
+                return null
+            }
+
+            return consentDecision
+        } catch (error) {
+            return null
+        }
+    }
+
+    function storeConsentDecision(status, categories) {
+        try {
+            window.localStorage.setItem(
+                consentStorageKey,
+                JSON.stringify({
+                    status: status,
+                    categories: categories || [],
+                    policy_version: config.policyVersion,
+                    decided_at: new Date().toISOString(),
+                }),
+            )
+        } catch (error) {
+            // Storage may be unavailable in private browsing or strict environments.
+        }
+    }
+
+    function consentIncludesInsights(categories) {
+        return (
+            Array.isArray(categories) && categories.indexOf('insights') !== -1
+        )
+    }
+
     function sendJson(url, payload, handleResponse, forceFetch) {
         var json = JSON.stringify(payload)
 
@@ -98,6 +148,135 @@
                 }
             })
             .catch(function () {})
+    }
+
+    function consentPayloadForAction(action, banner) {
+        if (action === 'accept') {
+            return {
+                status: 'accepted_all',
+                terms_accepted: true,
+            }
+        }
+
+        if (action === 'reject') {
+            return {
+                status: 'rejected_non_essential',
+                terms_accepted: true,
+            }
+        }
+
+        var categories = {}
+        var checkboxes = banner.querySelectorAll(
+            '[data-capell-insights-consent-category]',
+        )
+
+        checkboxes.forEach(function (checkbox) {
+            categories[
+                checkbox.getAttribute('data-capell-insights-consent-category')
+            ] = checkbox.checked === true
+        })
+
+        return {
+            status: 'granular',
+            terms_accepted: true,
+            categories: categories,
+        }
+    }
+
+    function submitConsent(payload, afterConsent) {
+        var status = payload.status
+        var consentJson = JSON.stringify(
+            Object.assign({ policy_version: config.policyVersion }, payload),
+        )
+
+        fetch(config.consentUrl, {
+            method: 'POST',
+            body: consentJson,
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+        })
+            .then(function (response) {
+                if (!response.ok) {
+                    return
+                }
+
+                response
+                    .json()
+                    .then(function (response) {
+                        storeVisitId(response.visit_id)
+                        storeConsentDecision(
+                            status,
+                            response.enabled_categories,
+                        )
+
+                        if (afterConsent) {
+                            afterConsent(response)
+                        }
+                    })
+                    .catch(function () {})
+            })
+            .catch(function () {})
+    }
+
+    function initializeConsentBanner() {
+        var banner = document.querySelector(consentBannerSelector)
+
+        if (!banner || currentConsentDecision()) {
+            return
+        }
+
+        var choices = banner.querySelector(
+            '[data-capell-insights-consent-choices]',
+        )
+
+        banner.hidden = false
+
+        banner.addEventListener('click', function (event) {
+            if (!event.target || !event.target.closest) {
+                return
+            }
+
+            var button = event.target.closest(
+                '[data-capell-insights-consent-action]',
+            )
+
+            if (!button || !banner.contains(button)) {
+                return
+            }
+
+            var action = button.getAttribute(
+                'data-capell-insights-consent-action',
+            )
+
+            if (action === 'manage') {
+                if (choices) {
+                    choices.hidden = !choices.hidden
+                    button.setAttribute(
+                        'aria-expanded',
+                        String(!choices.hidden),
+                    )
+                }
+
+                return
+            }
+
+            var hadVisitId = Boolean(currentVisitId())
+
+            submitConsent(consentPayloadForAction(action, banner), function () {
+                var consentDecision = currentConsentDecision()
+
+                if (
+                    !hadVisitId &&
+                    consentDecision &&
+                    consentIncludesInsights(consentDecision.categories)
+                ) {
+                    queueEvent({ type: 'page_view' })
+                    flushEvents()
+                }
+
+                banner.hidden = true
+            })
+        })
     }
 
     function flushEvents() {
@@ -308,32 +487,7 @@
 
     window.CapellInsights = {
         consent: function (payload) {
-            var consentJson = JSON.stringify(
-                Object.assign(
-                    { policy_version: config.policyVersion },
-                    payload,
-                ),
-            )
-
-            fetch(config.consentUrl, {
-                method: 'POST',
-                body: consentJson,
-                headers: { 'Content-Type': 'application/json' },
-                keepalive: true,
-            })
-                .then(function (response) {
-                    if (!response.ok) {
-                        return
-                    }
-
-                    response
-                        .json()
-                        .then(function (response) {
-                            storeVisitId(response.visit_id)
-                        })
-                        .catch(function () {})
-                })
-                .catch(function () {})
+            submitConsent(payload)
         },
         track: queueEvent,
         flush: flushEvents,
@@ -348,10 +502,14 @@
     })
 
     if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeConsentBanner, {
+            once: true,
+        })
         document.addEventListener('DOMContentLoaded', trackPageView, {
             once: true,
         })
     } else {
+        initializeConsentBanner()
         trackPageView()
     }
 })()

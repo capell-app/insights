@@ -48,6 +48,7 @@
         "insights",
         "insights-admin",
         "insights-frontend",
+        "insights-consent-banner",
         "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"
