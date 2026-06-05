@@ -35,6 +35,16 @@ it('falls back to the server visit cookie when local storage is empty', function
         ->toContain('return storedVisitId || currentVisitCookie()');
 });
 
+it('uses response-reading fetch when flushing events before a visit id exists', function (): void {
+    $source = insightsScriptSource();
+    $flushSource = scriptFunctionBody($source, 'flushEvents');
+
+    expect($flushSource)
+        ->toContain('var visitId = currentVisitId()')
+        ->toContain('storeVisitId(response.visit_id)')
+        ->toContain('!visitId');
+});
+
 it('does not persist raw dom ids in target selectors', function (): void {
     $source = insightsScriptSource();
     $selectorSource = scriptFunctionBody($source, 'selectorFor');

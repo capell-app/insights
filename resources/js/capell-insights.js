@@ -63,10 +63,10 @@
         }
     }
 
-    function sendJson(url, payload, handleResponse) {
+    function sendJson(url, payload, handleResponse, forceFetch) {
         var json = JSON.stringify(payload)
 
-        if (navigator.sendBeacon) {
+        if (!forceFetch && navigator.sendBeacon) {
             var blob = new Blob([json], { type: 'application/json' })
 
             if (navigator.sendBeacon(url, blob)) {
@@ -112,10 +112,19 @@
 
         var events = eventQueue.splice(0, maxBatchSize)
 
-        sendJson(config.eventsUrl, {
-            visit_id: currentVisitId(),
-            events: events,
-        })
+        var visitId = currentVisitId()
+
+        sendJson(
+            config.eventsUrl,
+            {
+                visit_id: visitId,
+                events: events,
+            },
+            function (response) {
+                storeVisitId(response.visit_id)
+            },
+            !visitId,
+        )
 
         if (eventQueue.length) {
             scheduleFlush(0)

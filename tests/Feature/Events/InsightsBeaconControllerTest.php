@@ -167,6 +167,40 @@ it('stores an outside-region page view with default settings', function (): void
     expect(InsightsEvent::query()->count())->toBe(1);
 });
 
+it('creates a visit for first outside-region event posts without an existing visit id', function (): void {
+    config()->set('capell-insights.default_consent_region', InsightsConsentRegion::OutsideUkOrEurope->value);
+
+    $this->postJson(route('capell-insights.events'), [
+        'visit_id' => null,
+        'events' => [
+            pageViewEvent(),
+        ],
+    ])
+        ->assertOk()
+        ->assertJsonStructure(['visit_id']);
+
+    $visit = InsightsVisit::query()->firstOrFail();
+    $event = InsightsEvent::query()->firstOrFail();
+
+    expect($event->visit_id)->toBe($visit->getKey())
+        ->and($visit->consent_region)->toBe(InsightsConsentRegion::OutsideUkOrEurope)
+        ->and($visit->consent_status)->toBe(InsightsConsentStatus::Pending);
+});
+
+it('does not create a first visit when server region requires consent', function (): void {
+    config()->set('capell-insights.default_consent_region', InsightsConsentRegion::UkOrEurope->value);
+
+    $this->postJson(route('capell-insights.events'), [
+        'visit_id' => null,
+        'events' => [
+            pageViewEvent(),
+        ],
+    ])->assertNoContent();
+
+    expect(InsightsVisit::query()->count())->toBe(0)
+        ->and(InsightsEvent::query()->count())->toBe(0);
+});
+
 it('stores click location fields', function (): void {
     $visit = InsightsVisit::factory()->create([
         'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,

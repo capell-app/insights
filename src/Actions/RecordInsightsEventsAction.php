@@ -11,7 +11,9 @@ use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -24,29 +26,31 @@ final class RecordInsightsEventsAction
      * @param  iterable<int, array{data: InsightsEventData, occurred_at: string|null}>  $events
      * @return Collection<int, InsightsEvent>
      */
-    public function handle(?string $visitUuid, iterable $events): Collection
+    public function handle(?string $visitUuid, iterable $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null): Collection
     {
         if (config('capell-insights.enabled', true) !== true) {
             return collect();
         }
 
-        return DB::transaction(function () use ($visitUuid, $events): Collection {
-            $visit = $this->resolveVisit($visitUuid);
+        return DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion): Collection {
+            $recordableEvents = $this->recordableEvents($events);
+
+            if ($recordableEvents === []) {
+                return collect();
+            }
+
+            $visit = $this->resolveVisit($visitUuid, $request, $consentRegion);
 
             if (! $visit instanceof InsightsVisit || ! $this->canRecordForVisit($visit)) {
                 return collect();
             }
 
-            $eventRows = [];
             $now = now()->toImmutable();
             $sequence = ((int) $visit->events()->max('sequence')) + 1;
+            $eventRows = [];
 
-            foreach ($events as $event) {
+            foreach ($recordableEvents as $event) {
                 $eventData = $event['data'];
-
-                if ($this->isIgnoredPath($eventData->path())) {
-                    continue;
-                }
 
                 $eventRows[] = [
                     'visit_id' => $visit->getKey(),
@@ -93,16 +97,43 @@ final class RecordInsightsEventsAction
         });
     }
 
-    private function resolveVisit(?string $visitUuid): ?InsightsVisit
+    private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion): ?InsightsVisit
     {
-        if ($visitUuid === null || trim($visitUuid) === '') {
+        if ($visitUuid !== null && trim($visitUuid) !== '') {
+            return InsightsVisit::query()
+                ->where('uuid', $visitUuid)
+                ->lockForUpdate()
+                ->first();
+        }
+
+        if (! $request instanceof Request || ! $consentRegion instanceof InsightsConsentRegion || ! $this->canRecordForRegion($consentRegion)) {
             return null;
         }
 
-        return InsightsVisit::query()
-            ->where('uuid', $visitUuid)
-            ->lockForUpdate()
-            ->first();
+        $visit = CreateInsightsVisitAction::run($request, $consentRegion);
+
+        Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
+
+        return $visit;
+    }
+
+    /**
+     * @param  iterable<int, array{data: InsightsEventData, occurred_at: string|null}>  $events
+     * @return list<array{data: InsightsEventData, occurred_at: string|null}>
+     */
+    private function recordableEvents(iterable $events): array
+    {
+        $recordableEvents = [];
+
+        foreach ($events as $event) {
+            if ($this->isIgnoredPath($event['data']->path())) {
+                continue;
+            }
+
+            $recordableEvents[] = $event;
+        }
+
+        return $recordableEvents;
     }
 
     private function isIgnoredPath(string $path): bool
@@ -133,8 +164,7 @@ final class RecordInsightsEventsAction
 
     private function canRecordForVisit(InsightsVisit $visit): bool
     {
-        if (config('capell-insights.require_consent_for_all_regions', false) !== true
-            && $visit->consent_region === InsightsConsentRegion::OutsideUkOrEurope) {
+        if ($this->canRecordForRegion($visit->consent_region)) {
             return true;
         }
 
@@ -145,6 +175,12 @@ final class RecordInsightsEventsAction
         }
 
         return true;
+    }
+
+    private function canRecordForRegion(InsightsConsentRegion $region): bool
+    {
+        return config('capell-insights.require_consent_for_all_regions', false) !== true
+            && $region === InsightsConsentRegion::OutsideUkOrEurope;
     }
 
     private function hasInsightsConsent(InsightsVisit $visit): bool
