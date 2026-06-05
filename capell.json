@@ -42,8 +42,8 @@
         "demo": null,
         "doctor": null
     },
-    "settings": [],
-    "permissions": [],
+    "settings": ["Capell\\Insights\\Settings\\InsightsSettings"],
+    "permissions": ["View:InsightsPage"],
     "capabilities": [
         "insights",
         "insights-admin",

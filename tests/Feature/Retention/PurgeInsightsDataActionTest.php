@@ -9,6 +9,7 @@ use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Spatie\LaravelSettings\Migrations\SettingsMigrator;
 
 it('purges insights events consents and eligible visits older than retention', function (): void {
     $oldTimestamp = CarbonImmutable::parse('2025-01-01 00:00:00');
@@ -57,8 +58,10 @@ it('purges insights events consents and eligible visits older than retention', f
         ->and(InsightsVisit::query()->whereKey($recentVisit->getKey())->exists())->toBeTrue();
 });
 
-it('uses configured retention days when no override is provided', function (): void {
-    config()->set('capell-insights.retention_days', 30);
+it('uses settings retention days when no override is provided', function (): void {
+    /** @var SettingsMigrator $settingsMigrator */
+    $settingsMigrator = resolve(SettingsMigrator::class);
+    $settingsMigrator->update('insights.retention_days', fn (): int => 30);
 
     $oldVisit = InsightsVisit::factory()->create([
         'started_at' => now()->subDays(45)->toImmutable(),

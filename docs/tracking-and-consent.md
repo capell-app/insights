@@ -15,22 +15,22 @@ The route prefix comes from `capell-insights.route_prefix`. Both endpoints use t
 
 ## Config Keys
 
-| Key                                               | Use                                                                                                            |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `capell-insights.enabled`                         | Turns tracker registration on or off.                                                                          |
-| `capell-insights.route_prefix`                    | Prefix for beacon and consent routes.                                                                          |
-| `capell-insights.track_page_views`                | Records page-view events when enabled.                                                                         |
-| `capell-insights.track_clicks`                    | Records click events when enabled.                                                                             |
-| `capell-insights.automatic_click_tracking`        | Lets the frontend tracker capture clicks automatically.                                                        |
-| `capell-insights.require_consent_for_all_regions` | Blocks tracking until consent exists, regardless of detected region.                                           |
-| `capell-insights.default_consent_region`          | Fallback consent region when the request cannot resolve one.                                                   |
-| `capell-insights.policy_version`                  | Stored with consent records so policy updates can be audited.                                                  |
-| `capell-insights.retention_days`                  | Default cleanup window for `insights:purge`.                                                                   |
-| `capell-insights.hash_visitor_data`               | Hashes visitor identifiers before storage.                                                                     |
-| `capell-insights.hash_salt`                       | Optional private salt override for visitor hashing. When empty, Insights derives a stable salt from `APP_KEY`. |
-| `capell-insights.ignored_paths`                   | Paths that should never be tracked.                                                                            |
-| `capell-insights.ignored_selectors`               | Click targets the frontend tracker should skip.                                                                |
-| `capell-insights.tables.*`                        | Table-name overrides, also used when registering protected tables.                                             |
+| Key                                               | Use                                                                                                                                     |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `capell-insights.enabled`                         | Turns tracker registration on or off.                                                                                                   |
+| `capell-insights.route_prefix`                    | Prefix for beacon and consent routes.                                                                                                   |
+| `capell-insights.track_page_views`                | Records page-view events when enabled.                                                                                                  |
+| `capell-insights.track_clicks`                    | Records click events when enabled.                                                                                                      |
+| `capell-insights.automatic_click_tracking`        | Lets the frontend tracker capture clicks automatically.                                                                                 |
+| `capell-insights.require_consent_for_all_regions` | Blocks tracking until consent exists, regardless of detected region.                                                                    |
+| `capell-insights.default_consent_region`          | Fallback consent region when the request cannot resolve one.                                                                            |
+| `capell-insights.policy_version`                  | Stored with consent records so policy updates can be audited.                                                                           |
+| `insights.retention_days` setting                 | Default cleanup window for `insights:purge`; falls back to `capell-insights.retention_days` only when package settings are unavailable. |
+| `capell-insights.hash_visitor_data`               | Hashes visitor identifiers before storage.                                                                                              |
+| `capell-insights.hash_salt`                       | Optional private salt override for visitor hashing. When empty, Insights derives a stable salt from `APP_KEY`.                          |
+| `capell-insights.ignored_paths`                   | Paths that should never be tracked.                                                                                                     |
+| `capell-insights.ignored_selectors`               | Click targets the frontend tracker should skip.                                                                                         |
+| `capell-insights.tables.*`                        | Table-name overrides, also used when registering protected tables.                                                                      |
 
 ## Record a Custom Action
 
