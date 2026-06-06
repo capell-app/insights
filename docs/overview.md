@@ -65,7 +65,7 @@ Gives site operators practical traffic and journey insight without sending the w
 
 ![Insights settings screen](screenshots/insights-settings-screen.png)
 
-Widget-specific screenshots should be regenerated after analytics demo data is seeded; empty widget captures do not add useful documentation.
+Widget-specific screenshots should be regenerated after analytics demo data is seeded; empty widget captures do not add useful documentation. The frontend tracker capture only proves the tracker is present, while the consent-banner-flow target must show the packaged banner in a fresh browser context before it is promoted as buyer-facing media.
 
 ## Pitfalls
 

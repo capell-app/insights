@@ -73,6 +73,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Recent journeys widget.
 - Insights settings screen.
 - Frontend page with tracker active.
+- Consent banner flow for first-time visitors.
 
 ## Technical Shape
 
