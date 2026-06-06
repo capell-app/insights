@@ -58,7 +58,7 @@ it('keeps marketplace screenshots backed by committed assets', function (): void
 
     throw_unless(is_array($screenshots), RuntimeException::class, 'Expected Insights marketplace screenshots to be an array.');
 
-    expect($screenshots)->toHaveCount(6);
+    expect($screenshots)->toHaveCount(7);
 
     foreach ($screenshots as $screenshot) {
         throw_unless(is_array($screenshot), RuntimeException::class, 'Expected Insights screenshot entries to be arrays.');

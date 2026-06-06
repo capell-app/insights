@@ -123,6 +123,16 @@
                 "path": "docs/screenshots/insights-settings-screen.png",
                 "alt": "Insights settings screen",
                 "caption": "Insights settings screen."
+            },
+            {
+                "path": "docs/screenshots/frontend-page-with-tracker-active.png",
+                "alt": "Styled public page with the Insights tracker script active",
+                "caption": "Route-backed public page proving the Insights tracker renders through the frontend BodyEnd hook."
+            },
+            {
+                "path": "docs/screenshots/consent-banner-flow.png",
+                "alt": "Styled public page with the Insights consent banner visible",
+                "caption": "Packaged consent banner rendered on a route-backed public page."
             }
         ],
         "categories": ["admin", "frontend", "growth"]
