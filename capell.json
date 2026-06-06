@@ -50,6 +50,7 @@
         "insights-frontend",
         "insights-consent-banner",
         "insights-acquisition-reports",
+        "insights-traffic-filtering",
         "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"

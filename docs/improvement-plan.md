@@ -21,13 +21,13 @@ Current marketplace summary (verbatim): _"Cookie-light, GDPR-aware web analytics
 
 ## 3. Missing Features (gaps)
 
-Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insights-consent-banner, insights-acquisition-reports, insights-privacy-center-mirror, beacon, cache-blocking`.
+Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insights-consent-banner, insights-acquisition-reports, insights-traffic-filtering, insights-privacy-center-mirror, beacon, cache-blocking`.
 
 - **Done/Shipped: consent banner / opt-in UI.** The BodyEnd hook now renders an overrideable `capell-insights::components.consent-banner` view by default, gated by `consent_banner_enabled`. The tracker shows it when no current-policy consent decision is stored, supports accept/reject/granular choices, posts to the consent endpoint, stores the decision locally with `policy_version`, and hides the banner after a successful response. — `resources/views/components/consent-banner.blade.php`, `resources/js/capell-insights.js`, `config/capell-insights.php`
 - **Done/Shipped: Referrer & UTM analytics.** `BuildAcquisitionSourcesQueryAction` now surfaces stored `utm_source`, `utm_medium`, `utm_campaign`, and `referrer_url` data in an Acquisition Sources dashboard widget. The report groups visits by campaign, referrer host, or direct traffic; it is cache-keyed by the dashboard window and declared as `insights-acquisition-reports` in the manifest. — `src/Actions/BuildAcquisitionSourcesQueryAction.php`, `src/Filament/Widgets/AcquisitionSourcesWidget.php`, `capell.json`
 - **Pre-aggregated rollups / retention tiers (differentiator).** All reports scan raw `insights_events`. A daily rollup table (path × day × type counts) would unlock fast long-range dashboards and let raw events be purged sooner than aggregates — directly addressing the write-volume budget.
 - **Funnels & conversions (differentiator).** Event model supports `event_name`/`label`/custom events, but there is no funnel definition or conversion-rate reporting. High-value for the Growth group and a cross-sell hook for campaign-studio.
-- **Bot / self-traffic filtering (table-stakes).** No user-agent bot filtering and no admin/staff exclusion beyond path ignores; analytics quality suffers without it.
+- **Done/Shipped: bot / self-traffic filtering.** `RecordInsightsEventsAction` now suppresses ignored IPs and user-agent patterns before creating first visits or appending events to existing visits. The package config ships default bot, crawler, monitor, Lighthouse, PageSpeed, Pingdom, GTmetrix, and headless-browser patterns, with `ignored_ips` available for agency/staff office traffic. — `src/Actions/RecordInsightsEventsAction.php`, `config/capell-insights.php`, `capell.json`
 - **Visit duration / bounce / entry-exit (table-stakes).** `started_at`/`last_seen_at` exist on the visit but no engaged-time, bounce-rate, or entry/exit-page metrics are computed.
 - **Partially shipped: consent expiry & re-prompt.** Browser decisions are stored with `policy_version`, and the packaged banner reappears when the configured policy version changes. Server-side consent expiry/periodic re-consent remains future depth.
 - **Server-side event API surface for other packages.** `RecordCustomActionAction` is documented but only reachable in-process; an authenticated internal contract (so seo-suite/campaign-studio can record conversions) would make `insights` the analytics backbone the bundle implies.
@@ -76,7 +76,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 | Done/Shipped: Cache dashboard aggregates (TTL + `insights` tag)                           | Done   | M      | High   | §2, §4      |
 | Done/Shipped: Expand health check with render-hook and purge-schedule probes              | Done   | S      | Med    | §2, §4      |
 | Done/Shipped: Add referrer + UTM / channel reports (data already captured)                | Done   | M      | High   | §3          |
-| Add bot + admin/self-traffic filtering                                                    | Next   | M      | Med    | §3          |
+| Done/Shipped: Add bot + admin/self-traffic filtering                                      | Done   | M      | Med    | §3          |
 | Per-session journey boundaries (sequence reset)                                           | Next   | M      | Med    | §2          |
 | Daily rollup table + retention tiers for fast long-range reports                          | Later  | L      | High   | §3          |
 | Funnels & conversion reporting + server-side event contract for bundle packages           | Later  | L      | High   | §3, §5      |

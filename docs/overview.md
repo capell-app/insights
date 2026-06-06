@@ -23,6 +23,7 @@ Keeps insights in Laravel actions and data objects, with explicit consent enums 
 - Models: InsightsVisit, InsightsConsent, InsightsEvent.
 - Actions record page views, clicks, custom events, and consent updates.
 - Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
+- Recording filters suppress configured bot user agents and internal IPs before creating visits or events.
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
@@ -37,6 +38,7 @@ Gives site operators practical traffic and journey insight without sending the w
 - Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
+- Uses `ignored_user_agents` and `ignored_ips` to keep crawler, monitor, preview, and staff office traffic out of reports.
 - Schedules monthly retention cleanup through `insights:purge`.
 
 ## Data And Retention
@@ -66,6 +68,7 @@ Widget-specific screenshots should be regenerated after analytics demo data is s
 ## Pitfalls
 
 - Exclude admin, Livewire, and insights routes from tracking.
+- Keep `ignored_user_agents` broad enough for bots and monitors, and set `ignored_ips` for agency/staff office traffic that should not influence buyer-facing analytics.
 - Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before production data is recorded. Changing it later breaks visitor continuity.
 - Consent regions are resolved server-side from `default_consent_region` or GeoIP; browser-submitted region values are not authoritative.
 - Consent settings must match the site privacy policy.

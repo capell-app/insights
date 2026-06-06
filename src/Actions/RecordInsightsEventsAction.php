@@ -35,6 +35,10 @@ final class RecordInsightsEventsAction
             return collect();
         }
 
+        if ($request instanceof Request && $this->isIgnoredRequest($request)) {
+            return collect();
+        }
+
         $recordedEvents = DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion): Collection {
             $recordableEvents = $this->recordableEvents($events);
 
@@ -155,6 +159,57 @@ final class RecordInsightsEventsAction
 
         foreach ($ignoredPaths as $ignoredPath) {
             if (is_string($ignoredPath) && Str::is($ignoredPath, $path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isIgnoredRequest(Request $request): bool
+    {
+        if ($this->isIgnoredIp($request->ip())) {
+            return true;
+        }
+
+        return $this->isIgnoredUserAgent($request->userAgent());
+    }
+
+    private function isIgnoredIp(?string $ipAddress): bool
+    {
+        if ($ipAddress === null || trim($ipAddress) === '') {
+            return false;
+        }
+
+        $ignoredIps = config('capell-insights.ignored_ips', []);
+
+        if (! is_array($ignoredIps)) {
+            return false;
+        }
+
+        foreach ($ignoredIps as $ignoredIp) {
+            if (is_string($ignoredIp) && Str::is($ignoredIp, $ipAddress)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isIgnoredUserAgent(?string $userAgent): bool
+    {
+        if ($userAgent === null || trim($userAgent) === '') {
+            return false;
+        }
+
+        $ignoredUserAgents = config('capell-insights.ignored_user_agents', []);
+
+        if (! is_array($ignoredUserAgents)) {
+            return false;
+        }
+
+        foreach ($ignoredUserAgents as $ignoredUserAgent) {
+            if (is_string($ignoredUserAgent) && Str::is(strtolower($ignoredUserAgent), strtolower($userAgent))) {
                 return true;
             }
         }
