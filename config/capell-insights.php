@@ -14,7 +14,7 @@ return [
     'track_clicks' => true,
     'track_form-builder' => false,
     'automatic_click_tracking' => true,
-    'consent_banner_enabled' => true,
+    'consent_banner_enabled' => env('CAPELL_INSIGHTS_CONSENT_BANNER_ENABLED', true),
     'require_consent_for_all_regions' => false,
     'default_consent_region' => null,
     'policy_version' => '1.0',
