@@ -61,10 +61,10 @@
             "targetType": "frontend-url",
             "target": null,
             "scenario": "frontend-page",
-            "url": "/",
+            "url": "/screenshot-fixtures/foundation-theme/foundation-homepage-layout",
             "waitFor": "script[data-capell-insights-tracker]",
             "required": true,
-            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding a public page. This capture proves the tracker config/script is present; use the consent-banner-flow target for buyer-facing consent UI evidence.",
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and rendering a route-backed public Foundation fixture. This capture proves the tracker config/script is present; use the consent-banner-flow target for buyer-facing consent UI evidence.",
             "useCase": "A visitor loads a public page where the tracker script is active and consent rules are respected.",
             "screenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active.png"
         },
@@ -76,10 +76,10 @@
             "targetType": "frontend-url",
             "target": null,
             "scenario": "frontend-page",
-            "url": "/",
+            "url": "/screenshot-fixtures/foundation-theme/foundation-homepage-layout",
             "waitFor": "[data-capell-insights-consent-banner]:not([hidden])",
             "required": true,
-            "notes": "Capture in a fresh browser context with no capell_insights_consent localStorage entry and no capell_insights_visit cookie, with consent_banner_enabled=true and a policy version that has not been stored locally. The capture must show the packaged consent banner, not a plain demo page.",
+            "notes": "Capture a route-backed public Foundation fixture in a fresh browser context with no capell_insights_consent localStorage entry and no capell_insights_visit cookie, with consent_banner_enabled=true and a policy version that has not been stored locally. The capture must show the packaged consent banner, not a plain demo page.",
             "useCase": "A first-time visitor reviews the packaged accept, reject, and manage choices before analytics tracking begins.",
             "screenshotPath": "packages/insights/docs/screenshots/consent-banner-flow.png"
         }
