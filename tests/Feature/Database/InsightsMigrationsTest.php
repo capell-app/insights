@@ -16,11 +16,13 @@ it('loads insights migrations', function (): void {
     expect(Schema::hasTable('insights_visits'))->toBeTrue()
         ->and(Schema::hasTable('insights_consents'))->toBeTrue()
         ->and(Schema::hasTable('insights_events'))->toBeTrue()
+        ->and(Schema::hasTable('insights_daily_rollups'))->toBeTrue()
         ->and(Schema::hasColumn('insights_visits', 'uuid'))->toBeTrue()
         ->and(Schema::hasColumn('insights_visits', 'legacy_session_id'))->toBeTrue()
         ->and(Schema::hasColumn('insights_consents', 'categories'))->toBeTrue()
         ->and(Schema::hasColumn('insights_events', 'document_y'))->toBeTrue()
         ->and(Schema::hasColumn('insights_events', 'legacy_page_view_id'))->toBeTrue()
+        ->and(Schema::hasColumn('insights_daily_rollups', 'unique_visits'))->toBeTrue()
         ->and(Schema::hasColumn('page_urls', 'hit_count'))->toBeTrue()
         ->and(Schema::hasColumn('page_urls', 'last_hit_at'))->toBeTrue()
         ->and(Schema::hasIndex('insights_events', 'insights_events_path_type_occurred_index'))->toBeTrue();

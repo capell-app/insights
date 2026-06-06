@@ -6,6 +6,7 @@ namespace Capell\Insights\Actions;
 
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Enums\InsightsEventType;
+use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -37,6 +38,10 @@ final class BuildPopularPagesQueryAction
      */
     private function buildPopularPages(InsightsWindowData $window, ?int $limit = null): Collection
     {
+        if ($this->shouldUseDailyRollups($window)) {
+            return $this->buildPopularPagesFromRollups($window, $limit);
+        }
+
         $clicksByPath = $this->clicksByPath($window);
 
         $query = InsightsEvent::query()
@@ -71,6 +76,42 @@ final class BuildPopularPagesQueryAction
     }
 
     /**
+     * @return Collection<int, array{path: string, url: string, page_views: int, unique_visits: int, clicks: int}>
+     */
+    private function buildPopularPagesFromRollups(InsightsWindowData $window, ?int $limit = null): Collection
+    {
+        $query = InsightsDailyRollup::query()
+            ->select([
+                'path',
+                DB::raw('MIN(url) as url'),
+                DB::raw('SUM(page_views) as page_views'),
+                DB::raw('SUM(unique_visits) as unique_visits'),
+                DB::raw('SUM(clicks) as clicks'),
+            ])
+            ->whereBetween('day', [$window->startsAt->toDateString(), $window->endsAt->toDateString()])
+            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
+            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
+            ->groupBy('path')
+            ->orderByDesc('page_views')
+            ->orderBy('path');
+
+        if ($limit !== null) {
+            $query->limit($limit);
+        }
+
+        return $query
+            ->get()
+            ->map(fn (InsightsDailyRollup $rollup): array => [
+                'path' => $rollup->path,
+                'url' => (string) $rollup->url,
+                'page_views' => $rollup->page_views,
+                'unique_visits' => $rollup->unique_visits,
+                'clicks' => $rollup->clicks,
+            ])
+            ->values();
+    }
+
+    /**
      * @return array<string, int>
      */
     private function clicksByPath(InsightsWindowData $window): array
@@ -88,5 +129,22 @@ final class BuildPopularPagesQueryAction
             ->pluck('clicks', 'path')
             ->mapWithKeys(fn (mixed $clicks, string $path): array => [$path => (int) $clicks])
             ->all();
+    }
+
+    private function shouldUseDailyRollups(InsightsWindowData $window): bool
+    {
+        $isDailyWindow = $window->startsAt->isStartOfDay()
+            && $window->endsAt->isEndOfDay()
+            && $window->startsAt->diffInDays($window->endsAt) >= 1;
+
+        if (! $isDailyWindow) {
+            return false;
+        }
+
+        return InsightsDailyRollup::query()
+            ->whereBetween('day', [$window->startsAt->toDateString(), $window->endsAt->toDateString()])
+            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
+            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
+            ->exists();
     }
 }

@@ -12,6 +12,7 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Insights\Actions\BuildInsightsOverviewStatsAction;
 use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
+use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Filament\Pages\InsightsPage;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
@@ -70,7 +71,10 @@ class AdminServiceProvider extends ServiceProvider
             return $this;
         }
 
-        $this->commands([PurgeInsightsDataCommand::class]);
+        $this->commands([
+            PurgeInsightsDataCommand::class,
+            RebuildInsightsDailyRollupsCommand::class,
+        ]);
 
         return $this;
     }
@@ -160,6 +164,7 @@ class AdminServiceProvider extends ServiceProvider
     {
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
             $schedule->command('insights:purge')->monthly();
+            $schedule->command('insights:rollups:rebuild')->daily();
         });
 
         return $this;

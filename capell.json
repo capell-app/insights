@@ -34,13 +34,22 @@
     "database": {
         "migrations": true,
         "settings": true,
-        "requiredTables": []
+        "requiredTables": [
+            "insights_visits",
+            "insights_consents",
+            "insights_events",
+            "insights_daily_rollups"
+        ]
     },
     "commands": {
         "install": null,
         "setup": null,
         "demo": null,
-        "doctor": null
+        "doctor": null,
+        "maintenance": [
+            "insights:purge",
+            "insights:rollups:rebuild"
+        ]
     },
     "settings": ["Capell\\Insights\\Settings\\InsightsSettings"],
     "permissions": ["View:InsightsPage"],
@@ -52,6 +61,7 @@
         "insights-acquisition-reports",
         "insights-traffic-filtering",
         "insights-session-journeys",
+        "insights-daily-rollups",
         "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"

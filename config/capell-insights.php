@@ -19,6 +19,7 @@ return [
     'policy_version' => '1.0',
     'retention_days' => 365,
     'purge_batch_size' => 500,
+    'rollup_rebuild_days' => 30,
     'dashboard_cache_ttl_seconds' => 60,
     'session_timeout_minutes' => 30,
     'hash_visitor_data' => true,
@@ -53,5 +54,6 @@ return [
         'visits' => 'insights_visits',
         'consents' => 'insights_consents',
         'events' => 'insights_events',
+        'daily_rollups' => 'insights_daily_rollups',
     ],
 ];

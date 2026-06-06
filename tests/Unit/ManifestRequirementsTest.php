@@ -40,7 +40,10 @@ it('declares installed settings and page permission surfaces', function (): void
         InsightsSettings::class,
     ])->and($manifest['permissions'] ?? [])->toContain('View:InsightsPage')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-consent-banner')
-        ->and($manifest['capabilities'] ?? [])->toContain('insights-acquisition-reports');
+        ->and($manifest['capabilities'] ?? [])->toContain('insights-acquisition-reports')
+        ->and($manifest['capabilities'] ?? [])->toContain('insights-daily-rollups')
+        ->and($manifest['commands']['maintenance'] ?? [])->toContain('insights:rollups:rebuild')
+        ->and($manifest['database']['requiredTables'] ?? [])->toContain('insights_daily_rollups');
 });
 
 it('keeps marketplace screenshots backed by committed assets', function (): void {
