@@ -24,6 +24,7 @@ Keeps insights in Laravel actions and data objects, with explicit consent enums 
 - Actions record page views, clicks, custom events, and consent updates.
 - Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
 - Recording filters suppress configured bot user agents and internal IPs before creating visits or events.
+- Journey recording starts a fresh visit after `session_timeout_minutes`, resetting event sequence numbers per browsing session.
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
@@ -39,6 +40,7 @@ Gives site operators practical traffic and journey insight without sending the w
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
 - Uses `ignored_user_agents` and `ignored_ips` to keep crawler, monitor, preview, and staff office traffic out of reports.
+- Uses `session_timeout_minutes` to prevent returning visitors from being displayed as one long historical journey.
 - Schedules monthly retention cleanup through `insights:purge`.
 
 ## Data And Retention

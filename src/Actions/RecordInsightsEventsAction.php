@@ -109,10 +109,16 @@ final class RecordInsightsEventsAction
     private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion): ?InsightsVisit
     {
         if ($visitUuid !== null && trim($visitUuid) !== '') {
-            return InsightsVisit::query()
+            $visit = InsightsVisit::query()
                 ->where('uuid', $visitUuid)
                 ->lockForUpdate()
                 ->first();
+
+            if ($visit instanceof InsightsVisit && $request instanceof Request && $this->hasExpiredSession($visit)) {
+                return $this->startNextSessionVisit($visit, $request);
+            }
+
+            return $visit;
         }
 
         if (! $request instanceof Request || ! $consentRegion instanceof InsightsConsentRegion || ! $this->canRecordForRegion($consentRegion)) {
@@ -120,6 +126,34 @@ final class RecordInsightsEventsAction
         }
 
         $visit = CreateInsightsVisitAction::run($request, $consentRegion);
+
+        Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
+
+        return $visit;
+    }
+
+    private function hasExpiredSession(InsightsVisit $visit): bool
+    {
+        if (! $visit->last_seen_at instanceof CarbonImmutable) {
+            return false;
+        }
+
+        $timeoutMinutes = (int) config('capell-insights.session_timeout_minutes', 30);
+
+        if ($timeoutMinutes < 1) {
+            return false;
+        }
+
+        return $visit->last_seen_at->addMinutes($timeoutMinutes)->isPast();
+    }
+
+    private function startNextSessionVisit(InsightsVisit $previousVisit, Request $request): InsightsVisit
+    {
+        $visit = CreateInsightsVisitAction::run($request, $previousVisit->consent_region);
+
+        $visit->forceFill([
+            'consent_status' => $previousVisit->consent_status,
+        ])->save();
 
         Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
 

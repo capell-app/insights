@@ -20,6 +20,7 @@ return [
     'retention_days' => 365,
     'purge_batch_size' => 500,
     'dashboard_cache_ttl_seconds' => 60,
+    'session_timeout_minutes' => 30,
     'hash_visitor_data' => true,
     'hash_salt' => null,
     'ignored_ips' => [],

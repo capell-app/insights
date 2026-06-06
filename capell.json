@@ -51,6 +51,7 @@
         "insights-consent-banner",
         "insights-acquisition-reports",
         "insights-traffic-filtering",
+        "insights-session-journeys",
         "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"
