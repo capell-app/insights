@@ -1,12 +1,12 @@
 # Insights — Improvement & Growth Plan
 
-> Package: capell-app/insights · Kind: extension (admin + frontend) · Tier: premium · Product group: Capell Growth · Bundle: growth · Status: Complete
+> Package: capell-app/insights · Kind: extension (admin + frontend) · Tier: premium · Product group: Capell Growth · Bundle: growth · Status: Screenshot recapture reopened
 
 ## 1. Snapshot
 
 Insights is a first-party, consent-aware web-analytics extension for Capell. The frontend surface ships a vanilla JS tracker and overrideable consent banner injected via a `RenderHookLocation::BodyEnd` hook (`src/Support/RenderHooks/RegisterInsightsTrackerHook.php`) plus two public POST endpoints (`src/Http/Controllers/InsightsBeaconController.php`, `InsightsConsentController.php`) backed by Actions (`RecordInsightsEventsAction`, `ValidateInsightsBeaconRequestAction`, `UpdateInsightsConsentAction`, `CreateInsightsVisitAction`, `MirrorInsightsConsentToPrivacyCenterAction`). The admin surface adds an `InsightsPage`, seven dashboard widgets, three overview stats, daily aggregate rollups, and a settings schema, fed by `Build*QueryAction` aggregates over four tables (`insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`). Deps: `lorisleiva/laravel-actions`, `spatie/laravel-data`, `spatie/laravel-package-tools`; requires `capell-app/admin|core|frontend`, supports `capell-app/privacy-center`.
 
-Current marketplace summary (verbatim): _"Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server."_ The manifest now lists the extension card, four runner-backed light-mode admin screenshots, and two styled route-backed public fixture screenshots proving the frontend tracker and packaged consent banner render through the Insights BodyEnd hook. Dark PNG alternates are committed but intentionally not promoted into the marketplace gallery yet.
+Current marketplace summary (verbatim): _"Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server."_ The manifest now lists the extension card, the settings screen, and two styled route-backed public fixture screenshots proving the frontend tracker and packaged consent banner render through the Insights BodyEnd hook. The blank dashboard/widget captures remain committed runner evidence but are no longer promoted as buyer-facing media until analytics demo data produces populated Capell widgets.
 
 ## 2. Improvements (existing functionality)
 
@@ -49,13 +49,13 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 
 ## 5. Marketplace & Selling
 
-**Critique.** The manifest `summary` and package description now lead with the buyer benefit (first-party, GDPR-aware analytics without third-party scripts). The media story is no longer one-card-only: the gallery references the extension card, four committed runner-backed admin captures, and two styled package-owned public fixture captures for the active tracker and consent-banner flow. Remaining media upside: promote dark admin alternates only if Marketplace wants explicit dark-mode gallery entries.
+**Critique.** The manifest `summary` and package description now lead with the buyer benefit (first-party, GDPR-aware analytics without third-party scripts). The gallery references the extension card, settings screen, and two styled package-owned public fixture captures for the active tracker and consent-banner flow. Remaining media upside: recapture populated dashboard/widgets before promoting admin analytics screenshots, and promote dark admin alternates only if Marketplace wants explicit dark-mode gallery entries.
 
 **Improved 1-sentence summary.** "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server."
 
 **Improved 3–4 sentence description.** "Insights gives Capell sites first-party traffic analytics that respect privacy by default: it records page views, clicks, and visitor journeys server-side, hashes visitor identifiers, and gates UK/EU tracking behind consent. Dashboards for popular pages, trending pages, top actions, and recent journeys live right inside the admin Marketing Studio — no Google Analytics, no cookie soup, no tag manager. Retention windows and an automatic purge keep data lean and compliant. When Privacy Center is installed, consent decisions are mirrored into your central consent ledger automatically."
 
-**Media gaps.** Marketplace now references the four committed runner-backed admin light captures from `docs/screenshots.json` plus two package-owned public fixture captures that render the real Insights BodyEnd hook. The previous frontend tracker image was demoted and deleted because visual inspection showed a mostly blank Demo page; the replacement fixture is guarded behind `CAPELL_INSIGHTS_SCREENSHOT_FIXTURES_ENABLED` and is enabled by the screenshot wrapper only for captures. Dark alternates remain available in `docs/screenshots/` but are not yet promoted.
+**Media gaps.** Marketplace now references only the buyer-worthy settings and public fixture captures. The overview/dashboard widget PNGs were demoted after visual inspection showed mostly blank Insights admin pages rather than populated analytics widgets. The previous frontend tracker image was demoted and deleted because visual inspection showed a mostly blank Demo page; the replacement fixture is guarded behind `CAPELL_INSIGHTS_SCREENSHOT_FIXTURES_ENABLED` and is enabled by the screenshot wrapper only for captures. Dark alternates remain available in `docs/screenshots/` but are not yet promoted.
 
 **Pricing / tier / bundle positioning.** Premium tier in the `growth` bundle is now more defensible because first-visit recording and the packaged consent banner are in place. Insights is the natural data backbone of the bundle: position seo-suite and campaign-studio as **dependents** that record conversions/funnels through an Insights server-side contract (cross-sell), and lean on the existing `supports: capell-app/privacy-center` mirror as a compliance upsell. Bundle messaging: "Insights measures it, Campaign Studio acts on it, SEO Suite ranks for it."
 
@@ -84,6 +84,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 | Done/Shipped: Add a route-backed public screenshot fixture that renders Insights BodyEnd hooks, then capture/promote tracker and consent-banner PNGs | Done   | S      | Med    | §5          |
 | Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code | Done   | S      | Low    | §4          |
 | Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                       | Done   | M      | Med    | §3          |
+| Recapture populated Capell analytics dashboard/widget screenshots before promoting them as buyer-facing media | Next   | S      | Med    | §5          |
 
 ## Completion Review
 

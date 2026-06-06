@@ -13,21 +13,30 @@
         "bundle": "growth"
     },
     "namespace": "Capell\\Insights",
-    "surfaces": ["admin", "frontend"],
+    "surfaces": [
+        "admin",
+        "frontend"
+    ],
     "dependencies": {
         "requires": [
             "capell-app/admin",
             "capell-app/core",
             "capell-app/frontend"
         ],
-        "supports": ["capell-app/privacy-center"],
+        "supports": [
+            "capell-app/privacy-center"
+        ],
         "conflicts": []
     },
     "providers": {
         "metadata": [],
         "install": [],
-        "runtime": ["Capell\\Insights\\Providers\\InsightsServiceProvider"],
-        "admin": ["Capell\\Insights\\Providers\\AdminServiceProvider"],
+        "runtime": [
+            "Capell\\Insights\\Providers\\InsightsServiceProvider"
+        ],
+        "admin": [
+            "Capell\\Insights\\Providers\\AdminServiceProvider"
+        ],
         "frontend": []
     },
     "contributes": [],
@@ -51,8 +60,12 @@
             "insights:rollups:rebuild"
         ]
     },
-    "settings": ["Capell\\Insights\\Settings\\InsightsSettings"],
-    "permissions": ["View:InsightsPage"],
+    "settings": [
+        "Capell\\Insights\\Settings\\InsightsSettings"
+    ],
+    "permissions": [
+        "View:InsightsPage"
+    ],
     "capabilities": [
         "insights",
         "insights-admin",
@@ -71,10 +84,15 @@
     "performance": {
         "frontendRenderBudgetMs": 20,
         "adminQueryBudget": 40,
-        "cacheTags": ["insights"],
+        "cacheTags": [
+            "insights"
+        ],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [
+                "site",
+                "locale"
+            ],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
@@ -105,21 +123,6 @@
                 "caption": "Insights extension preview"
             },
             {
-                "path": "docs/screenshots/insights-overview-dashboard-widgets.png",
-                "alt": "Insights overview dashboard widgets",
-                "caption": "Insights overview dashboard widgets."
-            },
-            {
-                "path": "docs/screenshots/popular-pages-widget.png",
-                "alt": "Popular pages widget",
-                "caption": "Popular pages widget."
-            },
-            {
-                "path": "docs/screenshots/recent-journeys-widget.png",
-                "alt": "Recent journeys widget",
-                "caption": "Recent journeys widget."
-            },
-            {
                 "path": "docs/screenshots/insights-settings-screen.png",
                 "alt": "Insights settings screen",
                 "caption": "Insights settings screen."
@@ -135,7 +138,11 @@
                 "caption": "Packaged consent banner rendered on a route-backed public page."
             }
         ],
-        "categories": ["admin", "frontend", "growth"]
+        "categories": [
+            "admin",
+            "frontend",
+            "growth"
+        ]
     },
     "contributionTraceability": {
         "deferredContributions": [
