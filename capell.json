@@ -62,6 +62,7 @@
         "insights-traffic-filtering",
         "insights-session-journeys",
         "insights-daily-rollups",
+        "insights-privacy-signals",
         "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"

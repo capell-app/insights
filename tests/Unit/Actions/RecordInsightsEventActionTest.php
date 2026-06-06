@@ -82,6 +82,49 @@ it('skips uk or europe events when the latest consent revokes insights', functio
         ->and(InsightsEvent::query()->count())->toBe(0);
 });
 
+it('skips uk or europe events when insights consent is expired', function (): void {
+    config()->set('capell-insights.consent_expires_days', 30);
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::UkOrEurope,
+        'consent_status' => InsightsConsentStatus::Granular,
+    ]);
+
+    InsightsConsent::factory()->create([
+        'visit_id' => $visit->getKey(),
+        'status' => InsightsConsentStatus::Granular,
+        'categories' => new InsightsConsentData(insights: true),
+        'decided_at' => now()->subDays(31)->toImmutable(),
+    ]);
+
+    $event = RecordInsightsEventAction::run($visit->uuid, insightsEventData());
+
+    expect($event)->toBeNull()
+        ->and(InsightsEvent::query()->count())->toBe(0);
+});
+
+it('skips uk or europe events when insights consent belongs to an old policy version', function (): void {
+    config()->set('capell-insights.policy_version', '2026-06');
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::UkOrEurope,
+        'consent_status' => InsightsConsentStatus::Granular,
+    ]);
+
+    InsightsConsent::factory()->create([
+        'visit_id' => $visit->getKey(),
+        'status' => InsightsConsentStatus::Granular,
+        'categories' => new InsightsConsentData(insights: true),
+        'policy_version' => '2026-05',
+        'decided_at' => now()->subDay()->toImmutable(),
+    ]);
+
+    $event = RecordInsightsEventAction::run($visit->uuid, insightsEventData());
+
+    expect($event)->toBeNull()
+        ->and(InsightsEvent::query()->count())->toBe(0);
+});
+
 it('requires consent for outside-region events when configured globally', function (): void {
     config()->set('capell-insights.require_consent_for_all_regions', true);
 

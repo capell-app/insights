@@ -12,32 +12,47 @@ final class ValidateInsightsBeaconRequestAction
 {
     use AsAction;
 
-    public function handle(Request $request): void
+    public function handle(Request $request): bool
     {
+        if ($this->hasPrivacySignal($request)) {
+            return false;
+        }
+
         throw_if((bool) config('capell-insights.require_signed_beacons', false) && ! $request->hasValidSignature(), AccessDeniedHttpException::class, 'Invalid insights beacon signature.');
 
         if ((bool) config('capell-insights.validate_beacon_origin', true) === false) {
-            return;
+            return true;
         }
 
         $origin = $request->headers->get('Origin') ?: $request->headers->get('Referer');
 
         if (! is_string($origin) || $origin === '') {
-            return;
+            return true;
         }
 
         $originHost = parse_url($origin, PHP_URL_HOST);
         $requestHost = $request->getHost();
 
         if (is_string($originHost) && strcasecmp($originHost, $requestHost) === 0) {
-            return;
+            return true;
         }
 
         if ($this->allowedOriginsContain($origin)) {
-            return;
+            return true;
         }
 
         throw new AccessDeniedHttpException('Invalid insights beacon origin.');
+    }
+
+    private function hasPrivacySignal(Request $request): bool
+    {
+        if (config('capell-insights.honor_privacy_signals', true) !== true) {
+            return false;
+        }
+
+        return $request->headers->get('Sec-GPC') === '1'
+            || $request->headers->get('DNT') === '1'
+            || $request->headers->get('X-Do-Not-Track') === '1';
     }
 
     private function allowedOriginsContain(string $origin): bool

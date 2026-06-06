@@ -131,6 +131,40 @@ it('can require signed beacon urls for event posts', function (): void {
     expect(InsightsEvent::query()->count())->toBe(1);
 });
 
+it('honors browser privacy signals before validating or recording events', function (string $header): void {
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this
+        ->withHeader($header, '1')
+        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe(0);
+})->with([
+    'Sec-GPC',
+    'DNT',
+    'X-Do-Not-Track',
+]);
+
+it('can opt out of privacy-signal beacon suppression', function (): void {
+    config()->set('capell-insights.honor_privacy_signals', false);
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this
+        ->withHeader('Sec-GPC', '1')
+        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe(1);
+});
+
 it('stores a mixed event batch with one visit lookup and sequential events', function (): void {
     $visit = InsightsVisit::factory()->create([
         'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,

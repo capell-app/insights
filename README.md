@@ -84,6 +84,8 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - Popular and trending page reports use daily rollups for day-aligned long-range windows, falling back to raw events until aggregates exist.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
+- Do-Not-Track and Global Privacy Control signals are honored by default in both the browser tracker and beacon endpoint.
+- Server-side event recording requires current-policy, non-expired consent for regions that require analytics consent.
 - PurgeInsightsDataCommand supports chunked retention cleanup.
 - InsightsHealthCheck verifies tables, beacon routes, tracker render output, purge scheduling, and visitor-hash secret safety.
 
@@ -128,6 +130,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - insights_daily_rollups stores day/path/type aggregate counts for faster long-range dashboards.
 - Visits relate to events and consents.
 - Retention is governed by retention_days, purge_batch_size, rollup_rebuild_days, and purge/rollup actions.
+- Re-consent is governed by policy_version and consent_expires_days.
 
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.
@@ -146,6 +149,8 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
 - Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
+- Honors DNT/GPC privacy signals by default through `honor_privacy_signals`; disable only when a host privacy program has an explicit alternative policy.
+- Re-prompts by rejecting stale server-side analytics consent when `policy_version` changes or `consent_expires_days` elapses.
 - Schedules monthly retention cleanup through `insights:purge`.
 - Schedules daily aggregate refreshes through `insights:rollups:rebuild`.
 
@@ -172,6 +177,8 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Exclude admin, Livewire, and insights routes from tracking.
 - Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before production data is recorded. Changing it later breaks visitor continuity.
 - Consent regions are resolved server-side from `default_consent_region` or GeoIP; do not trust browser-submitted jurisdiction values.
+- Leave `honor_privacy_signals` enabled unless the host site has a documented legal basis for ignoring DNT/GPC.
+- Changing `policy_version` or lowering `consent_expires_days` can pause analytics recording for consent-required regions until visitors make a fresh consent decision.
 - Consent settings must match the site privacy policy.
 
 ## Docs

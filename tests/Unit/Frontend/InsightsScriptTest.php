@@ -13,6 +13,18 @@ it('contains the browser tracking primitives', function (): void {
         ->toContain('data-capell-insights-location');
 });
 
+it('exits before tracking when browser privacy signals are enabled', function (): void {
+    $source = insightsScriptSource();
+
+    expect($source)
+        ->toContain('function privacySignalEnabled()')
+        ->toContain('config.honorPrivacySignals')
+        ->toContain('navigator.globalPrivacyControl === true')
+        ->toContain("navigator.doNotTrack === '1'")
+        ->toContain("navigator.msDoNotTrack === '1'")
+        ->toContain('if (privacySignalEnabled())');
+});
+
 it('uses response-reading fetch for consent submissions', function (): void {
     $source = insightsScriptSource();
     $consentSource = scriptFunctionBody($source, 'consent');

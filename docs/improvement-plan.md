@@ -22,7 +22,7 @@ Current marketplace summary (verbatim): _"Cookie-light, GDPR-aware web analytics
 
 ## 3. Missing Features (gaps)
 
-Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insights-consent-banner, insights-acquisition-reports, insights-traffic-filtering, insights-session-journeys, insights-privacy-center-mirror, beacon, cache-blocking`.
+Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insights-consent-banner, insights-acquisition-reports, insights-traffic-filtering, insights-session-journeys, insights-daily-rollups, insights-privacy-signals, insights-privacy-center-mirror, beacon, cache-blocking`.
 
 - **Done/Shipped: consent banner / opt-in UI.** The BodyEnd hook now renders an overrideable `capell-insights::components.consent-banner` view by default, gated by `consent_banner_enabled`. The tracker shows it when no current-policy consent decision is stored, supports accept/reject/granular choices, posts to the consent endpoint, stores the decision locally with `policy_version`, and hides the banner after a successful response. — `resources/views/components/consent-banner.blade.php`, `resources/js/capell-insights.js`, `config/capell-insights.php`
 - **Done/Shipped: Referrer & UTM analytics.** `BuildAcquisitionSourcesQueryAction` now surfaces stored `utm_source`, `utm_medium`, `utm_campaign`, and `referrer_url` data in an Acquisition Sources dashboard widget. The report groups visits by campaign, referrer host, or direct traffic; it is cache-keyed by the dashboard window and declared as `insights-acquisition-reports` in the manifest. — `src/Actions/BuildAcquisitionSourcesQueryAction.php`, `src/Filament/Widgets/AcquisitionSourcesWidget.php`, `capell.json`
@@ -32,7 +32,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 - **Visit duration / bounce / entry-exit (table-stakes).** `started_at`/`last_seen_at` exist on the visit but no engaged-time, bounce-rate, or entry/exit-page metrics are computed.
 - **Partially shipped: consent expiry & re-prompt.** Browser decisions are stored with `policy_version`, and the packaged banner reappears when the configured policy version changes. Server-side consent expiry/periodic re-consent remains future depth.
 - **Server-side event API surface for other packages.** `RecordCustomActionAction` is documented but only reachable in-process; an authenticated internal contract (so seo-suite/campaign-studio can record conversions) would make `insights` the analytics backbone the bundle implies.
-- **Do-Not-Track / Global Privacy Control honoring (differentiator).** No DNT/GPC header check in the tracker or beacon validation.
+- **Done/Shipped: Do-Not-Track / Global Privacy Control honoring and server-side re-consent (differentiator).** `honor_privacy_signals` now defaults on. The browser tracker exits before registering listeners when `navigator.globalPrivacyControl`, `navigator.doNotTrack`, or `navigator.msDoNotTrack` is active, and the beacon endpoint returns no-content without validation/persistence for `Sec-GPC: 1`, `DNT: 1`, or `X-Do-Not-Track: 1`. Consent-required regions now record analytics only when the latest consent matches the configured `policy_version` and remains inside `consent_expires_days`. — `resources/js/capell-insights.js`, `resources/views/tracker.blade.php`, `src/Actions/ValidateInsightsBeaconRequestAction.php`, `src/Actions/RecordInsightsEventsAction.php`
 
 ## 4. Issues / Risks
 
@@ -82,4 +82,4 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 | Done/Shipped: Daily rollup table + retention tiers for fast long-range reports            | Done   | L      | High   | §3          |
 | Funnels & conversion reporting + server-side event contract for bundle packages           | Later  | L      | High   | §3, §5      |
 | Remove dead single-event Action family / `ImportLegacyPageViews` after confirming non-use | Later  | S      | Low    | §4          |
-| Honor DNT / GPC; server-side consent expiry/re-prompt                                     | Later  | M      | Med    | §3          |
+| Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                       | Done   | M      | Med    | §3          |

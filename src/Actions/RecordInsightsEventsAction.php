@@ -286,10 +286,39 @@ final class RecordInsightsEventsAction
             ->first();
 
         if ($latestConsent instanceof InsightsConsent) {
-            return $latestConsent->categories->insights;
+            return $latestConsent->categories->insights
+                && $this->consentMatchesCurrentPolicy($latestConsent)
+                && ! $this->consentHasExpired($latestConsent);
         }
 
         return $visit->consent_status === InsightsConsentStatus::AcceptedAll;
+    }
+
+    private function consentMatchesCurrentPolicy(InsightsConsent $consent): bool
+    {
+        $policyVersion = config('capell-insights.policy_version', '1.0');
+        $currentPolicyVersion = is_string($policyVersion) && $policyVersion !== '' ? $policyVersion : '1.0';
+
+        return hash_equals($currentPolicyVersion, $consent->policy_version);
+    }
+
+    private function consentHasExpired(InsightsConsent $consent): bool
+    {
+        $expiresDays = config('capell-insights.consent_expires_days', 180);
+
+        if ($expiresDays === null || $expiresDays === false) {
+            return false;
+        }
+
+        if (! is_numeric($expiresDays) || (int) $expiresDays < 1) {
+            return false;
+        }
+
+        if (! $consent->decided_at instanceof CarbonImmutable) {
+            return true;
+        }
+
+        return $consent->decided_at->addDays((int) $expiresDays)->isPast();
     }
 
     private function occurredAt(?string $occurredAt): CarbonImmutable

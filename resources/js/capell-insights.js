@@ -25,6 +25,23 @@
     var consentStorageKey = 'capell_insights_consent'
     var consentBannerSelector = '[data-capell-insights-consent-banner]'
 
+    function privacySignalEnabled() {
+        if (!config.honorPrivacySignals) {
+            return false
+        }
+
+        return (
+            navigator.globalPrivacyControl === true ||
+            navigator.doNotTrack === '1' ||
+            window.doNotTrack === '1' ||
+            navigator.msDoNotTrack === '1'
+        )
+    }
+
+    if (privacySignalEnabled()) {
+        return
+    }
+
     function currentVisitId() {
         var storedVisitId = null
 

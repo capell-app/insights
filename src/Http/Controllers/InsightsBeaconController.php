@@ -21,7 +21,9 @@ class InsightsBeaconController
 {
     public function __invoke(Request $request): JsonResponse|HttpResponse
     {
-        ValidateInsightsBeaconRequestAction::run($request);
+        if (ValidateInsightsBeaconRequestAction::run($request) === false) {
+            return response()->noContent();
+        }
 
         $validated = $request->validate([
             'visit_id' => ['nullable', 'string', 'max:80'],
