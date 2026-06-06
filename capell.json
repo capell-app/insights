@@ -59,6 +59,7 @@
         "insights-frontend",
         "insights-consent-banner",
         "insights-acquisition-reports",
+        "insights-conversion-funnels",
         "insights-traffic-filtering",
         "insights-session-journeys",
         "insights-daily-rollups",

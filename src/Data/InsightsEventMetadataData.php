@@ -13,5 +13,8 @@ final class InsightsEventMetadataData extends Data
 {
     public function __construct(
         public ?string $nearestLandmark = null,
+        public ?string $sourcePackage = null,
+        public ?float $conversionValue = null,
+        public ?string $conversionCurrency = null,
     ) {}
 }

@@ -41,6 +41,7 @@ it('declares installed settings and page permission surfaces', function (): void
     ])->and($manifest['permissions'] ?? [])->toContain('View:InsightsPage')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-consent-banner')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-acquisition-reports')
+        ->and($manifest['capabilities'] ?? [])->toContain('insights-conversion-funnels')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-daily-rollups')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-privacy-signals')
         ->and($manifest['commands']['maintenance'] ?? [])->toContain('insights:rollups:rebuild')

@@ -16,6 +16,7 @@ Insights records first-party visits, events, consent decisions, page views, clic
 - Records first-party visits, clicks, events, consent decisions, page views, and journey data for Capell sites.
 - Helps owners understand onsite behavior even when third-party analytics is blocked, delayed, or too coarse.
 - Gives developers clear server-side Actions and consent rules for analytics features that other growth packages can consume.
+- Lets companion packages record conversion events and build funnel summaries without owning analytics storage.
 
 ## Best Used With
 
@@ -81,6 +82,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Models: InsightsVisit, InsightsConsent, InsightsEvent, InsightsDailyRollup.
 - Actions record page views, clicks, custom events, and consent updates.
 - Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
+- Conversion reporting exposes `RecordConversionAction` and `BuildFunnelConversionReportAction` for package-to-package growth integrations.
 - Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
 - Popular and trending page reports use daily rollups for day-aligned long-range windows, falling back to raw events until aggregates exist.
 - The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
@@ -131,6 +133,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Visits relate to events and consents.
 - Retention is governed by retention_days, purge_batch_size, rollup_rebuild_days, and purge/rollup actions.
 - Re-consent is governed by policy_version and consent_expires_days.
+- Conversion metadata supports source_package, conversion_value, and conversion_currency for server-side bundle events.
 
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.

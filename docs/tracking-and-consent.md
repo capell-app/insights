@@ -56,6 +56,21 @@ RecordCustomActionAction::run(
 
 Keep custom event names stable. Store identifiers and dimensions, not full request bodies.
 
+Use `RecordConversionAction` when a companion package records a commercial or campaign milestone:
+
+```php
+use Capell\Insights\Actions\RecordConversionAction;
+
+RecordConversionAction::run(
+    visitUuid: 'visit_01HXZ8QY9J2N3R4S5T6V7W8X9Y',
+    eventName: 'campaign.lead',
+    url: 'https://example.test/pricing',
+    sourcePackage: 'capell-app/campaign-studio',
+    value: 250.0,
+    currency: 'GBP',
+);
+```
+
 ## Update Consent
 
 Consent writes should go through `UpdateInsightsConsentAction` so the stored region, category, status, and policy version stay consistent.
