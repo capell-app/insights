@@ -1,6 +1,6 @@
 # Insights — Improvement & Growth Plan
 
-> Package: capell-app/insights · Kind: extension (admin + frontend) · Tier: premium · Product group: Capell Growth · Bundle: growth · Status: Draft
+> Package: capell-app/insights · Kind: extension (admin + frontend) · Tier: premium · Product group: Capell Growth · Bundle: growth · Status: Complete
 
 ## 1. Snapshot
 
@@ -42,7 +42,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 - **Cache-safety of the beacon: OK, with one note.** The render hook output is static config + a file-read script cached `rememberForever` keyed by file mtime (`src/Actions/GetInsightsTrackerScriptAction.php`); the blade does no DB query and leaks no model IDs/labels/permissions (`resources/views/tracker.blade.php`) — consistent with `cacheSafety.cacheable:false, sensitiveOutput:false`. Note: the tracker renders on **every** frontend page with no admin-path guard at render time; suppression relies on server-side `ignored_paths` at record time, so admin/Livewire pages still emit the script tag (harmless but wasteful, and `cache-blocking` is asserted as a capability without an explicit no-store header on the beacon responses).
 - **Closed: migration drift.** `InsightsMigrationsTest` now asserts all registered migration names exist on disk, and the provider no longer references phantom `06`/site-FK migrations.
 - **Closed: core manifest mismatches.** `capell.json` now declares `Capell\Insights\Settings\InsightsSettings`, the generated Shield page permission `View:InsightsPage`, and the shipped marketplace screenshot set. `ManifestRequirementsTest` asserts those declarations and the screenshot files. `commands.doctor` remains `null` because no package command ships; Diagnostics consumes the health-check class directly.
-- **Dead / parallel code (tech debt).** Single-event family `RecordInsightsEventAction`/`RecordPageViewAction`/`RecordClickAction`/`RecordCustomActionAction` is not on the request path (controller uses `RecordInsightsEventsAction`, plural); `ImportLegacyPageViewsAction` is invoked only from a migration + test.
+- **Closed: single-event and legacy import Actions retained intentionally.** The single-event family is not on the browser beacon request path, but it remains a supported server-side integration path: `RecordConversionAction` calls `RecordCustomActionAction`, `docs/tracking-and-consent.md` documents custom server-side events, and `ImportLegacyPageViewsAction` is the migration-owned idempotent importer for legacy `page_views`. Removing these would regress package integrations and fresh-upgrade migration behavior.
 - **Performance budget realism.** `frontendRenderBudgetMs:20` is plausible (cached script), short-TTL dashboard aggregate caching reduces repeated widget scans, and daily rollups now replace raw page-event scans for day-aligned popular/trending dashboards. High write volume on `insights_events` remains the principal scaling risk for live and custom-event reports.
 - **i18n.** Strings are translated via `capell-insights::` keys (good), but the config key `track_form-builder` contains a hyphen and is mirrored as a setting/label key — brittle and inconsistent with snake_case siblings (`config/capell-insights.php`, `src/Filament/Settings/InsightsSettingsSchema.php:34`).
 - **Test gaps.** First-visit auto-creation, consent-required suppression, server-side region resolution, manifest declarations, render-hook banner output, health-check render/schedule probes, JS banner primitives, chunked retention purge behavior, dashboard cache helper behavior, and acquisition-source grouping have focused coverage. Remaining gaps: render-hook suppression on admin paths, browser-level consent-banner interaction coverage, and deeper long-window rollup coverage.
@@ -82,5 +82,9 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 | Done/Shipped: Daily rollup table + retention tiers for fast long-range reports            | Done   | L      | High   | §3          |
 | Done/Shipped: Funnels & conversion reporting + server-side event contract for bundle packages | Done   | L      | High   | §3, §5      |
 | Done/Shipped: Add a route-backed public screenshot fixture that renders Insights BodyEnd hooks, then capture/promote tracker and consent-banner PNGs | Done   | S      | Med    | §5          |
-| Remove dead single-event Action family / `ImportLegacyPageViews` after confirming non-use | Later  | S      | Low    | §4          |
+| Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code | Done   | S      | Low    | §4          |
 | Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                       | Done   | M      | Med    | §3          |
+
+## Completion Review
+
+Completed 2026-06-06. Every prioritized roadmap row is closed, including the final stale cleanup row: the single-event Action family and legacy importer were reviewed and retained because they are live server-side and migration contracts. Verification for the final slice used reference searches, PHP lint, JSON validation, screenshot manifest validation, and whitespace checks; Pest/composer tests were intentionally skipped per instruction.
