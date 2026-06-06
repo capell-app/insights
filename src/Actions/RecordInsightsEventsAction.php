@@ -53,7 +53,8 @@ final class RecordInsightsEventsAction
             }
 
             $now = now()->toImmutable();
-            $sequence = ((int) $visit->events()->max('sequence')) + 1;
+            $maxSequence = $visit->events()->max('sequence');
+            $sequence = is_numeric($maxSequence) ? ((int) $maxSequence) + 1 : 1;
             $eventRows = [];
 
             foreach ($recordableEvents as $event) {
@@ -138,7 +139,8 @@ final class RecordInsightsEventsAction
             return false;
         }
 
-        $timeoutMinutes = (int) config('capell-insights.session_timeout_minutes', 30);
+        $configuredTimeoutMinutes = config('capell-insights.session_timeout_minutes', 30);
+        $timeoutMinutes = is_numeric($configuredTimeoutMinutes) ? (int) $configuredTimeoutMinutes : 30;
 
         if ($timeoutMinutes < 1) {
             return false;
