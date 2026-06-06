@@ -123,11 +123,6 @@
                 "path": "docs/screenshots/insights-settings-screen.png",
                 "alt": "Insights settings screen",
                 "caption": "Insights settings screen."
-            },
-            {
-                "path": "docs/screenshots/frontend-page-with-tracker-active.png",
-                "alt": "Frontend page with tracker active",
-                "caption": "Frontend page with tracker active."
             }
         ],
         "categories": ["admin", "frontend", "growth"]
