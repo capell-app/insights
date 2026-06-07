@@ -8,6 +8,10 @@ use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 
+beforeEach(function (): void {
+    config()->set('capell-insights.default_consent_region', InsightsConsentRegion::UkOrEurope->value);
+});
+
 it('rejects granular consent without accepted terms', function (): void {
     $this->postJson(route('capell-insights.consent'), [
         'region' => InsightsConsentRegion::UkOrEurope->value,
@@ -70,6 +74,8 @@ it('stores uk or europe granular consent categories and visit row', function ():
 });
 
 it('stores essential only categories when non-essential consent is rejected', function (): void {
+    config()->set('capell-insights.default_consent_region', InsightsConsentRegion::OutsideUkOrEurope->value);
+
     $response = $this->postJson(route('capell-insights.consent'), [
         'region' => InsightsConsentRegion::OutsideUkOrEurope->value,
         'status' => InsightsConsentStatus::RejectedNonEssential->value,
@@ -97,10 +103,36 @@ it('stores essential only categories when non-essential consent is rejected', fu
         ->firstOrFail();
 
     expect($visit->consent_status)->toBe(InsightsConsentStatus::RejectedNonEssential)
+        ->and($visit->consent_region)->toBe(InsightsConsentRegion::OutsideUkOrEurope)
         ->and($consent->categories->enabledCategories())->toHaveCount(1)
         ->and($consent->categories->insights)->toBeFalse()
         ->and($consent->categories->marketing)->toBeFalse()
         ->and($consent->categories->preferences)->toBeFalse();
+});
+
+it('uses the server resolved consent region instead of the client supplied region', function (): void {
+    config()->set('capell-insights.default_consent_region', InsightsConsentRegion::UkOrEurope->value);
+
+    $response = $this->postJson(route('capell-insights.consent'), [
+        'region' => InsightsConsentRegion::OutsideUkOrEurope->value,
+        'status' => InsightsConsentStatus::RejectedNonEssential->value,
+    ]);
+
+    $response->assertOk();
+
+    /** @var string $visitUuid */
+    $visitUuid = $response->json('visit_id');
+
+    $visit = InsightsVisit::query()
+        ->where('uuid', $visitUuid)
+        ->firstOrFail();
+
+    $consent = InsightsConsent::query()
+        ->where('visit_id', $visit->getKey())
+        ->firstOrFail();
+
+    expect($visit->consent_region)->toBe(InsightsConsentRegion::UkOrEurope)
+        ->and($consent->consent_region)->toBe(InsightsConsentRegion::UkOrEurope);
 });
 
 it('stores all non-essential categories when all consent is accepted', function (): void {
@@ -196,6 +228,37 @@ it('stores hmac visitor hashes when visitor data hashing is enabled', function (
         ->and($visit->user_agent_hash)->toBe($expectedUserAgentHash)
         ->and($consent->ip_hash)->toBe($expectedIpHash)
         ->and($consent->user_agent_hash)->toBe($expectedUserAgentHash);
+});
+
+it('derives visitor hash salt from the application key when no private salt is configured', function (): void {
+    $applicationKey = 'base64:' . base64_encode(str_repeat('i', 32));
+
+    config()->set('app.key', $applicationKey);
+    config()->set('capell-insights.hash_visitor_data', true);
+    config()->set('capell-insights.hash_salt');
+
+    $response = $this
+        ->withServerVariables([
+            'REMOTE_ADDR' => '203.0.113.51',
+            'HTTP_USER_AGENT' => 'Capell App Key Browser',
+        ])
+        ->postJson(route('capell-insights.consent'), [
+            'status' => InsightsConsentStatus::RejectedNonEssential->value,
+        ]);
+
+    $response->assertOk();
+
+    /** @var string $visitUuid */
+    $visitUuid = $response->json('visit_id');
+
+    $visit = InsightsVisit::query()
+        ->where('uuid', $visitUuid)
+        ->firstOrFail();
+
+    $derivedSalt = hash_hmac('sha256', 'capell-insights', $applicationKey);
+
+    expect($visit->ip_hash)->toBe(hash_hmac('sha256', '203.0.113.51', $derivedSalt))
+        ->and($visit->user_agent_hash)->toBe(hash_hmac('sha256', 'Capell App Key Browser', $derivedSalt));
 });
 
 it('stores null visitor hashes when visitor data hashing is disabled', function (): void {

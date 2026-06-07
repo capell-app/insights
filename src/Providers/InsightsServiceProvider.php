@@ -12,6 +12,7 @@ use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Capell\Insights\Models\InsightsConsent;
+use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
@@ -39,8 +40,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
                 '2026_05_10_190855_02_create_insights_consents_table',
                 '2026_05_10_190855_03_create_insights_events_table',
                 '2026_05_10_190855_05_import_legacy_page_views',
-                '2026_05_10_190855_06_add_page_url_hit_columns',
-                '2026_05_21_000001_add_site_foreign_keys_to_insights_tables',
+                '2026_06_06_000001_create_insights_daily_rollups_table',
             ]);
     }
 
@@ -101,6 +101,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
             InsightsVisit::class,
             InsightsConsent::class,
             InsightsEvent::class,
+            InsightsDailyRollup::class,
         ]);
 
         return $this;
@@ -135,6 +136,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.visits', 'insights_visits'));
         CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.consents', 'insights_consents'));
         CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.events', 'insights_events'));
+        CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.daily_rollups', 'insights_daily_rollups'));
 
         return $this;
     }

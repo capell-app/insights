@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Http\Controllers;
 
+use Capell\Insights\Actions\ResolveConsentRegionAction;
 use Capell\Insights\Actions\UpdateInsightsConsentAction;
 use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Enums\InsightsConsentCategory;
@@ -19,7 +20,7 @@ class InsightsConsentController
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'region' => ['required', Rule::enum(InsightsConsentRegion::class)],
+            'region' => ['sometimes', Rule::enum(InsightsConsentRegion::class)],
             'status' => [
                 'required',
                 Rule::in([
@@ -34,7 +35,7 @@ class InsightsConsentController
             'categories.preferences' => ['boolean'],
         ]);
 
-        $region = InsightsConsentRegion::from((string) $validated['region']);
+        $region = ResolveConsentRegionAction::run();
         $status = InsightsConsentStatus::from((string) $validated['status']);
 
         if ($status === InsightsConsentStatus::Granular && ! $request->boolean('terms_accepted')) {

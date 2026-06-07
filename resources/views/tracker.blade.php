@@ -15,12 +15,17 @@
         'trackPageViews' => config('capell-insights.track_page_views', true) === true,
         'trackClicks' => config('capell-insights.track_clicks', true) === true,
         'automaticClickTracking' => config('capell-insights.automatic_click_tracking', true) === true,
+        'honorPrivacySignals' => config('capell-insights.honor_privacy_signals', true) === true,
         'ignoredSelectors' => config('capell-insights.ignored_selectors', []),
         'policyVersion' => config('capell-insights.policy_version', '1.0'),
     ];
 
     $insightsScript = GetInsightsTrackerScriptAction::run();
 @endphp
+
+@if (config('capell-insights.consent_banner_enabled', true) === true)
+    @include('capell-insights::components.consent-banner')
+@endif
 
 <script
     type="application/json"

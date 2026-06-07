@@ -18,6 +18,7 @@ use Override;
  * @property InsightsConsentRegion $consent_region
  * @property InsightsConsentStatus $status
  * @property InsightsConsentData $categories
+ * @property string $policy_version
  * @property string|null $ip_hash
  * @property string|null $user_agent_hash
  * @property CarbonImmutable|null $terms_accepted_at

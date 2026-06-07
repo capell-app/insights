@@ -44,6 +44,11 @@ final class InsightsDashboardSettingsContributor implements DashboardSettingsCon
                 'label' => __('capell-insights::widgets.top_actions'),
                 'group' => __('capell-insights::settings.fieldset'),
             ],
+            [
+                'key' => 'insights_acquisition_sources',
+                'label' => __('capell-insights::widgets.acquisition_sources'),
+                'group' => __('capell-insights::settings.fieldset'),
+            ],
         ];
     }
 }

@@ -6,6 +6,7 @@ namespace Capell\Insights\Filament\Pages;
 
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
 use Capell\Insights\Filament\Widgets\InsightsOverviewStatsWidget;
 use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
 use Capell\Insights\Filament\Widgets\PopularPagesWidget;
@@ -64,6 +65,7 @@ final class InsightsPage extends Page
             TrendingPagesWidget::class,
             RecentJourneysWidget::class,
             TopActionsWidget::class,
+            AcquisitionSourcesWidget::class,
         ];
     }
 }

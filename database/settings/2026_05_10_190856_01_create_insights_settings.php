@@ -19,7 +19,7 @@ return new class extends SettingsMigration
             'insights.policy_version' => '1.0',
             'insights.retention_days' => 365,
             'insights.hash_visitor_data' => true,
-            'insights.hash_salt' => 'capell-insights',
+            'insights.hash_salt' => null,
             'insights.ignored_paths' => ['/admin*', '/livewire*', '/capell/insights*', '/_debugbar*', '/_clockwork*', '/storage*'],
             'insights.ignored_selectors' => ['[data-capell-insights-ignore]', '[wire\\:click]'],
             'insights.route_prefix' => 'capell/insights',

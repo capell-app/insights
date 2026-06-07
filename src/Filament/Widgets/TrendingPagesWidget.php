@@ -57,7 +57,7 @@ final class TrendingPagesWidget extends BaseWidget implements CapellWidgetContra
     }
 
     /**
-     * @return Collection<int, array<string, float|int|string>>
+     * @return Collection<int, array{id: string, path: string, url: string, current_page_views: int, previous_page_views: int, change: int, change_percentage: float}>
      */
     private function getRecords(): Collection
     {

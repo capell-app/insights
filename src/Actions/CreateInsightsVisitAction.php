@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static InsightsVisit run(Request $request, InsightsConsentRegion $region)
+ */
 final class CreateInsightsVisitAction
 {
     use AsAction;
@@ -74,8 +77,6 @@ final class CreateInsightsVisitAction
 
     private function hashSalt(): string
     {
-        $salt = config('capell-insights.hash_salt', 'capell-insights');
-
-        return is_string($salt) && $salt !== '' ? $salt : 'capell-insights';
+        return ResolveInsightsHashSaltAction::run();
     }
 }

@@ -53,7 +53,7 @@ final class InsightsSettingsSchema implements HasSchema
                         ->label(__('capell-insights::settings.hash_visitor_data')),
                     TextInput::make('hash_salt')
                         ->label(__('capell-insights::settings.hash_salt'))
-                        ->required(),
+                        ->nullable(),
                     Textarea::make('ignored_paths')
                         ->label(__('capell-insights::settings.ignored_paths'))
                         ->formatStateUsing(self::listToTextarea(...))

@@ -19,6 +19,22 @@ final class BuildRecentJourneysQueryAction
      */
     public function handle(?int $limit = 5, ?InsightsWindowData $window = null): Collection
     {
+        /** @var Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}> $recentJourneys */
+        $recentJourneys = RememberInsightsDashboardAggregateAction::run(
+            RememberInsightsDashboardAggregateAction::windowKey('recent-journeys', $window, [
+                'limit' => $limit,
+            ]),
+            fn (): Collection => $this->buildRecentJourneys($limit, $window),
+        );
+
+        return $recentJourneys;
+    }
+
+    /**
+     * @return Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}>
+     */
+    private function buildRecentJourneys(?int $limit = 5, ?InsightsWindowData $window = null): Collection
+    {
         $query = InsightsVisit::query()
             ->whereHas('events')
             ->latest('last_seen_at');

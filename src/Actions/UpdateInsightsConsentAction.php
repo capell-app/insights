@@ -57,6 +57,8 @@ final class UpdateInsightsConsentAction
 
         MirrorInsightsConsentToPrivacyCenterAction::run($consent);
 
+        RememberInsightsDashboardAggregateAction::flush();
+
         return $consent;
     }
 
@@ -99,8 +101,6 @@ final class UpdateInsightsConsentAction
 
     private function hashSalt(): string
     {
-        $salt = config('capell-insights.hash_salt', 'capell-insights');
-
-        return is_string($salt) && $salt !== '' ? $salt : 'capell-insights';
+        return ResolveInsightsHashSaltAction::run();
     }
 }

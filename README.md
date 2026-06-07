@@ -16,6 +16,7 @@ Insights records first-party visits, events, consent decisions, page views, clic
 - Records first-party visits, clicks, events, consent decisions, page views, and journey data for Capell sites.
 - Helps owners understand onsite behavior even when third-party analytics is blocked, delayed, or too coarse.
 - Gives developers clear server-side Actions and consent rules for analytics features that other growth packages can consume.
+- Lets companion packages record conversion events and build funnel summaries without owning analytics storage.
 
 ## Best Used With
 
@@ -28,9 +29,10 @@ Insights records first-party visits, events, consent decisions, page views, clic
 Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
 
 - Frontend beacon endpoints for events and consent.
-- Render hook that can register the tracker.
+- Render hook that registers the tracker and overrideable consent banner.
 - Dashboard widgets for overview stats, popular pages, top actions, journeys, and trending pages.
 - Settings schema for insights retention and behaviour.
+- Daily rollups for faster long-range page and trend dashboards.
 
 ## Why It Matters
 
@@ -71,15 +73,24 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Recent journeys widget.
 - Insights settings screen.
 - Frontend page with tracker active.
+- Consent banner flow for first-time visitors.
 
 ## Technical Shape
 
 - InsightsServiceProvider and AdminServiceProvider register routes, settings, and widgets.
 - Config file: capell-insights.php.
 - Routes: POST capell/insights/events and POST capell/insights/consent by default.
-- Models: InsightsVisit, InsightsConsent, InsightsEvent.
+- Models: InsightsVisit, InsightsConsent, InsightsEvent, InsightsDailyRollup.
 - Actions record page views, clicks, custom events, and consent updates.
-- PurgeInsightsDataCommand supports retention cleanup.
+- Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
+- Conversion reporting exposes `RecordConversionAction` and `BuildFunnelConversionReportAction` for package-to-package growth integrations.
+- Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
+- Popular and trending page reports use daily rollups for day-aligned long-range windows, falling back to raw events until aggregates exist.
+- The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
+- Do-Not-Track and Global Privacy Control signals are honored by default in both the browser tracker and beacon endpoint.
+- Server-side event recording requires current-policy, non-expired consent for regions that require analytics consent.
+- PurgeInsightsDataCommand supports chunked retention cleanup.
+- InsightsHealthCheck verifies tables, beacon routes, tracker render output, purge scheduling, and visitor-hash secret safety.
 
 ## Code Map
 
@@ -101,7 +112,7 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Admin Surface
 
 - Pages: `InsightsPage`.
-- Widgets: `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsWidget`, `LiveInsightsStatsWidget`, `PopularPagesWidget`, `RecentJourneysWidget`, `TopActionsWidget`, `TrendingPagesWidget`.
+- Widgets: `AcquisitionSourcesWidget`, `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsWidget`, `LiveInsightsStatsWidget`, `PopularPagesWidget`, `RecentJourneysWidget`, `TopActionsWidget`, `TrendingPagesWidget`.
 - Settings: `InsightsSettings`, `InsightsSettingsMigrationProvider`.
 
 ## Runtime Surface
@@ -112,17 +123,21 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Commands
 
 - `insights:purge {--days= : Override insights retention days}` (packages/insights/src/Console/Commands/PurgeInsightsDataCommand.php)
+- `insights:rollups:rebuild {--from= : Start date, inclusive} {--to= : End date, inclusive}` (packages/insights/src/Console/Commands/RebuildInsightsDailyRollupsCommand.php)
 
 ## Data And Persistence
 
-- insights_visits stores site, language, consent, landing URL, hashed visitor data, and start time.
+- insights_visits stores site, language, consent, landing URL, referrer, UTM campaign fields, hashed visitor data, and start time.
 - insights_consents stores consent decisions for a visit.
 - insights_events stores event type, URL, path, metadata, and occurrence time.
+- insights_daily_rollups stores day/path/type aggregate counts for faster long-range dashboards.
 - Visits relate to events and consents.
-- Retention is governed by retention_days and purge actions.
+- Retention is governed by retention_days, purge_batch_size, rollup_rebuild_days, and purge/rollup actions.
+- Re-consent is governed by policy_version and consent_expires_days.
+- Conversion metadata supports source_package, conversion_value, and conversion_currency for server-side bundle events.
 
-- Models: `InsightsConsent`, `InsightsEvent`, `InsightsVisit`.
-- Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_04_add_insights_reporting_indexes.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_05_10_190855_06_add_page_url_hit_columns.php`.
+- Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
+- Migrations: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.
 - Config: `packages/insights/config/capell-insights.php`.
 - Data objects live in `src/Data/`; use them for payloads, form state, and view models.
 
@@ -135,9 +150,13 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 - Adds insights tables and settings migration.
 - Adds beacon and consent public POST routes.
 - Beacon posts validate request origin when present, can require signed event URLs, and load the embedded tracker script through a cached package Action.
+- Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
 - Adds dashboard widgets and insights settings.
-- Uses capell-insights config keys for route prefix, consent, hashing, retention, and ignored paths.
-- May need scheduled cleanup if retention should be enforced automatically.
+- Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
+- Honors DNT/GPC privacy signals by default through `honor_privacy_signals`; disable only when a host privacy program has an explicit alternative policy.
+- Re-prompts by rejecting stale server-side analytics consent when `policy_version` changes or `consent_expires_days` elapses.
+- Schedules monthly retention cleanup through `insights:purge`.
+- Schedules daily aggregate refreshes through `insights:rollups:rebuild`.
 
 ## Install And Setup
 
@@ -160,7 +179,10 @@ Screenshots are generated from [docs/screenshots.json](docs/screenshots.json) du
 ## Common Pitfalls
 
 - Exclude admin, Livewire, and insights routes from tracking.
-- Set hash_salt deliberately before production data is recorded.
+- Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before production data is recorded. Changing it later breaks visitor continuity.
+- Consent regions are resolved server-side from `default_consent_region` or GeoIP; do not trust browser-submitted jurisdiction values.
+- Leave `honor_privacy_signals` enabled unless the host site has a documented legal basis for ignoring DNT/GPC.
+- Changing `policy_version` or lowering `consent_expires_days` can pause analytics recording for consent-required regions until visitors make a fresh consent decision.
 - Consent settings must match the site privacy policy.
 
 ## Docs

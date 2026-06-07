@@ -5,19 +5,25 @@ declare(strict_types=1);
 namespace Capell\Insights\Http\Controllers;
 
 use Capell\Insights\Actions\RecordInsightsEventsAction;
+use Capell\Insights\Actions\ResolveConsentRegionAction;
 use Capell\Insights\Actions\ValidateInsightsBeaconRequestAction;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Enums\InsightsEventType;
+use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Models\InsightsVisit;
 use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 
 class InsightsBeaconController
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request): JsonResponse|HttpResponse
     {
-        ValidateInsightsBeaconRequestAction::run($request);
+        if (ValidateInsightsBeaconRequestAction::run($request) === false) {
+            return response()->noContent();
+        }
 
         $validated = $request->validate([
             'visit_id' => ['nullable', 'string', 'max:80'],
@@ -34,8 +40,11 @@ class InsightsBeaconController
             'events.*.viewport_y' => ['nullable', 'integer'],
             'events.*.document_x' => ['nullable', 'integer'],
             'events.*.document_y' => ['nullable', 'integer'],
-            'events.*.metadata' => ['nullable', 'array:nearest_landmark'],
+            'events.*.metadata' => ['nullable', 'array:nearest_landmark,source_package,conversion_value,conversion_currency'],
             'events.*.metadata.nearest_landmark' => ['nullable', 'string', 'max:255'],
+            'events.*.metadata.source_package' => ['nullable', 'string', 'max:120'],
+            'events.*.metadata.conversion_value' => ['nullable', 'numeric'],
+            'events.*.metadata.conversion_currency' => ['nullable', 'string', 'size:3'],
         ]);
 
         $visitUuid = isset($validated['visit_id']) && is_string($validated['visit_id'])
@@ -59,7 +68,25 @@ class InsightsBeaconController
             ];
         }
 
-        RecordInsightsEventsAction::run($visitUuid, $eventPayloads);
+        $recordedEvents = RecordInsightsEventsAction::run(
+            visitUuid: $visitUuid,
+            events: $eventPayloads,
+            request: $request,
+            consentRegion: $visitUuid === null ? ResolveConsentRegionAction::run() : null,
+        );
+
+        if ($visitUuid === null) {
+            $recordedEvent = $recordedEvents->first();
+            $visit = $recordedEvent instanceof InsightsEvent
+                ? InsightsVisit::query()->find($recordedEvent->visit_id)
+                : null;
+
+            if ($visit instanceof InsightsVisit) {
+                return response()->json([
+                    'visit_id' => $visit->uuid,
+                ]);
+            }
+        }
 
         return response()->noContent();
     }

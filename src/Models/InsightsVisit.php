@@ -20,10 +20,15 @@ use Override;
  * @property int|null $site_id
  * @property int|null $language_id
  * @property string|null $landing_url
+ * @property string|null $referrer_url
+ * @property string|null $utm_source
+ * @property string|null $utm_medium
+ * @property string|null $utm_campaign
  * @property InsightsConsentRegion $consent_region
  * @property InsightsConsentStatus $consent_status
  * @property CarbonImmutable|null $started_at
  * @property CarbonImmutable|null $last_seen_at
+ * @property int $visits
  */
 class InsightsVisit extends Model
 {
