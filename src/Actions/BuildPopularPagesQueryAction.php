@@ -91,7 +91,8 @@ final class BuildPopularPagesQueryAction
                 DB::raw('SUM(unique_visits) as unique_visits'),
                 DB::raw('SUM(clicks) as clicks'),
             ])
-            ->whereBetween('day', [$window->startsAt->toDateString(), $window->endsAt->toDateString()])
+            ->whereDate('day', '>=', $window->startsAt->toDateString())
+            ->whereDate('day', '<=', $window->endsAt->toDateString())
             ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->groupBy('path')
@@ -138,14 +139,15 @@ final class BuildPopularPagesQueryAction
     {
         $isDailyWindow = $window->startsAt->isStartOfDay()
             && $window->endsAt->isEndOfDay()
-            && $window->startsAt->diffInDays($window->endsAt) >= 1;
+            && ! $window->endsAt->lessThan($window->startsAt);
 
         if (! $isDailyWindow) {
             return false;
         }
 
         return InsightsDailyRollup::query()
-            ->whereBetween('day', [$window->startsAt->toDateString(), $window->endsAt->toDateString()])
+            ->whereDate('day', '>=', $window->startsAt->toDateString())
+            ->whereDate('day', '<=', $window->endsAt->toDateString())
             ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->exists();
