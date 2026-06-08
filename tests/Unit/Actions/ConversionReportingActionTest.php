@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use Capell\Insights\Actions\BuildFunnelConversionReportAction;
+use Capell\Insights\Actions\BuildInsightsDigestAction;
+use Capell\Insights\Actions\ExportInsightsDigestCsvAction;
 use Capell\Insights\Actions\RecordConversionAction;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Enums\InsightsConsentRegion;
+use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
@@ -70,3 +73,54 @@ it('builds funnel reports from named conversion events', function (): void {
             ],
         ]);
 });
+
+it('builds insights digest data and exports it as CSV', function (): void {
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'utm_source' => 'newsletter',
+        'utm_medium' => 'email',
+        'utm_campaign' => 'spring',
+        'started_at' => CarbonImmutable::parse('2026-06-08 09:00:00'),
+        'last_seen_at' => CarbonImmutable::parse('2026-06-08 09:10:00'),
+    ]);
+    $window = new InsightsWindowData(
+        startsAt: CarbonImmutable::parse('2026-06-08 00:00:00'),
+        endsAt: CarbonImmutable::parse('2026-06-08 23:59:59'),
+    );
+
+    InsightsEvent::factory()->for($visit, 'visit')->create([
+        'type' => InsightsEventType::PageView,
+        'url' => 'https://example.test/pricing',
+        'path' => '/pricing',
+        'occurred_at' => CarbonImmutable::parse('2026-06-08 09:01:00'),
+    ]);
+    InsightsEvent::factory()->for($visit, 'visit')->create([
+        'type' => InsightsEventType::Click,
+        'url' => 'https://example.test/pricing',
+        'path' => '/pricing',
+        'occurred_at' => CarbonImmutable::parse('2026-06-08 09:02:00'),
+    ]);
+    RecordConversionAction::run($visit->uuid, 'campaign.spring.signup', 'https://example.test/pricing');
+
+    $digest = BuildInsightsDigestAction::run($window, ['campaign.spring.signup'], 5);
+    $csvRows = insightsDigestCsvRows(ExportInsightsDigestCsvAction::run($window, ['campaign.spring.signup'], 5));
+
+    expect($digest->overviewStats)->toHaveCount(3)
+        ->and($digest->popularPages[0]['path'])->toBe('/pricing')
+        ->and($digest->acquisitionSources[0]['source'])->toBe('newsletter')
+        ->and($digest->funnel['steps'][0]['visitors'])->toBe(1)
+        ->and($csvRows[0])->toBe(['section', 'label', 'value', 'visits', 'clicks', 'conversion_rate', 'extra'])
+        ->and($csvRows)->toContain(['popular_page', '/pricing', '1', '1', '1', '', 'https://example.test/pricing'])
+        ->and($csvRows)->toContain(['funnel', 'campaign.spring.signup', '1', '1', '', '100', 'digest']);
+});
+
+/**
+ * @return list<list<string>>
+ */
+function insightsDigestCsvRows(string $csv): array
+{
+    return collect(explode("\n", trim($csv)))
+        ->map(static fn (string $row): array => str_getcsv($row))
+        ->values()
+        ->all();
+}
