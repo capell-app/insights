@@ -49,10 +49,14 @@ final class ValidateInsightsBeaconRequestAction
         if (config('capell-insights.honor_privacy_signals', true) !== true) {
             return false;
         }
+        if ($request->headers->get('Sec-GPC') === '1') {
+            return true;
+        }
+        if ($request->headers->get('DNT') === '1') {
+            return true;
+        }
 
-        return $request->headers->get('Sec-GPC') === '1'
-            || $request->headers->get('DNT') === '1'
-            || $request->headers->get('X-Do-Not-Track') === '1';
+        return $request->headers->get('X-Do-Not-Track') === '1';
     }
 
     private function allowedOriginsContain(string $origin): bool

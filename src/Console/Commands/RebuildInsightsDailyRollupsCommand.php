@@ -7,6 +7,7 @@ namespace Capell\Insights\Console\Commands;
 use Capell\Insights\Actions\RebuildInsightsDailyRollupsAction;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Throwable;
 
 final class RebuildInsightsDailyRollupsCommand extends Command
 {
@@ -46,7 +47,7 @@ final class RebuildInsightsDailyRollupsCommand extends Command
 
         try {
             return CarbonImmutable::parse($value);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $this->error(sprintf('The --%s option must be a valid date.', $option));
 
             return false;

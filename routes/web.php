@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Capell\Insights\Http\Controllers\InsightsBeaconController;
-use Capell\Insights\Http\Controllers\InsightsConsentController;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
+use Capell\Insights\Http\Controllers\InsightsBeaconController;
+use Capell\Insights\Http\Controllers\InsightsConsentController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -29,9 +29,7 @@ Route::prefix($routePrefix)
 
 if (config('capell-insights.screenshot_fixtures_enabled', false) === true) {
     Route::get('/screenshot-fixtures/insights/{screen}', static function (string $screen): Response {
-        if (! in_array($screen, ['frontend-page-with-tracker-active', 'consent-banner-flow'], true)) {
-            abort(404);
-        }
+        abort_unless(in_array($screen, ['frontend-page-with-tracker-active', 'consent-banner-flow'], true), 404);
 
         Config::set(
             'capell-insights.consent_banner_enabled',
@@ -39,7 +37,7 @@ if (config('capell-insights.screenshot_fixtures_enabled', false) === true) {
         );
 
         /** @var RenderHookRegistry $registry */
-        $registry = app(RenderHookRegistry::class);
+        $registry = resolve(RenderHookRegistry::class);
         $bodyEnd = $registry->renderAll(RenderHookLocation::BodyEnd);
 
         return response()->make(<<<HTML

@@ -34,10 +34,12 @@ class RegisterInsightsTrackerHook
         }
 
         foreach ($ignoredPaths as $ignoredPath) {
-            if (! is_string($ignoredPath) || trim($ignoredPath) === '') {
+            if (! is_string($ignoredPath)) {
                 continue;
             }
-
+            if (trim((string) $ignoredPath) === '') {
+                continue;
+            }
             if (Str::is('/' . trim($ignoredPath, '/'), $path)) {
                 return false;
             }
