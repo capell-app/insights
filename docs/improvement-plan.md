@@ -86,7 +86,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 | Done/Shipped: Add a route-backed public screenshot fixture that renders Insights BodyEnd hooks, then capture/promote tracker and consent-banner PNGs | Done   | S      | Med    | §5          |
 | Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code        | Done   | S      | Low    | §4          |
 | Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                                                                                  | Done   | M      | Med    | §3          |
-| Done/Shipped: Add Insights digest builder and CSV export seam                                                                                         | Done   | M      | Med    | §2, §3      |
+| Done/Shipped: Add Insights digest builder and CSV export seam                                                                                        | Done   | M      | Med    | §2, §3      |
 | Recapture populated Capell analytics dashboard/widget screenshots before promoting them as buyer-facing media                                        | Future | S      | Med    | §5          |
 
 ## Completion Review
