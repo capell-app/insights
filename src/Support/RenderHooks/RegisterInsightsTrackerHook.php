@@ -37,9 +37,11 @@ class RegisterInsightsTrackerHook
             if (! is_string($ignoredPath)) {
                 continue;
             }
-            if (trim((string) $ignoredPath) === '') {
+
+            if (trim($ignoredPath) === '') {
                 continue;
             }
+
             if (Str::is('/' . trim($ignoredPath, '/'), $path)) {
                 return false;
             }

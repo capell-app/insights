@@ -65,26 +65,26 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 
 ## 6. Prioritized Roadmap
 
-| Item                                                                                      | Bucket | Effort | Impact | Section ref |
-| ----------------------------------------------------------------------------------------- | ------ | ------ | ------ | ----------- |
-| Done/Shipped: Fix first-visit visit creation so default traffic is actually recorded      | Done   | M      | High   | §2, §4      |
-| Done/Shipped: Resolve consent region server-side (wire `ConsentRegionResolver`)           | Done   | M      | High   | §2, §4      |
-| ~~Default `hash_salt` from `APP_KEY`; enforce non-default in health check~~               | Done   | S      | High   | §2, §4      |
-| Reconcile registered-vs-missing migrations and README persistence docs                    | Done   | S      | High   | §2, §4      |
-| Fix manifest: populate `settings[]`, `permissions[]`, and shipped screenshots             | Done   | S      | Med    | §4, §5      |
-| Done/Shipped: Ship a themable consent banner / frontend component                         | Done   | M      | High   | §3          |
-| Done/Shipped: Chunk the retention purge                                                   | Done   | S      | Med    | §2, §4      |
-| Done/Shipped: Cache dashboard aggregates (TTL + `insights` tag)                           | Done   | M      | High   | §2, §4      |
-| Done/Shipped: Expand health check with render-hook and purge-schedule probes              | Done   | S      | Med    | §2, §4      |
-| Done/Shipped: Add referrer + UTM / channel reports (data already captured)                | Done   | M      | High   | §3          |
-| Done/Shipped: Add bot + admin/self-traffic filtering                                      | Done   | M      | Med    | §3          |
-| Done/Shipped: Per-session journey boundaries (sequence reset)                             | Done   | M      | Med    | §2          |
-| Done/Shipped: Daily rollup table + retention tiers for fast long-range reports            | Done   | L      | High   | §3          |
-| Done/Shipped: Funnels & conversion reporting + server-side event contract for bundle packages | Done   | L      | High   | §3, §5      |
+| Item                                                                                                                                                 | Bucket | Effort | Impact | Section ref |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------ | ----------- |
+| Done/Shipped: Fix first-visit visit creation so default traffic is actually recorded                                                                 | Done   | M      | High   | §2, §4      |
+| Done/Shipped: Resolve consent region server-side (wire `ConsentRegionResolver`)                                                                      | Done   | M      | High   | §2, §4      |
+| ~~Default `hash_salt` from `APP_KEY`; enforce non-default in health check~~                                                                          | Done   | S      | High   | §2, §4      |
+| Reconcile registered-vs-missing migrations and README persistence docs                                                                               | Done   | S      | High   | §2, §4      |
+| Fix manifest: populate `settings[]`, `permissions[]`, and shipped screenshots                                                                        | Done   | S      | Med    | §4, §5      |
+| Done/Shipped: Ship a themable consent banner / frontend component                                                                                    | Done   | M      | High   | §3          |
+| Done/Shipped: Chunk the retention purge                                                                                                              | Done   | S      | Med    | §2, §4      |
+| Done/Shipped: Cache dashboard aggregates (TTL + `insights` tag)                                                                                      | Done   | M      | High   | §2, §4      |
+| Done/Shipped: Expand health check with render-hook and purge-schedule probes                                                                         | Done   | S      | Med    | §2, §4      |
+| Done/Shipped: Add referrer + UTM / channel reports (data already captured)                                                                           | Done   | M      | High   | §3          |
+| Done/Shipped: Add bot + admin/self-traffic filtering                                                                                                 | Done   | M      | Med    | §3          |
+| Done/Shipped: Per-session journey boundaries (sequence reset)                                                                                        | Done   | M      | Med    | §2          |
+| Done/Shipped: Daily rollup table + retention tiers for fast long-range reports                                                                       | Done   | L      | High   | §3          |
+| Done/Shipped: Funnels & conversion reporting + server-side event contract for bundle packages                                                        | Done   | L      | High   | §3, §5      |
 | Done/Shipped: Add a route-backed public screenshot fixture that renders Insights BodyEnd hooks, then capture/promote tracker and consent-banner PNGs | Done   | S      | Med    | §5          |
-| Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code | Done   | S      | Low    | §4          |
-| Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                       | Done   | M      | Med    | §3          |
-| Recapture populated Capell analytics dashboard/widget screenshots before promoting them as buyer-facing media | Next   | S      | Med    | §5          |
+| Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code        | Done   | S      | Low    | §4          |
+| Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                                                                                  | Done   | M      | Med    | §3          |
+| Recapture populated Capell analytics dashboard/widget screenshots before promoting them as buyer-facing media                                        | Next   | S      | Med    | §5          |
 
 ## Completion Review
 

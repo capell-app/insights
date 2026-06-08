@@ -49,9 +49,11 @@ final class ValidateInsightsBeaconRequestAction
         if (config('capell-insights.honor_privacy_signals', true) !== true) {
             return false;
         }
+
         if ($request->headers->get('Sec-GPC') === '1') {
             return true;
         }
+
         if ($request->headers->get('DNT') === '1') {
             return true;
         }
