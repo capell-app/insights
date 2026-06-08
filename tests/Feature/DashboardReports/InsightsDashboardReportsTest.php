@@ -14,6 +14,19 @@ use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
+
+/**
+ * @param  Collection<array-key, array{id: string, label: string, value: int}>  $stats
+ */
+function insightsOverviewStatValue(Collection $stats, string $id): int
+{
+    $stat = $stats->get($id);
+
+    throw_unless(is_array($stat), RuntimeException::class, sprintf('Expected overview stat [%s] to exist.', $id));
+
+    return $stat['value'];
+}
 
 it('sorts popular pages by page view count descending', function (): void {
     $window = insightsReportWindow();
@@ -149,9 +162,9 @@ it('builds overview stats without double counting visits across pages', function
 
     $stats = BuildInsightsOverviewStatsAction::run($window)->keyBy('id');
 
-    expect($stats['page-views']['value'])->toBe(3)
-        ->and($stats['unique-visits']['value'])->toBe(2)
-        ->and($stats['clicks']['value'])->toBe(1);
+    expect(insightsOverviewStatValue($stats, 'page-views'))->toBe(3)
+        ->and(insightsOverviewStatValue($stats, 'unique-visits'))->toBe(2)
+        ->and(insightsOverviewStatValue($stats, 'clicks'))->toBe(1);
 });
 
 it('groups acquisition sources by campaign then referrer and direct traffic', function (): void {

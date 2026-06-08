@@ -9,6 +9,9 @@ use Capell\Insights\Data\InsightsWindowData;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 
+/**
+ * @method static string run(InsightsWindowData $window, list<string> $funnelSteps = [], int $limit = 10)
+ */
 final class ExportInsightsDigestCsvAction
 {
     use AsAction;

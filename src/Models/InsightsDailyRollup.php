@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Insights\Models;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Override;
@@ -26,6 +27,7 @@ use Override;
  */
 class InsightsDailyRollup extends Model
 {
+    /** @use HasFactory<Factory<static>> */
     use HasFactory;
 
     protected $guarded = [];

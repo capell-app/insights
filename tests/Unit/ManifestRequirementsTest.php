@@ -35,6 +35,17 @@ function insightsPackageJson(string $path): array
 
 it('declares installed settings and page permission surfaces', function (): void {
     $manifest = insightsPackageJson('capell.json');
+    $commands = $manifest['commands'] ?? null;
+    $database = $manifest['database'] ?? null;
+
+    throw_unless(is_array($commands), RuntimeException::class, 'Expected Insights commands metadata to be an array.');
+    throw_unless(is_array($database), RuntimeException::class, 'Expected Insights database metadata to be an array.');
+
+    $maintenanceCommands = $commands['maintenance'] ?? [];
+    $requiredTables = $database['requiredTables'] ?? [];
+
+    throw_unless(is_array($maintenanceCommands), RuntimeException::class, 'Expected Insights maintenance commands to be an array.');
+    throw_unless(is_array($requiredTables), RuntimeException::class, 'Expected Insights required tables to be an array.');
 
     expect($manifest['settings'] ?? [])->toBe([
         InsightsSettings::class,
@@ -44,8 +55,8 @@ it('declares installed settings and page permission surfaces', function (): void
         ->and($manifest['capabilities'] ?? [])->toContain('insights-conversion-funnels')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-daily-rollups')
         ->and($manifest['capabilities'] ?? [])->toContain('insights-privacy-signals')
-        ->and($manifest['commands']['maintenance'] ?? [])->toContain('insights:rollups:rebuild')
-        ->and($manifest['database']['requiredTables'] ?? [])->toContain('insights_daily_rollups');
+        ->and($maintenanceCommands)->toContain('insights:rollups:rebuild')
+        ->and($requiredTables)->toContain('insights_daily_rollups');
 });
 
 it('keeps marketplace screenshots backed by committed assets', function (): void {

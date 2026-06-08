@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(config('capell-insights.tables.daily_rollups', 'insights_daily_rollups'), function (Blueprint $table): void {
+        Schema::create($this->tableName(), function (Blueprint $table): void {
             $table->id();
             $table->date('day');
             $table->unsignedBigInteger('site_id')->nullable();
@@ -37,6 +37,13 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('capell-insights.tables.daily_rollups', 'insights_daily_rollups'));
+        Schema::dropIfExists($this->tableName());
+    }
+
+    private function tableName(): string
+    {
+        $tableName = config('capell-insights.tables.daily_rollups', 'insights_daily_rollups');
+
+        return is_string($tableName) && $tableName !== '' ? $tableName : 'insights_daily_rollups';
     }
 };

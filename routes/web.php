@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Http\Controllers\InsightsBeaconController;
@@ -36,7 +37,7 @@ if (config('capell-insights.screenshot_fixtures_enabled', false) === true) {
             $screen === 'consent-banner-flow',
         );
 
-        /** @var RenderHookRegistry $registry */
+        /** @var RenderHookRegistry<RenderHookContext> $registry */
         $registry = resolve(RenderHookRegistry::class);
         $bodyEnd = $registry->renderAll(RenderHookLocation::BodyEnd);
 

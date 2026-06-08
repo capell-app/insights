@@ -153,7 +153,7 @@ final class BuildTrendingPagesQueryAction
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->groupBy('path')
             ->pluck('page_views', 'path')
-            ->mapWithKeys(fn (mixed $pageViews, string $path): array => [$path => (int) $pageViews])
+            ->mapWithKeys(fn (mixed $pageViews, string $path): array => [$path => $this->integerValue($pageViews)])
             ->all();
     }
 
@@ -182,6 +182,11 @@ final class BuildTrendingPagesQueryAction
         $seconds = max(1, (int) $window->startsAt->diffInSeconds($window->endsAt));
 
         return $window->startsAt->subSeconds($seconds);
+    }
+
+    private function integerValue(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
     }
 
     private function changePercentage(int $currentPageViews, int $previousPageViews): float

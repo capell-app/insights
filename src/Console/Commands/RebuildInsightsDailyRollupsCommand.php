@@ -17,12 +17,15 @@ final class RebuildInsightsDailyRollupsCommand extends Command
 
     public function handle(): int
     {
-        $startsAt = $this->resolveDateOption('from')?->startOfDay();
-        $endsAt = $this->resolveDateOption('to')?->endOfDay();
+        $resolvedStartsAt = $this->resolveDateOption('from');
+        $resolvedEndsAt = $this->resolveDateOption('to');
 
-        if ($startsAt === false || $endsAt === false) {
+        if ($resolvedStartsAt === false || $resolvedEndsAt === false) {
             return self::FAILURE;
         }
+
+        $startsAt = $resolvedStartsAt?->startOfDay();
+        $endsAt = $resolvedEndsAt?->endOfDay();
 
         $rollups = RebuildInsightsDailyRollupsAction::run($startsAt, $endsAt);
 

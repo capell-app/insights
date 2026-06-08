@@ -11,8 +11,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = config('capell-insights.tables.events', 'insights_events');
-        $visitsTableName = config('capell-insights.tables.visits', 'insights_visits');
+        $tableName = $this->tableName('capell-insights.tables.events', 'insights_events');
+        $visitsTableName = $this->tableName('capell-insights.tables.visits', 'insights_visits');
 
         Schema::create($tableName, function (Blueprint $table) use ($visitsTableName): void {
             $table->id();
@@ -59,11 +59,18 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('capell-insights.tables.events', 'insights_events'));
+        Schema::dropIfExists($this->tableName('capell-insights.tables.events', 'insights_events'));
     }
 
     private function quoteIdentifier(string $identifier): string
     {
         return '`' . str_replace('`', '``', $identifier) . '`';
+    }
+
+    private function tableName(string $key, string $fallback): string
+    {
+        $tableName = config($key, $fallback);
+
+        return is_string($tableName) && $tableName !== '' ? $tableName : $fallback;
     }
 };

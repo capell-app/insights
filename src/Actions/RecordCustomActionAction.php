@@ -9,6 +9,9 @@ use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static InsightsEvent|null run(?string $visitUuid, InsightsEventData $data, ?string $occurredAt = null)
+ */
 final class RecordCustomActionAction
 {
     use AsAction;

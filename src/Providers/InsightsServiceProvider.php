@@ -136,8 +136,15 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
         CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.visits', 'insights_visits'));
         CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.consents', 'insights_consents'));
         CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.events', 'insights_events'));
-        CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.daily_rollups', 'insights_daily_rollups'));
+        CapellCore::registerProtectedTable(fn (): string => $this->configString('capell-insights.tables.daily_rollups', 'insights_daily_rollups'));
 
         return $this;
+    }
+
+    private function configString(string $key, string $fallback): string
+    {
+        $value = config($key, $fallback);
+
+        return is_string($value) && $value !== '' ? $value : $fallback;
     }
 }

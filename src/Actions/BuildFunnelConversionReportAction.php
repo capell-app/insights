@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static array{name: string, visitors: int, steps: list<array{name: string, visitors: int, conversion_rate: float}>} run(InsightsWindowData $window, array $steps, string $name = 'default')
+ * @method static array{name: string, visitors: int, steps: list<array{name: string, visitors: int, conversion_rate: float}>} run(InsightsWindowData $window, list<string> $steps, string $name = 'default')
  */
 final class BuildFunnelConversionReportAction
 {
@@ -58,12 +58,19 @@ final class BuildFunnelConversionReportAction
      */
     private function normalizedSteps(array $steps): array
     {
-        return collect($steps)
-            ->filter(fn (mixed $step): bool => is_string($step) && trim($step) !== '')
-            ->map(fn (string $step): string => trim($step))
-            ->unique()
-            ->values()
-            ->all();
+        $normalizedSteps = [];
+
+        foreach ($steps as $step) {
+            $normalizedStep = trim($step);
+
+            if ($normalizedStep === '' || in_array($normalizedStep, $normalizedSteps, true)) {
+                continue;
+            }
+
+            $normalizedSteps[] = $normalizedStep;
+        }
+
+        return $normalizedSteps;
     }
 
     /**

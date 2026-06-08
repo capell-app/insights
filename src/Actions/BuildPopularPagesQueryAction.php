@@ -13,6 +13,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, array{path: string, url: string, page_views: int, unique_visits: int, clicks: int}> run(InsightsWindowData $window, ?int $limit = null)
+ */
 final class BuildPopularPagesQueryAction
 {
     use AsAction;
