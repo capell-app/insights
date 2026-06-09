@@ -102,7 +102,8 @@ final class BuildTrendingPagesQueryAction
                 DB::raw('MIN(url) as url'),
                 DB::raw('SUM(page_views) as current_page_views'),
             ])
-            ->whereBetween('day', [$window->startsAt->toDateString(), $window->endsAt->toDateString()])
+            ->whereDate('day', '>=', $window->startsAt->toDateString())
+            ->whereDate('day', '<=', $window->endsAt->toDateString())
             ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->groupBy('path')
@@ -153,7 +154,7 @@ final class BuildTrendingPagesQueryAction
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->groupBy('path')
             ->pluck('page_views', 'path')
-            ->mapWithKeys(fn (mixed $pageViews, string $path): array => [$path => (int) $pageViews])
+            ->mapWithKeys(fn (mixed $pageViews, string $path): array => [$path => $this->integerValue($pageViews)])
             ->all();
     }
 
@@ -167,8 +168,8 @@ final class BuildTrendingPagesQueryAction
                 'path',
                 DB::raw('SUM(page_views) as page_views'),
             ])
-            ->where('day', '>=', $this->previousWindowStart($window)->toDateString())
-            ->where('day', '<', $window->startsAt->toDateString())
+            ->whereDate('day', '>=', $this->previousWindowStart($window)->toDateString())
+            ->whereDate('day', '<', $window->startsAt->toDateString())
             ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->groupBy('path')
@@ -184,6 +185,11 @@ final class BuildTrendingPagesQueryAction
         return $window->startsAt->subSeconds($seconds);
     }
 
+    private function integerValue(mixed $value): int
+    {
+        return is_numeric($value) ? (int) $value : 0;
+    }
+
     private function changePercentage(int $currentPageViews, int $previousPageViews): float
     {
         if ($previousPageViews === 0) {
@@ -197,14 +203,15 @@ final class BuildTrendingPagesQueryAction
     {
         $isDailyWindow = $window->startsAt->isStartOfDay()
             && $window->endsAt->isEndOfDay()
-            && $window->startsAt->diffInDays($window->endsAt) >= 1;
+            && ! $window->endsAt->lessThan($window->startsAt);
 
         if (! $isDailyWindow) {
             return false;
         }
 
         return InsightsDailyRollup::query()
-            ->whereBetween('day', [$window->startsAt->toDateString(), $window->endsAt->toDateString()])
+            ->whereDate('day', '>=', $window->startsAt->toDateString())
+            ->whereDate('day', '<=', $window->endsAt->toDateString())
             ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
             ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
             ->exists();

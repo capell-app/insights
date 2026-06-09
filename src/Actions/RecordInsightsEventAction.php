@@ -8,6 +8,9 @@ use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Models\InsightsEvent;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static InsightsEvent|null run(?string $visitUuid, InsightsEventData $data, ?string $occurredAt = null)
+ */
 final class RecordInsightsEventAction
 {
     use AsAction;

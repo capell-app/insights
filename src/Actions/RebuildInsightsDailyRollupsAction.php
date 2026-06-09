@@ -32,7 +32,8 @@ final class RebuildInsightsDailyRollupsAction
         $now = now();
 
         InsightsDailyRollup::query()
-            ->whereBetween('day', [$resolvedStartsAt->toDateString(), $resolvedEndsAt->toDateString()])
+            ->whereDate('day', '>=', $resolvedStartsAt->toDateString())
+            ->whereDate('day', '<=', $resolvedEndsAt->toDateString())
             ->delete();
 
         $rows = DB::table($eventTable)

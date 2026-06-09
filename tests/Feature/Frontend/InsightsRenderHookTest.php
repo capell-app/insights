@@ -28,7 +28,7 @@ it('injects the frontend insights tracker at the end of the body', function (): 
 });
 
 it('does not inject the frontend insights tracker on ignored admin paths', function (): void {
-    app()->instance('request', Request::create('/admin/pages', 'GET'));
+    app()->instance('request', Request::create('/admin/pages', Symfony\Component\HttpFoundation\Request::METHOD_GET));
     config()->set('capell-insights.ignored_paths', ['/admin*']);
 
     /** @var RenderHookRegistry<RenderHookContext> $registry */

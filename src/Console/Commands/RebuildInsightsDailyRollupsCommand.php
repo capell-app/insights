@@ -7,6 +7,7 @@ namespace Capell\Insights\Console\Commands;
 use Capell\Insights\Actions\RebuildInsightsDailyRollupsAction;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Throwable;
 
 final class RebuildInsightsDailyRollupsCommand extends Command
 {
@@ -16,12 +17,15 @@ final class RebuildInsightsDailyRollupsCommand extends Command
 
     public function handle(): int
     {
-        $startsAt = $this->resolveDateOption('from')?->startOfDay();
-        $endsAt = $this->resolveDateOption('to')?->endOfDay();
+        $resolvedStartsAt = $this->resolveDateOption('from');
+        $resolvedEndsAt = $this->resolveDateOption('to');
 
-        if ($startsAt === false || $endsAt === false) {
+        if ($resolvedStartsAt === false || $resolvedEndsAt === false) {
             return self::FAILURE;
         }
+
+        $startsAt = $resolvedStartsAt?->startOfDay();
+        $endsAt = $resolvedEndsAt?->endOfDay();
 
         $rollups = RebuildInsightsDailyRollupsAction::run($startsAt, $endsAt);
 
@@ -46,7 +50,7 @@ final class RebuildInsightsDailyRollupsCommand extends Command
 
         try {
             return CarbonImmutable::parse($value);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             $this->error(sprintf('The --%s option must be a valid date.', $option));
 
             return false;

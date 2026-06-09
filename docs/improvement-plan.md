@@ -1,6 +1,6 @@
 # Insights — Improvement & Growth Plan
 
-> Package: capell-app/insights · Kind: extension (admin + frontend) · Tier: premium · Product group: Capell Growth · Bundle: growth · Status: Screenshot recapture reopened
+> Package: capell-app/insights · Kind: extension (admin + frontend) · Tier: premium · Product group: Capell Growth · Bundle: growth · Status: Complete
 
 ## 1. Snapshot
 
@@ -19,6 +19,7 @@ Current marketplace summary (verbatim): _"Cookie-light, GDPR-aware web analytics
 - **Done/Shipped: Flesh out the health check.** `InsightsHealthCheck` now reports storage-table presence, beacon route registration, frontend tracker render-hook output, monthly retention purge scheduling, and non-default visitor hash secret diagnostics, with pass/fail coverage. — Diagnostics value — `src/Health/InsightsHealthCheck.php`, `tests/Feature/Health/InsightsHealthCheckTest.php` — M
 - **Done/Shipped: session boundaries for journeys.** `RecordInsightsEventsAction` now rotates a persistent visit cookie into a fresh `InsightsVisit` when `last_seen_at` is older than `session_timeout_minutes` (30 minutes by default). The new visit preserves consent region/status and receives the queued cookie, so event sequences restart per session and journey widgets no longer merge returning visitor activity into one historical timeline. — `src/Actions/RecordInsightsEventsAction.php`, `config/capell-insights.php`, `capell.json` — M
 - **Done/Shipped: daily rollups for long-range reports.** The package now owns an `insights_daily_rollups` table plus `RebuildInsightsDailyRollupsAction` and `insights:rollups:rebuild` command, scheduled daily. Popular and trending page reports use day/path/type aggregate rows for day-aligned windows and fall back to raw events until aggregates exist, keeping fresh installs correct while reducing long-range dashboard scans. — `database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`, `src/Actions/RebuildInsightsDailyRollupsAction.php`, `src/Actions/BuildPopularPagesQueryAction.php`, `src/Actions/BuildTrendingPagesQueryAction.php` — L
+- **Done/Shipped: digest and CSV export seam.** `BuildInsightsDigestAction` assembles overview stats, popular pages, acquisition sources, and funnel conversion data for a window; `ExportInsightsDigestCsvAction` serializes the digest without reintroducing public render work or admin query coupling. — `src/Actions/BuildInsightsDigestAction.php`, `src/Actions/ExportInsightsDigestCsvAction.php` — M
 
 ## 3. Missing Features (gaps)
 
@@ -32,6 +33,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 - **Visit duration / bounce / entry-exit (table-stakes).** `started_at`/`last_seen_at` exist on the visit but no engaged-time, bounce-rate, or entry/exit-page metrics are computed.
 - **Done/Shipped: consent expiry & re-prompt.** Browser decisions are stored with `policy_version`, the packaged banner reappears when the configured policy version changes, and the server refuses analytics recording in consent-required regions when the latest consent is for an old policy or older than `consent_expires_days`.
 - **Done/Shipped: server-side event API surface for other packages.** `RecordConversionAction` gives seo-suite/campaign-studio style packages an explicit in-process analytics contract without exposing a public unauthenticated write API. `BuildFunnelConversionReportAction` provides the matching reporting surface for bundle dashboards.
+- **Done/Shipped: digest/export reporting.** First-party analytics can now be summarized as a typed digest and exported as CSV, giving GA4 Reports, Campaign Studio, Email Studio, and future scheduled report consumers a consistent report seam.
 - **Done/Shipped: Do-Not-Track / Global Privacy Control honoring and server-side re-consent (differentiator).** `honor_privacy_signals` now defaults on. The browser tracker exits before registering listeners when `navigator.globalPrivacyControl`, `navigator.doNotTrack`, or `navigator.msDoNotTrack` is active, and the beacon endpoint returns no-content without validation/persistence for `Sec-GPC: 1`, `DNT: 1`, or `X-Do-Not-Track: 1`. Consent-required regions now record analytics only when the latest consent matches the configured `policy_version` and remains inside `consent_expires_days`. — `resources/js/capell-insights.js`, `resources/views/tracker.blade.php`, `src/Actions/ValidateInsightsBeaconRequestAction.php`, `src/Actions/RecordInsightsEventsAction.php`
 
 ## 4. Issues / Risks
@@ -49,7 +51,7 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 
 ## 5. Marketplace & Selling
 
-**Critique.** The manifest `summary` and package description now lead with the buyer benefit (first-party, GDPR-aware analytics without third-party scripts). The gallery references the extension card, settings screen, and two styled package-owned public fixture captures for the active tracker and consent-banner flow. Remaining media upside: recapture populated dashboard/widgets before promoting admin analytics screenshots, and promote dark admin alternates only if Marketplace wants explicit dark-mode gallery entries.
+**Critique.** The manifest `summary` and package description now lead with the buyer benefit (first-party, GDPR-aware analytics without third-party scripts). The gallery references the extension card, settings screen, and two styled package-owned public fixture captures for the active tracker and consent-banner flow. Remaining media upside is optional: recapture populated dashboard/widgets before promoting admin analytics screenshots, and promote dark admin alternates only if Marketplace wants explicit dark-mode gallery entries.
 
 **Improved 1-sentence summary.** "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server."
 
@@ -65,27 +67,28 @@ Tied to `capabilities[]` = `insights, insights-admin, insights-frontend, insight
 
 ## 6. Prioritized Roadmap
 
-| Item                                                                                      | Bucket | Effort | Impact | Section ref |
-| ----------------------------------------------------------------------------------------- | ------ | ------ | ------ | ----------- |
-| Done/Shipped: Fix first-visit visit creation so default traffic is actually recorded      | Done   | M      | High   | §2, §4      |
-| Done/Shipped: Resolve consent region server-side (wire `ConsentRegionResolver`)           | Done   | M      | High   | §2, §4      |
-| ~~Default `hash_salt` from `APP_KEY`; enforce non-default in health check~~               | Done   | S      | High   | §2, §4      |
-| Reconcile registered-vs-missing migrations and README persistence docs                    | Done   | S      | High   | §2, §4      |
-| Fix manifest: populate `settings[]`, `permissions[]`, and shipped screenshots             | Done   | S      | Med    | §4, §5      |
-| Done/Shipped: Ship a themable consent banner / frontend component                         | Done   | M      | High   | §3          |
-| Done/Shipped: Chunk the retention purge                                                   | Done   | S      | Med    | §2, §4      |
-| Done/Shipped: Cache dashboard aggregates (TTL + `insights` tag)                           | Done   | M      | High   | §2, §4      |
-| Done/Shipped: Expand health check with render-hook and purge-schedule probes              | Done   | S      | Med    | §2, §4      |
-| Done/Shipped: Add referrer + UTM / channel reports (data already captured)                | Done   | M      | High   | §3          |
-| Done/Shipped: Add bot + admin/self-traffic filtering                                      | Done   | M      | Med    | §3          |
-| Done/Shipped: Per-session journey boundaries (sequence reset)                             | Done   | M      | Med    | §2          |
-| Done/Shipped: Daily rollup table + retention tiers for fast long-range reports            | Done   | L      | High   | §3          |
-| Done/Shipped: Funnels & conversion reporting + server-side event contract for bundle packages | Done   | L      | High   | §3, §5      |
+| Item                                                                                                                                                 | Bucket | Effort | Impact | Section ref |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------ | ----------- |
+| Done/Shipped: Fix first-visit visit creation so default traffic is actually recorded                                                                 | Done   | M      | High   | §2, §4      |
+| Done/Shipped: Resolve consent region server-side (wire `ConsentRegionResolver`)                                                                      | Done   | M      | High   | §2, §4      |
+| ~~Default `hash_salt` from `APP_KEY`; enforce non-default in health check~~                                                                          | Done   | S      | High   | §2, §4      |
+| Reconcile registered-vs-missing migrations and README persistence docs                                                                               | Done   | S      | High   | §2, §4      |
+| Fix manifest: populate `settings[]`, `permissions[]`, and shipped screenshots                                                                        | Done   | S      | Med    | §4, §5      |
+| Done/Shipped: Ship a themable consent banner / frontend component                                                                                    | Done   | M      | High   | §3          |
+| Done/Shipped: Chunk the retention purge                                                                                                              | Done   | S      | Med    | §2, §4      |
+| Done/Shipped: Cache dashboard aggregates (TTL + `insights` tag)                                                                                      | Done   | M      | High   | §2, §4      |
+| Done/Shipped: Expand health check with render-hook and purge-schedule probes                                                                         | Done   | S      | Med    | §2, §4      |
+| Done/Shipped: Add referrer + UTM / channel reports (data already captured)                                                                           | Done   | M      | High   | §3          |
+| Done/Shipped: Add bot + admin/self-traffic filtering                                                                                                 | Done   | M      | Med    | §3          |
+| Done/Shipped: Per-session journey boundaries (sequence reset)                                                                                        | Done   | M      | Med    | §2          |
+| Done/Shipped: Daily rollup table + retention tiers for fast long-range reports                                                                       | Done   | L      | High   | §3          |
+| Done/Shipped: Funnels & conversion reporting + server-side event contract for bundle packages                                                        | Done   | L      | High   | §3, §5      |
 | Done/Shipped: Add a route-backed public screenshot fixture that renders Insights BodyEnd hooks, then capture/promote tracker and consent-banner PNGs | Done   | S      | Med    | §5          |
-| Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code | Done   | S      | Low    | §4          |
-| Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                       | Done   | M      | Med    | §3          |
-| Recapture populated Capell analytics dashboard/widget screenshots before promoting them as buyer-facing media | Next   | S      | Med    | §5          |
+| Closed 2026-06-06: confirmed single-event Action family / `ImportLegacyPageViews` are live integration and migration contracts, not dead code        | Done   | S      | Low    | §4          |
+| Done/Shipped: Honor DNT / GPC; server-side consent expiry/re-prompt                                                                                  | Done   | M      | Med    | §3          |
+| Done/Shipped: Add Insights digest builder and CSV export seam                                                                                        | Done   | M      | Med    | §2, §3      |
+| Recapture populated Capell analytics dashboard/widget screenshots before promoting them as buyer-facing media                                        | Future | S      | Med    | §5          |
 
 ## Completion Review
 
-Completed 2026-06-06. Every prioritized roadmap row is closed, including the final stale cleanup row: the single-event Action family and legacy importer were reviewed and retained because they are live server-side and migration contracts. Verification for the final slice used reference searches, PHP lint, JSON validation, screenshot manifest validation, and whitespace checks; Pest/composer tests were intentionally skipped per instruction.
+Completed 2026-06-08. Every current manifest-backed roadmap row is closed, including the retained single-event Action family / legacy importer, tracker/banner privacy controls, dashboard aggregate/rollup surfaces, server-side conversion contract, admin-path tracker suppression, and the new digest/export seam. Populated admin dashboard recapture remains optional future media polish rather than an active completion blocker.

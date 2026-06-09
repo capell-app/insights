@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static Collection<int, array{id: string, label: string, value: int}> run(InsightsWindowData $window)
+ */
 final class BuildInsightsOverviewStatsAction
 {
     use AsAction;

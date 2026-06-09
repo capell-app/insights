@@ -10,6 +10,9 @@ use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static InsightsEvent|null run(?string $visitUuid, string $eventName, string $url, ?string $label = null, ?string $sourcePackage = null, ?float $value = null, ?string $currency = null, ?string $occurredAt = null)
+ */
 final class RecordConversionAction
 {
     use AsAction;

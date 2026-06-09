@@ -34,7 +34,11 @@ class RegisterInsightsTrackerHook
         }
 
         foreach ($ignoredPaths as $ignoredPath) {
-            if (! is_string($ignoredPath) || trim($ignoredPath) === '') {
+            if (! is_string($ignoredPath)) {
+                continue;
+            }
+
+            if (trim($ignoredPath) === '') {
                 continue;
             }
 

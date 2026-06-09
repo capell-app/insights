@@ -54,7 +54,7 @@ final class PopularPagesWidget extends BaseWidget implements CapellWidgetContrac
     }
 
     /**
-     * @return Collection<int, array<string, int|string>>
+     * @return Collection<int, array{id: string, path: string, url: string, page_views: int, unique_visits: int, clicks: int}>
      */
     private function getRecords(): Collection
     {
