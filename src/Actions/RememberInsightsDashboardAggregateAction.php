@@ -38,7 +38,7 @@ final class RememberInsightsDashboardAggregateAction
             $encodedParts = serialize($parts);
         }
 
-        return self::CACHE_PREFIX . $name . ':' . sha1($encodedParts);
+        return self::CACHE_PREFIX . $name . ':' . hash('sha256', $encodedParts);
     }
 
     /**
