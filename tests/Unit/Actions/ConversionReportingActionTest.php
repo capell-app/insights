@@ -100,7 +100,12 @@ it('builds insights digest data and exports it as CSV', function (): void {
         'path' => '/pricing',
         'occurred_at' => CarbonImmutable::parse('2026-06-08 09:02:00'),
     ]);
-    RecordConversionAction::run($visit->uuid, 'campaign.spring.signup', 'https://example.test/pricing');
+    RecordConversionAction::run(
+        visitUuid: $visit->uuid,
+        eventName: 'campaign.spring.signup',
+        url: 'https://example.test/pricing',
+        occurredAt: '2026-06-08 09:03:00',
+    );
 
     $digest = BuildInsightsDigestAction::run($window, ['campaign.spring.signup'], 5);
     $csvRows = insightsDigestCsvRows(ExportInsightsDigestCsvAction::run($window, ['campaign.spring.signup'], 5));
