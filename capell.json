@@ -66,29 +66,20 @@
         "cache-blocking"
     ],
     "security": {
-        "riskTier": "standard",
+        "riskTier": "sensitive",
         "publicSurface": {
-            "routeNames": [
-                "capell-insights.consent",
-                "capell-insights.events",
-                "events",
-                "consent"
-            ],
+            "routeNames": ["capell-insights.consent", "capell-insights.events"],
             "auth": "public",
             "csrfExemptRoutes": [
                 "capell-insights.consent",
-                "capell-insights.events",
-                "events",
-                "consent"
+                "capell-insights.events"
             ],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
                 "capell-insights.consent",
-                "capell-insights.events",
-                "events",
-                "consent"
+                "capell-insights.events"
             ]
         },
         "sensitiveData": {
