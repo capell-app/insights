@@ -92,6 +92,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
 
         $this->publishes([
             $provider->path() . '/2026_05_10_190856_01_create_insights_settings.php' => database_path('settings/2026_05_10_190856_01_create_insights_settings.php'),
+            $provider->path() . '/2026_06_14_000001_rename_insights_form_tracking_setting.php' => database_path('settings/2026_06_14_000001_rename_insights_form_tracking_setting.php'),
         ], 'capell-insights-settings');
     }
 

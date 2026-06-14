@@ -31,8 +31,8 @@ final class InsightsSettingsSchema implements HasSchema
                         ->label(__('capell-insights::settings.track_page_views')),
                     Toggle::make('track_clicks')
                         ->label(__('capell-insights::settings.track_clicks')),
-                    Toggle::make('track_form-builder')
-                        ->label(__('capell-insights::settings.track_form-builder')),
+                    Toggle::make('track_forms')
+                        ->label(__('capell-insights::settings.track_forms')),
                     Toggle::make('automatic_click_tracking')
                         ->label(__('capell-insights::settings.automatic_click_tracking')),
                     Toggle::make('require_consent_for_all_regions')

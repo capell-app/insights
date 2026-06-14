@@ -16,6 +16,6 @@ return [
     'retention_days' => 'Retention',
     'route_prefix' => 'Route prefix',
     'track_clicks' => 'Track clicks',
-    'track_form-builder' => 'Track form-builder',
+    'track_forms' => 'Track forms',
     'track_page_views' => 'Track page views',
 ];
