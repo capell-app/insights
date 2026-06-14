@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Capell\Admin\Contracts\DashboardSettingsContributor;
 use Capell\Admin\Facades\CapellAdmin;
+use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
 use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
 use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
@@ -11,6 +12,10 @@ use Capell\Insights\Filament\Widgets\PopularPagesWidget;
 use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
 use Capell\Insights\Filament\Widgets\TopActionsWidget;
 use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
+use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Models\InsightsVisit;
+use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Livewire\Livewire;
 
 it('exposes insights dashboard settings keys with translated labels', function (): void {
@@ -86,6 +91,49 @@ it('registers the insights dashboard settings contributor', function (): void {
         ->toContain('insights_overview.page-views')
         ->toContain('insights_overview.unique-visits')
         ->toContain('insights_overview.clicks');
+});
+
+it('keeps insights overview stat cache scoped to the current request', function (): void {
+    $now = CarbonImmutable::parse('2026-04-24 12:00:00');
+    CarbonImmutable::setTestNow($now);
+    config()->set('capell-insights.dashboard_cache_ttl_seconds', 0);
+
+    try {
+        $firstVisit = InsightsVisit::factory()->create(['last_seen_at' => $now]);
+        InsightsEvent::factory()->create([
+            'visit_id' => $firstVisit->getKey(),
+            'type' => InsightsEventType::PageView,
+            'path' => '/first',
+            'url' => 'https://example.test/first',
+            'occurred_at' => $now,
+            'sequence' => 1,
+        ]);
+
+        app()->instance('request', Request::create('/admin/insights/first'));
+
+        $firstRequestStat = collect(CapellAdmin::getOverviewStats(false))
+            ->firstWhere('key', 'insights_overview.page-views');
+
+        $secondVisit = InsightsVisit::factory()->create(['last_seen_at' => $now]);
+        InsightsEvent::factory()->create([
+            'visit_id' => $secondVisit->getKey(),
+            'type' => InsightsEventType::PageView,
+            'path' => '/second',
+            'url' => 'https://example.test/second',
+            'occurred_at' => $now,
+            'sequence' => 1,
+        ]);
+
+        app()->instance('request', Request::create('/admin/insights/second'));
+
+        $secondRequestStat = collect(CapellAdmin::getOverviewStats(false))
+            ->firstWhere('key', 'insights_overview.page-views');
+
+        expect($firstRequestStat?->value)->toBe('1')
+            ->and($secondRequestStat?->value)->toBe('2');
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
 });
 
 it('renders insights dashboard widgets', function (string $widgetClass): void {
