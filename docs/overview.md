@@ -1,172 +1,109 @@
 # Insights
 
-Status: **Available, schema-owning** · Kind: **package** · Tier: **premium** · Bundle: **growth** · Contexts: **admin, frontend** · Product group: **Capell Growth**
+<!-- prettier-ignore-start -->
 
-This page is the consolidated implementation overview for the Insights package. It is extracted from the package README, service providers, migrations, config files, routes, resources, models, actions, and the shared Capell ERD notes where available.
+## What This Plugin Adds
 
-## What This Package Adds
+Insights is an **Available**, **Schema-owning** Capell package in the **Capell Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
 
-Insights records first-party visits, events, consent decisions, page views, clicks, and journey data for Capell sites.
+Cookie-light, GDPR-aware web analytics built into your Capell admin - page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.
 
-- Frontend beacon endpoints for events and consent.
-- Render hook that registers the tracker and overrideable consent banner.
-- Dashboard widgets for overview stats, popular pages, top actions, journeys, and trending pages.
-- Settings schema for insights retention and behaviour.
+After install, admins get package-owned management surfaces and public users may see package-owned frontend output or routes.
 
-## Developer Notes
+Status details:
 
-Keeps insights in Laravel actions and data objects, with explicit consent enums and configurable routes.
-
-- InsightsServiceProvider and AdminServiceProvider register routes, settings, and widgets.
-- Config file: capell-insights.php.
-- Routes: POST capell/insights/events and POST capell/insights/consent by default.
-- Models: InsightsVisit, InsightsConsent, InsightsEvent.
-- Actions record page views, clicks, custom events, and consent updates.
-- Acquisition reporting surfaces UTM source/medium/campaign, referrer hosts, and direct visits.
-- Recording filters suppress configured bot user agents and internal IPs before creating visits or events.
-- Journey recording starts a fresh visit after `session_timeout_minutes`, resetting event sequence numbers per browsing session.
-- Dashboard aggregate Actions use short-TTL caching keyed by locale, window, scope, and limit.
-- The packaged consent banner calls the consent endpoint for accept, reject, and granular choices.
-- PurgeInsightsDataCommand supports chunked retention cleanup.
-- InsightsHealthCheck verifies tables, beacon routes, tracker render output, purge scheduling, and visitor-hash secret safety.
-
-## Operational Notes
-
-Gives site operators practical traffic and journey insight without sending the workflow through an external dashboard first.
-
-- Adds insights tables and settings migration.
-- Adds beacon and consent public POST routes.
-- Injects a theme-overridable consent banner by default; disable it with `consent_banner_enabled=false` when a host site supplies its own consent UI.
-- Adds dashboard widgets and insights settings.
-- Uses capell-insights config keys for route prefix, consent, hashing, dashboard cache TTL, retention, purge batch size, and ignored paths.
-- Uses `ignored_user_agents` and `ignored_ips` to keep crawler, monitor, preview, and staff office traffic out of reports.
-- Uses `session_timeout_minutes` to prevent returning visitors from being displayed as one long historical journey.
-- Schedules monthly retention cleanup through `insights:purge`.
-
-## Data And Retention
-
-- insights_visits stores site, language, consent, landing URL, referrer, UTM campaign fields, hashed visitor data, and start time.
-- insights_consents stores consent decisions for a visit.
-- insights_events stores event type, URL, path, metadata, and occurrence time.
-- Visits relate to events and consents.
-- Retention is governed by retention_days, purge_batch_size, and purge actions.
-
-## Screenshot Plan
-
-- Insights overview dashboard widgets.
-- Popular pages widget.
-- Recent journeys widget.
-- Insights settings screen.
-- Frontend page with tracker active.
-
-## Screenshots
-
-![Insights dashboard page](screenshots/insights-overview-dashboard-widgets.png)
-
-![Insights settings screen](screenshots/insights-settings-screen.png)
-
-Widget-specific screenshots should be regenerated after analytics demo data is seeded; empty widget captures do not add useful documentation. The frontend tracker capture only proves the tracker is present, while the consent-banner-flow target must show the packaged banner in a fresh browser context before it is promoted as buyer-facing media.
-
-## Pitfalls
-
-- Exclude admin, Livewire, and insights routes from tracking.
-- Keep `ignored_user_agents` broad enough for bots and monitors, and set `ignored_ips` for agency/staff office traffic that should not influence buyer-facing analytics.
-- Leave `hash_salt` empty to derive visitor hashing from `APP_KEY`, or set a private package-specific salt before production data is recorded. Changing it later breaks visitor continuity.
-- Consent regions are resolved server-side from `default_consent_region` or GeoIP; browser-submitted region values are not authoritative.
-- Consent settings must match the site privacy policy.
-
-## Verification
-
-- Run `vendor/bin/pest packages/insights/tests` when package tests exist.
-- Run the relevant host-app migration or package install flow in a disposable database.
-- Open the listed admin or frontend surface and compare it with the screenshot plan.
-
-## Package Manifest
-
-- Composer name: `capell-app/insights`
-- Product group: Capell Growth
-- Kind: package
+- Status: Available
 - Tier: premium
 - Bundle: growth
-- Contexts: `admin`, `frontend`
-- Requires: `capell-app/core`, `capell-app/admin`, `capell-app/frontend`
-- Optional dependencies: None listed.
+- Composer package: `capell-app/insights`
+- Namespace: `Capell\Insights`
+- Theme key: not applicable
 
-## Admin Surfaces
+## Why It Matters
 
-- Extension page: `InsightsPage`.
-- Dashboard widgets: overview stats, live stats, popular pages, trending pages, recent journeys, and top actions.
-- Settings schema: `InsightsSettingsSchema`.
-- Overview stats: page views, unique visits, and clicks.
+**For developers:** The package gives developers package-owned service providers, Actions, Data objects, models, Laravel routes, Filament classes, and Blade views instead of pushing this behaviour into core or application code.
 
-## Commands
+**For teams:** Cookie-light, GDPR-aware web analytics built into your Capell admin - page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.
 
-- `insights:purge {--days= : Override insights retention days}` (packages/insights/src/Console/Commands/PurgeInsightsDataCommand.php)
+## Screens And Workflow
 
-## Routes And Config
+Screenshot contract: `screenshots.json`.
 
-- Config: packages/insights/config/capell-insights.php
-- Route file: packages/insights/routes/web.php
+- Insights overview dashboard widgets (admin, required).
+- Popular pages widget (admin, required).
+- Recent journeys widget (admin, required).
+- Insights settings screen (admin, required).
+- Frontend page with tracker active (frontend, optional).
+- Consent banner flow (frontend, optional).
 
-## Permissions And Gates
+## Technical Shape
 
-- Gate: InsightsOverviewStatsWidget: `admin`, `super_admin`
-- Gate: PopularPagesWidget: `admin`, `super_admin`
-- Gate: RecentJourneysWidget: `admin`, `super_admin`
-- Gate: TopActionsWidget: `admin`, `super_admin`
-- Gate: TrendingPagesWidget: `admin`, `super_admin`
+- Service providers: `Capell\Insights\Providers\InsightsServiceProvider`, `Capell\Insights\Providers\AdminServiceProvider`.
+- Config files: `packages/insights/config/capell-insights.php`.
+- Migrations: `packages/insights/database/migrations/2026_05_10_190855_01_create_insights_visits_table.php`, `packages/insights/database/migrations/2026_05_10_190855_02_create_insights_consents_table.php`, `packages/insights/database/migrations/2026_05_10_190855_03_create_insights_events_table.php`, `packages/insights/database/migrations/2026_05_10_190855_05_import_legacy_page_views.php`, `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`.
+- Settings migrations: `packages/insights/database/settings/2026_05_10_190856_01_create_insights_settings.php`.
+- Settings classes: `InsightsSettings`, `InsightsSettingsMigrationProvider`.
+- Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
+- Filament classes: `InsightsPage`, `InsightsDashboardSettingsContributor`, `InsightsSettingsSchema`, `AcquisitionSourcesWidget`, `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsWidget`, `LiveInsightsStatsWidget`, `PopularPagesWidget`, `RecentJourneysWidget`, `TopActionsWidget`, `TrendingPagesWidget`.
+- Route files: `packages/insights/routes/web.php`.
+- Actions: `BuildAcquisitionSourcesQueryAction`, `BuildFunnelConversionReportAction`, `BuildInsightsDigestAction`, `BuildInsightsOverviewStatsAction`, `BuildJourneyTimelineAction`, `BuildLiveInsightsStatsAction`, `BuildPopularPagesQueryAction`, `BuildRecentJourneysQueryAction`, `BuildTopActionsQueryAction`, `BuildTrendingPagesQueryAction`, `CreateInsightsVisitAction`, `ExportInsightsDigestCsvAction`, `and 16 more`.
+- Data objects: `InsightsBeaconData`, `InsightsConsentData`, `InsightsDigestData`, `InsightsEventData`, `InsightsEventMetadataData`, `InsightsJourneyStepData`, `InsightsPageSummaryData`, `InsightsVisitData`, `InsightsWindowData`.
+- Console command classes: `PurgeInsightsDataCommand`, `RebuildInsightsDailyRollupsCommand`.
+- Health checks: `Capell\Insights\Health\InsightsHealthCheck`.
+- Blade views: `packages/insights/resources/views/components/consent-banner.blade.php`, `packages/insights/resources/views/filament/pages/insights.blade.php`, `packages/insights/resources/views/tracker.blade.php`.
+- Cache tags: `insights`.
 
-## Migrations
+## Data Model
 
-- Migration: 2026_05_10_190855_01_create_insights_visits_table.php
-- Migration: 2026_05_10_190855_02_create_insights_consents_table.php
-- Migration: 2026_05_10_190855_03_create_insights_events_table.php
-- Migration: 2026_05_10_190855_05_import_legacy_page_views.php
-- Settings migration: 2026_05_10_190856_01_create_insights_settings.php
+- Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`.
+- Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
+- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.
+- Migration impact: run host migrations through the package install flow before opening package surfaces.
+- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
 
-## ERD Excerpt
+## Install Impact
 
-```mermaid
-erDiagram
-    SITES ||--o{ ANALYTICS_VISITS : records
-    LANGUAGES ||--o{ ANALYTICS_VISITS : localizes
-    ANALYTICS_VISITS ||--o{ ANALYTICS_EVENTS : contains
-    ANALYTICS_VISITS ||--o{ ANALYTICS_CONSENTS : records
-    SITES ||--o{ ANALYTICS_EVENTS : scopes
-    LANGUAGES ||--o{ ANALYTICS_EVENTS : localizes
+- Admin navigation: adds package-owned Filament classes when registered.
+- Permissions: `View:InsightsPage`.
+- Public routes: route files exist and must be reviewed before public enablement.
+- Database changes: package migrations are declared.
+- Settings: `Capell\Insights\Settings\InsightsSettings`.
+- Queues or schedules: none detected in standard package paths.
+- Cache tags: `insights`.
+- Commands: console command classes detected: `PurgeInsightsDataCommand`, `RebuildInsightsDailyRollupsCommand`.
 
-    ANALYTICS_VISITS {
-        bigint id PK
-        uuid uuid
-        bigint site_id FK
-        bigint language_id FK
-        string consent_region
-        string consent_status
-        text landing_url
-        string ip_hash
-        timestamp started_at
-    }
+## Common Pitfalls
 
-    ANALYTICS_EVENTS {
-        bigint id PK
-        bigint visit_id FK
-        bigint site_id FK
-        bigint language_id FK
-        string type
-        string url
-        string path
-        string event_name
-        json metadata
-        timestamp occurred_at
-    }
-```
+- Run migrations before opening package resources or public routes.
+- Configure package settings before testing production-like workflows.
+- Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
 
-## Screenshot Automation
+## Troubleshooting
 
-Deployment should read [screenshots.json](screenshots.json), install the package with demo data, resolve each admin surface or frontend URL, and write images to `packages/insights/docs/screenshots`.
+| Symptom | Likely cause | Check | Fix |
+| --- | --- | --- | --- |
+| Package surface is missing after install | Provider or manifest is not loaded | Confirm `capell.json`, package `composer.json`, and provider registration | Reinstall the package, refresh Composer autoload, and clear host caches |
+| Admin screen or command fails on missing table | Package migrations have not run | Check the tables listed in `Data Model` | Run host migrations and rerun the focused package test |
+| Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
+| Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
 
-- Insights overview dashboard widgets.
-- Popular pages widget.
-- Recent journeys widget.
-- Insights settings screen.
-- Frontend page with tracker active.
+## Quick Start
+
+1. Install the package: `composer require capell-app/insights`.
+2. Run the required setup: `php artisan migrate`.
+3. Open the related Capell admin surface and verify Insights appears.
+
+## Next Steps
+
+- [Package docs index](README.md)
+- [Screenshot contract](screenshots.json)
+- [Marketplace assets](assets/marketplace/)
+- [Capell content language plan](../../../docs/CONTENT_LANGUAGE_PLAN.md)
+- [Capell documentation design system](../../../docs/DESIGN_SYSTEM.md)
+- [Capell and package ERD notes](../../../docs/erd/capell-and-package-erds.md)
+- Related packages: [Privacy Center](../../privacy-center/README.md).
+- Focused tests: `vendor/bin/pest packages/insights/tests --configuration=phpunit.xml`.
+
+<!-- prettier-ignore-end -->

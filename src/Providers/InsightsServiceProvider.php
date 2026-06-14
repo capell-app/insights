@@ -8,8 +8,8 @@ use Capell\Admin\Data\Extensions\ExtensionManagementSurfaceData;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
-use Capell\Core\Support\Settings\SettingsSchemaRegistry;
-use Capell\Frontend\Support\Render\RenderHookRegistry;
+use Capell\Frontend\Enums\RenderHookLocation;
+use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
@@ -73,8 +73,14 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
             return;
         }
 
-        if (config('capell-insights.enabled', true) === true && $this->app->bound(RenderHookRegistry::class)) {
-            $this->app->make(RegisterInsightsTrackerHook::class)->register();
+        if (config('capell-insights.enabled', true) === true && $this->app->bound(FrontendHookRegistrar::class)) {
+            resolve(FrontendHookRegistrar::class)->contribute(
+                location: RenderHookLocation::BodyEnd,
+                extension: new RegisterInsightsTrackerHook,
+                owner: 'capell-app/insights',
+                key: 'insights-tracker',
+                cacheSafe: false,
+            );
         }
 
         if (! $this->app->runningInConsole()) {
@@ -97,7 +103,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
 
     private function registerModels(): self
     {
-        CapellCore::registerModels([
+        $this->surface()->models([
             InsightsVisit::class,
             InsightsConsent::class,
             InsightsEvent::class,
@@ -109,11 +115,8 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
 
     private function registerSettings(): self
     {
-        /** @var SettingsSchemaRegistry $registry */
-        $registry = $this->app->make(SettingsSchemaRegistry::class);
-
-        $registry->registerSettingsClass('insights', InsightsSettings::class);
-        $registry->register('insights', InsightsSettingsSchema::class);
+        $this->surface()->settingsClass('insights', InsightsSettings::class);
+        $this->surface()->settingsSchema('insights', InsightsSettingsSchema::class);
         CapellAdmin::registerExtensionManagementSurface(ExtensionManagementSurfaceData::settings(
             packageName: self::$packageName,
             label: 'capell-insights::settings.fieldset',

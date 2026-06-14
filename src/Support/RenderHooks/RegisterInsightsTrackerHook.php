@@ -4,24 +4,19 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Support\RenderHooks;
 
+use Capell\Frontend\Contracts\RenderHookExtensionInterface;
 use Capell\Frontend\Data\RenderHookContext;
-use Capell\Frontend\Enums\RenderHookLocation;
-use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Illuminate\Support\Str;
 
-class RegisterInsightsTrackerHook
+final class RegisterInsightsTrackerHook implements RenderHookExtensionInterface
 {
-    /** @param RenderHookRegistry<RenderHookContext> $registry */
-    public function __construct(private readonly RenderHookRegistry $registry) {}
-
-    public function register(): void
+    public function render(RenderHookContext $context): string
     {
-        $this->registry->register(
-            RenderHookLocation::BodyEnd,
-            static fn (): string => self::shouldRenderForCurrentRequest()
-                ? view('capell-insights::tracker')->render()
-                : '',
-        );
+        if (! self::shouldRenderForCurrentRequest()) {
+            return '';
+        }
+
+        return view('capell-insights::tracker')->render();
     }
 
     private static function shouldRenderForCurrentRequest(): bool
