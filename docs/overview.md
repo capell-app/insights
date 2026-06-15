@@ -59,7 +59,7 @@ Screenshot contract: `screenshots.json`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
+- Deletion/retention behaviour: `insights:purge` removes events, consents, and eligible visits older than the configured retention window in batches. `insights:rollups:rebuild` maintains daily aggregate rows for long-range page reports.
 
 ## Install Impact
 
@@ -68,7 +68,7 @@ Screenshot contract: `screenshots.json`.
 - Public routes: route files exist and must be reviewed before public enablement.
 - Database changes: package migrations are declared.
 - Settings: `Capell\Insights\Settings\InsightsSettings`.
-- Queues or schedules: none detected in standard package paths.
+- Queues or schedules: `insights:purge` is scheduled monthly and `insights:rollups:rebuild` is scheduled daily by the admin provider.
 - Cache tags: `insights`.
 - Commands: console command classes detected: `PurgeInsightsDataCommand`, `RebuildInsightsDailyRollupsCommand`.
 

@@ -30,7 +30,91 @@
         "admin": ["Capell\\Insights\\Providers\\AdminServiceProvider"],
         "frontend": []
     },
-    "contributes": [],
+    "contributes": [
+        {
+            "type": "admin-page",
+            "class": "Capell\\Insights\\Manifest\\InsightsAdminPageContribution",
+            "pageClass": "Capell\\Insights\\Filament\\Pages\\InsightsPage",
+            "labelKey": "capell-insights::settings.fieldset",
+            "permission": "View:InsightsPage"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Insights\\Manifest\\InsightsDashboardWidgetsContribution",
+            "widgetClasses": [
+                "Capell\\Insights\\Filament\\Widgets\\InsightsOverviewStatsWidget",
+                "Capell\\Insights\\Filament\\Widgets\\PopularPagesWidget",
+                "Capell\\Insights\\Filament\\Widgets\\TrendingPagesWidget",
+                "Capell\\Insights\\Filament\\Widgets\\LiveInsightsStatsWidget",
+                "Capell\\Insights\\Filament\\Widgets\\RecentJourneysWidget",
+                "Capell\\Insights\\Filament\\Widgets\\TopActionsWidget",
+                "Capell\\Insights\\Filament\\Widgets\\AcquisitionSourcesWidget"
+            ]
+        },
+        {
+            "type": "overview-stat",
+            "class": "Capell\\Insights\\Manifest\\InsightsOverviewStatsContribution",
+            "keys": [
+                "insights_overview",
+                "insights_overview.page-views",
+                "insights_overview.unique-visits",
+                "insights_overview.clicks"
+            ]
+        },
+        {
+            "type": "model",
+            "class": "Capell\\Insights\\Manifest\\InsightsModelsContribution",
+            "modelClasses": [
+                "Capell\\Insights\\Models\\InsightsVisit",
+                "Capell\\Insights\\Models\\InsightsConsent",
+                "Capell\\Insights\\Models\\InsightsEvent",
+                "Capell\\Insights\\Models\\InsightsDailyRollup"
+            ]
+        },
+        {
+            "type": "route",
+            "class": "Capell\\Insights\\Manifest\\InsightsRoutesContribution",
+            "routes": ["capell-insights.events", "capell-insights.consent"],
+            "prefix": "capell/insights",
+            "methods": ["POST"],
+            "middleware": ["web", "throttle:60,1"],
+            "csrfExempt": true
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\Insights\\Manifest\\InsightsPurgeScheduleContribution",
+            "command": "insights:purge",
+            "name": "capell-insights-purge",
+            "frequency": "monthly"
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\Insights\\Manifest\\InsightsDailyRollupsScheduleContribution",
+            "command": "insights:rollups:rebuild",
+            "name": "capell-insights-daily-rollups",
+            "frequency": "daily"
+        },
+        {
+            "type": "console-command",
+            "class": "Capell\\Insights\\Manifest\\InsightsConsoleCommandsContribution",
+            "commands": ["insights:purge", "insights:rollups:rebuild"],
+            "commandClasses": [
+                "Capell\\Insights\\Console\\Commands\\PurgeInsightsDataCommand",
+                "Capell\\Insights\\Console\\Commands\\RebuildInsightsDailyRollupsCommand"
+            ]
+        },
+        {
+            "type": "setting",
+            "class": "Capell\\Insights\\Manifest\\InsightsSettingsContribution",
+            "settingsClass": "Capell\\Insights\\Settings\\InsightsSettings",
+            "settingsGroup": "insights"
+        },
+        {
+            "type": "health-check",
+            "class": "Capell\\Insights\\Manifest\\InsightsHealthContribution",
+            "checkClass": "Capell\\Insights\\Health\\InsightsHealthCheck"
+        }
+    ],
     "database": {
         "migrations": true,
         "settings": true,
@@ -46,6 +130,8 @@
         "setup": null,
         "demo": null,
         "doctor": null,
+        "purge": "insights:purge",
+        "rebuildRollups": "insights:rollups:rebuild",
         "maintenance": ["insights:purge", "insights:rollups:rebuild"]
     },
     "settings": ["Capell\\Insights\\Settings\\InsightsSettings"],
@@ -159,13 +245,6 @@
         "categories": ["admin", "frontend", "growth"]
     },
     "contributionTraceability": {
-        "deferredContributions": [
-            "admin-page",
-            "dashboard-widget",
-            "model",
-            "overview-stat",
-            "route",
-            "scheduled-job"
-        ]
+        "deferredContributions": []
     }
 }

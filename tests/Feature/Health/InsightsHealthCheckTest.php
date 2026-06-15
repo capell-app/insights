@@ -16,7 +16,7 @@ it('reports a compatible capell api version', function (): void {
 it('runs real diagnostics returning check results', function (): void {
     $results = InsightsHealthCheck::runDiagnostics();
 
-    expect($results)->toHaveCount(5)
+    expect($results)->toHaveCount(6)
         ->and($results->every(static fn (mixed $result): bool => $result instanceof DoctorCheckResultData))->toBeTrue();
 });
 
@@ -28,11 +28,11 @@ it('passes when tables, beacon routes, and hash secret are present', function ()
 });
 
 it('fails the storage table check when an insights table is missing', function (): void {
-    Schema::drop('insights_events');
+    Schema::drop('insights_daily_rollups');
 
     $check = new InsightsHealthCheck;
 
-    expect($check->missingTables())->toContain('insights_events')
+    expect($check->missingTables())->toContain('insights_daily_rollups')
         ->and($check->storageTablesCheck()->passed)->toBeFalse()
         ->and(InsightsHealthCheck::passed())->toBeFalse();
 });
@@ -62,6 +62,18 @@ it('confirms the retention purge command is scheduled monthly', function (): voi
         ->and($check->purgeScheduleCheck()->passed)->toBeTrue()
         ->and($check->hasPurgeSchedule($emptySchedule))->toBeFalse()
         ->and($check->hasPurgeSchedule($scheduledPurge))->toBeTrue();
+});
+
+it('confirms the daily rollups rebuild command is scheduled daily', function (): void {
+    $check = new InsightsHealthCheck;
+    $emptySchedule = new Schedule;
+    $scheduledRollups = new Schedule;
+    $scheduledRollups->command('insights:rollups:rebuild')->daily();
+
+    expect($check->hasRollupsSchedule())->toBeTrue()
+        ->and($check->rollupsScheduleCheck()->passed)->toBeTrue()
+        ->and($check->hasRollupsSchedule($emptySchedule))->toBeFalse()
+        ->and($check->hasRollupsSchedule($scheduledRollups))->toBeTrue();
 });
 
 it('fails the visitor hash secret check when only the public default salt is available', function (): void {
