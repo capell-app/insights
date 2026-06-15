@@ -44,6 +44,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             $check->beaconRoutesCheck(),
             $check->frontendTrackerRenderHookCheck(),
             $check->purgeScheduleCheck(),
+            $check->rollupsScheduleCheck(),
             $check->visitorHashSecretCheck(),
         ]);
     }
@@ -65,7 +66,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             label: 'Insights storage tables',
             passed: $missingTables === [],
             message: $missingTables === []
-                ? 'The visits, consents, and events tables are present.'
+                ? 'The visits, consents, events, and daily rollups tables are present.'
                 : 'Missing tables: ' . implode(', ', $missingTables) . '.',
             remediation: $missingTables === []
                 ? null
@@ -150,6 +151,25 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
     }
 
     /**
+     * Asserts the daily rollup rebuild command is scheduled.
+     */
+    public function rollupsScheduleCheck(): DoctorCheckResultData
+    {
+        $hasSchedule = $this->hasRollupsSchedule();
+
+        return new DoctorCheckResultData(
+            label: 'Insights daily rollups schedule',
+            passed: $hasSchedule,
+            message: $hasSchedule
+                ? 'The insights daily rollups rebuild command is scheduled daily.'
+                : 'The insights daily rollups rebuild command is not scheduled.',
+            remediation: $hasSchedule
+                ? null
+                : 'Ensure the Insights admin provider boots and schedules insights:rollups:rebuild daily.',
+        );
+    }
+
+    /**
      * @return list<string>
      */
     public function missingTables(): array
@@ -203,6 +223,24 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
 
     public function hasPurgeSchedule(?Schedule $schedule = null): bool
     {
+        return $this->hasScheduledCommand(
+            command: 'insights:purge',
+            expression: '0 0 1 * *',
+            schedule: $schedule,
+        );
+    }
+
+    public function hasRollupsSchedule(?Schedule $schedule = null): bool
+    {
+        return $this->hasScheduledCommand(
+            command: 'insights:rollups:rebuild',
+            expression: '0 0 * * *',
+            schedule: $schedule,
+        );
+    }
+
+    public function hasScheduledCommand(string $command, string $expression, ?Schedule $schedule = null): bool
+    {
         try {
             $events = ($schedule ?? app()->make(Schedule::class))->events();
         } catch (Throwable) {
@@ -218,11 +256,11 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
                 continue;
             }
 
-            if (! str_contains((string) $event->command, 'insights:purge')) {
+            if (! str_contains((string) $event->command, $command)) {
                 continue;
             }
 
-            if ($event->getExpression() === '0 0 1 * *') {
+            if ($event->getExpression() === $expression) {
                 return true;
             }
         }
@@ -247,6 +285,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             $resolve('visits', 'insights_visits'),
             $resolve('consents', 'insights_consents'),
             $resolve('events', 'insights_events'),
+            $resolve('daily_rollups', 'insights_daily_rollups'),
         ];
     }
 }
