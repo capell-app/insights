@@ -24,6 +24,7 @@ it('builds insights settings with consent retention and privacy controls', funct
             'enabled',
             'track_page_views',
             'track_clicks',
+            'track_forms',
             'automatic_click_tracking',
             'require_consent_for_all_regions',
             'default_consent_region',

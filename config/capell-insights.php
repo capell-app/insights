@@ -12,7 +12,7 @@ return [
     'allowed_beacon_origins' => [],
     'track_page_views' => true,
     'track_clicks' => true,
-    'track_form-builder' => false,
+    'track_forms' => false,
     'automatic_click_tracking' => true,
     'consent_banner_enabled' => env('CAPELL_INSIGHTS_CONSENT_BANNER_ENABLED', true),
     'screenshot_fixtures_enabled' => env('CAPELL_INSIGHTS_SCREENSHOT_FIXTURES_ENABLED', false),

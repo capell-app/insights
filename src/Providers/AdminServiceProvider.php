@@ -24,6 +24,7 @@ use Capell\Insights\Filament\Widgets\TopActionsWidget;
 use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -31,6 +32,8 @@ use RuntimeException;
 
 class AdminServiceProvider extends ServiceProvider
 {
+    private const string REQUEST_INSIGHTS_OVERVIEW_CACHE_KEY = 'capell.insights.admin.overview';
+
     #[Override]
     public function register(): void
     {
@@ -127,16 +130,24 @@ class AdminServiceProvider extends ServiceProvider
      */
     private function insightsOverview(): Collection
     {
-        static $overview = null;
+        $request = $this->currentRequest();
 
-        if ($overview instanceof Collection) {
-            return $overview;
+        if ($request instanceof Request) {
+            $cachedOverview = $request->attributes->get(self::REQUEST_INSIGHTS_OVERVIEW_CACHE_KEY);
+
+            if ($cachedOverview instanceof Collection) {
+                return $cachedOverview;
+            }
         }
 
         $overview = BuildInsightsOverviewStatsAction::run(new InsightsWindowData(
             startsAt: CarbonImmutable::now()->subDays(30)->startOfDay(),
             endsAt: CarbonImmutable::now()->endOfDay(),
         ));
+
+        if ($request instanceof Request) {
+            $request->attributes->set(self::REQUEST_INSIGHTS_OVERVIEW_CACHE_KEY, $overview);
+        }
 
         return $overview;
     }
@@ -168,5 +179,16 @@ class AdminServiceProvider extends ServiceProvider
         });
 
         return $this;
+    }
+
+    private function currentRequest(): ?Request
+    {
+        if (! app()->bound('request')) {
+            return null;
+        }
+
+        $request = request();
+
+        return $request instanceof Request ? $request : null;
     }
 }

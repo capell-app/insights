@@ -23,6 +23,7 @@ The route prefix comes from `capell-insights.route_prefix`. Both endpoints use t
 | `capell-insights.route_prefix`                    | Prefix for beacon and consent routes.                                                                                                   |
 | `capell-insights.track_page_views`                | Records page-view events when enabled.                                                                                                  |
 | `capell-insights.track_clicks`                    | Records click events when enabled.                                                                                                      |
+| `capell-insights.track_forms`                     | Reserved switch for package-level form tracking integrations.                                                                           |
 | `capell-insights.automatic_click_tracking`        | Lets the frontend tracker capture clicks automatically.                                                                                 |
 | `capell-insights.require_consent_for_all_regions` | Blocks tracking until consent exists, regardless of detected region.                                                                    |
 | `capell-insights.default_consent_region`          | Fallback consent region when the request cannot resolve one.                                                                            |

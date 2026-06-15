@@ -12,7 +12,7 @@ return new class extends SettingsMigration
             'insights.enabled' => true,
             'insights.track_page_views' => true,
             'insights.track_clicks' => true,
-            'insights.track_form-builder' => false,
+            'insights.track_forms' => false,
             'insights.automatic_click_tracking' => true,
             'insights.require_consent_for_all_regions' => false,
             'insights.default_consent_region' => null,

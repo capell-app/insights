@@ -41,7 +41,7 @@ Screenshot contract: `screenshots.json`.
 - Service providers: `Capell\Insights\Providers\InsightsServiceProvider`, `Capell\Insights\Providers\AdminServiceProvider`.
 - Config files: `packages/insights/config/capell-insights.php`.
 - Migrations: `packages/insights/database/migrations/2026_05_10_190855_01_create_insights_visits_table.php`, `packages/insights/database/migrations/2026_05_10_190855_02_create_insights_consents_table.php`, `packages/insights/database/migrations/2026_05_10_190855_03_create_insights_events_table.php`, `packages/insights/database/migrations/2026_05_10_190855_05_import_legacy_page_views.php`, `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`.
-- Settings migrations: `packages/insights/database/settings/2026_05_10_190856_01_create_insights_settings.php`.
+- Settings migrations: `packages/insights/database/settings/2026_05_10_190856_01_create_insights_settings.php`, `packages/insights/database/settings/2026_06_14_000001_rename_insights_form_tracking_setting.php`.
 - Settings classes: `InsightsSettings`, `InsightsSettingsMigrationProvider`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Filament classes: `InsightsPage`, `InsightsDashboardSettingsContributor`, `InsightsSettingsSchema`, `AcquisitionSourcesWidget`, `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsWidget`, `LiveInsightsStatsWidget`, `PopularPagesWidget`, `RecentJourneysWidget`, `TopActionsWidget`, `TrendingPagesWidget`.
