@@ -62,26 +62,62 @@ function insightsPackageJson(string $path): array
 }
 
 /**
+ * @param  array<string, mixed>  $manifest
  * @return array<string, mixed>
  */
 function insightsContribution(array $manifest, string $type): array
 {
-    $contribution = collect($manifest['contributes'] ?? [])
+    $contributes = $manifest['contributes'] ?? [];
+
+    throw_unless(is_array($contributes), RuntimeException::class, 'Expected Insights contributions to be an array.');
+
+    $contribution = collect($contributes)
         ->firstWhere('type', $type);
 
     throw_unless(is_array($contribution), RuntimeException::class, sprintf('Expected Insights contribution [%s] to exist.', $type));
 
-    return $contribution;
+    $normalized = [];
+
+    foreach ($contribution as $key => $value) {
+        throw_unless(is_string($key), RuntimeException::class, 'Expected Insights contribution keys to be strings.');
+
+        $normalized[$key] = $value;
+    }
+
+    return $normalized;
 }
 
 /**
- * @return array<int, array<string, mixed>>
+ * @param  array<string, mixed>  $manifest
+ * @return list<array<string, mixed>>
  */
 function insightsContributions(array $manifest, string $type): array
 {
-    return array_values(collect($manifest['contributes'] ?? [])
+    $contributes = $manifest['contributes'] ?? [];
+
+    throw_unless(is_array($contributes), RuntimeException::class, 'Expected Insights contributions to be an array.');
+
+    $matchingContributions = array_values(collect($contributes)
         ->where('type', $type)
         ->all());
+
+    $normalized = [];
+
+    foreach ($matchingContributions as $contribution) {
+        throw_unless(is_array($contribution), RuntimeException::class, sprintf('Expected Insights contribution [%s] entries to be arrays.', $type));
+
+        $normalizedContribution = [];
+
+        foreach ($contribution as $key => $value) {
+            throw_unless(is_string($key), RuntimeException::class, 'Expected Insights contribution keys to be strings.');
+
+            $normalizedContribution[$key] = $value;
+        }
+
+        $normalized[] = $normalizedContribution;
+    }
+
+    return $normalized;
 }
 
 /**
@@ -128,7 +164,11 @@ it('passes the Capell manifest validator', function (): void {
         discoverySource: 'packages/insights/capell.json',
     );
 
-    expect($manifest['contributionTraceability']['deferredContributions'] ?? null)->toBe([]);
+    $contributionTraceability = $manifest['contributionTraceability'] ?? null;
+
+    throw_unless(is_array($contributionTraceability), RuntimeException::class, 'Expected Insights contribution traceability to be an array.');
+
+    expect($contributionTraceability['deferredContributions'] ?? null)->toBe([]);
 });
 
 it('declares the shipped admin page, widgets, models, routes, and overview stats', function (): void {
@@ -211,8 +251,11 @@ it('declares scheduled jobs, commands, settings, and health surfaces', function 
 
 it('uses concrete contribution marker classes with the expected contracts', function (): void {
     $manifest = insightsPackageJson('capell.json');
+    $contributes = $manifest['contributes'] ?? [];
 
-    foreach ($manifest['contributes'] as $contribution) {
+    throw_unless(is_array($contributes), RuntimeException::class, 'Expected Insights contributions to be an array.');
+
+    foreach ($contributes as $contribution) {
         throw_unless(is_array($contribution), RuntimeException::class, 'Expected Insights contribution entries to be arrays.');
 
         $contributionClass = $contribution['class'] ?? null;
@@ -223,13 +266,19 @@ it('uses concrete contribution marker classes with the expected contracts', func
             ->and(is_subclass_of($contributionClass, ExtensionContribution::class))->toBeTrue();
     }
 
+    $dashboardWidgetContributionClass = insightsContribution($manifest, 'dashboard-widget')['class'] ?? null;
+    $overviewStatContributionClass = insightsContribution($manifest, 'overview-stat')['class'] ?? null;
+
+    throw_unless(is_string($dashboardWidgetContributionClass), RuntimeException::class, 'Expected Insights dashboard widget contribution class.');
+    throw_unless(is_string($overviewStatContributionClass), RuntimeException::class, 'Expected Insights overview stat contribution class.');
+
     expect(class_implements(InsightsRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
         ->and(class_implements(InsightsPurgeScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
         ->and(class_implements(InsightsDailyRollupsScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
         ->and(class_implements(InsightsSettingsContribution::class))->toContain(RegistersExtensionSetting::class)
         ->and(class_implements(InsightsHealthContribution::class))->toContain(ChecksExtensionHealth::class)
-        ->and(class_implements((string) insightsContribution($manifest, 'dashboard-widget')['class']))->toContain(RegistersExtensionWidget::class)
-        ->and(class_implements((string) insightsContribution($manifest, 'overview-stat')['class']))->toContain(RegistersExtensionWidget::class);
+        ->and(class_implements($dashboardWidgetContributionClass))->toContain(RegistersExtensionWidget::class)
+        ->and(class_implements($overviewStatContributionClass))->toContain(RegistersExtensionWidget::class);
 });
 
 it('keeps marketplace screenshots backed by committed assets', function (): void {
