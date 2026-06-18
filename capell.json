@@ -154,7 +154,10 @@
     "security": {
         "riskTier": "sensitive",
         "publicSurface": {
-            "routeNames": ["capell-insights.consent", "capell-insights.events"],
+            "routeNames": [
+                "capell-insights.consent",
+                "capell-insights.events"
+            ],
             "auth": "public",
             "csrfExemptRoutes": [
                 "capell-insights.consent",
@@ -187,7 +190,9 @@
         },
         "adminSurface": {
             "authorization": "permissions",
-            "permissions": ["View:InsightsPage"]
+            "permissions": [
+                "View:InsightsPage"
+            ]
         }
     },
     "performance": {
