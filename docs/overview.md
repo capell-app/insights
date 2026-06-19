@@ -36,6 +36,58 @@ Screenshot contract: `screenshots.json`.
 - Frontend page with tracker active (frontend, optional).
 - Consent banner flow (frontend, optional).
 
+## Screenshot Evidence
+
+These captures are the package-owned visual contract for the admin pages, public pages, actions, workflows, and feature surfaces described above. Keep this section aligned with `docs/screenshots.json` whenever the package surface changes.
+
+### Insights overview dashboard widgets
+
+![Insights overview dashboard widgets](screenshots/insights-overview-dashboard-widgets.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: An administrator reviews analytics overview stats for seeded visits and events.
+- Capture notes: Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.
+
+### Popular pages widget
+
+![Popular pages widget](screenshots/popular-pages-widget.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: An administrator identifies high-traffic pages from seeded page-view data.
+- Capture notes: Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.
+
+### Recent journeys widget
+
+![Recent journeys widget](screenshots/recent-journeys-widget.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: An administrator follows recent visitor journeys across pages and events.
+- Capture notes: Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.
+
+### Insights settings screen
+
+![Insights settings screen](screenshots/insights-settings-screen.png)
+
+- Surface: admin · Target: admin-surface.
+- Documents: A site owner configures tracking, consent, retention, and beacon behavior.
+- Capture notes: Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.
+
+### Frontend page with tracker active
+
+![Frontend page with tracker active](screenshots/frontend-page-with-tracker-active.png)
+
+- Surface: frontend · Target: frontend-url.
+- Documents: A visitor loads a public page where the tracker script is active and consent rules are respected.
+- Capture notes: Capture through the Insights package-owned public fixture route, which is enabled only for screenshot runs and renders the real BodyEnd hook output.
+
+### Consent banner flow
+
+![Consent banner flow](screenshots/consent-banner-flow.png)
+
+- Surface: frontend · Target: frontend-url.
+- Documents: A first-time visitor reviews the packaged accept, reject, and manage choices before analytics tracking begins.
+- Capture notes: Capture through the Insights package-owned public fixture route in a fresh browser context with no capell_insights_consent localStorage entry and no capell_insights_visit cookie. The route forces the packaged consent banner on for this screen.
+
 ## Technical Shape
 
 - Service providers: `Capell\Insights\Providers\InsightsServiceProvider`, `Capell\Insights\Providers\AdminServiceProvider`.
