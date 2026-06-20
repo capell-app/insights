@@ -6,13 +6,13 @@ namespace Capell\Insights\Filament\Pages;
 
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
-use Capell\Insights\Filament\Widgets\InsightsOverviewStatsWidget;
-use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
-use Capell\Insights\Filament\Widgets\PopularPagesWidget;
-use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
-use Capell\Insights\Filament\Widgets\TopActionsWidget;
-use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesFilamentWidget;
+use Capell\Insights\Filament\Widgets\InsightsOverviewStatsFilamentWidget;
+use Capell\Insights\Filament\Widgets\LiveInsightsStatsFilamentWidget;
+use Capell\Insights\Filament\Widgets\PopularPagesFilamentWidget;
+use Capell\Insights\Filament\Widgets\RecentJourneysFilamentWidget;
+use Capell\Insights\Filament\Widgets\TopActionsFilamentWidget;
+use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Override;
@@ -59,13 +59,13 @@ final class InsightsPage extends Page
     protected function getHeaderWidgets(): array
     {
         return [
-            InsightsOverviewStatsWidget::class,
-            LiveInsightsStatsWidget::class,
-            PopularPagesWidget::class,
-            TrendingPagesWidget::class,
-            RecentJourneysWidget::class,
-            TopActionsWidget::class,
-            AcquisitionSourcesWidget::class,
+            InsightsOverviewStatsFilamentWidget::class,
+            LiveInsightsStatsFilamentWidget::class,
+            PopularPagesFilamentWidget::class,
+            TrendingPagesFilamentWidget::class,
+            RecentJourneysFilamentWidget::class,
+            TopActionsFilamentWidget::class,
+            AcquisitionSourcesFilamentWidget::class,
         ];
     }
 }

@@ -40,15 +40,15 @@
         },
         {
             "type": "dashboard-widget",
-            "class": "Capell\\Insights\\Manifest\\InsightsDashboardWidgetsContribution",
+            "class": "Capell\\Insights\\Manifest\\InsightsDashboardFilamentWidgetsContribution",
             "widgetClasses": [
-                "Capell\\Insights\\Filament\\Widgets\\InsightsOverviewStatsWidget",
-                "Capell\\Insights\\Filament\\Widgets\\PopularPagesWidget",
-                "Capell\\Insights\\Filament\\Widgets\\TrendingPagesWidget",
-                "Capell\\Insights\\Filament\\Widgets\\LiveInsightsStatsWidget",
-                "Capell\\Insights\\Filament\\Widgets\\RecentJourneysWidget",
-                "Capell\\Insights\\Filament\\Widgets\\TopActionsWidget",
-                "Capell\\Insights\\Filament\\Widgets\\AcquisitionSourcesWidget"
+                "Capell\\Insights\\Filament\\Widgets\\InsightsOverviewStatsFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\PopularPagesFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\TrendingPagesFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\LiveInsightsStatsFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\RecentJourneysFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\TopActionsFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\AcquisitionSourcesFilamentWidget"
             ]
         },
         {
@@ -154,10 +154,7 @@
     "security": {
         "riskTier": "sensitive",
         "publicSurface": {
-            "routeNames": [
-                "capell-insights.consent",
-                "capell-insights.events"
-            ],
+            "routeNames": ["capell-insights.consent", "capell-insights.events"],
             "auth": "public",
             "csrfExemptRoutes": [
                 "capell-insights.consent",
@@ -190,9 +187,7 @@
         },
         "adminSurface": {
             "authorization": "permissions",
-            "permissions": [
-                "View:InsightsPage"
-            ]
+            "permissions": ["View:InsightsPage"]
         }
     },
     "performance": {

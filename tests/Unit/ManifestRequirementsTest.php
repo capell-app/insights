@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Contracts\Extensions\ExtensionContribution;
+use Capell\Core\Contracts\Extensions\RegistersExtensionFilamentWidget;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
 use Capell\Core\Contracts\Extensions\RegistersExtensionSetting;
-use Capell\Core\Contracts\Extensions\RegistersExtensionWidget;
 use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Core\Support\Manifest\ManifestValidator;
 use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
 use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Filament\Pages\InsightsPage;
-use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
-use Capell\Insights\Filament\Widgets\InsightsOverviewStatsWidget;
-use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
-use Capell\Insights\Filament\Widgets\PopularPagesWidget;
-use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
-use Capell\Insights\Filament\Widgets\TopActionsWidget;
-use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesFilamentWidget;
+use Capell\Insights\Filament\Widgets\InsightsOverviewStatsFilamentWidget;
+use Capell\Insights\Filament\Widgets\LiveInsightsStatsFilamentWidget;
+use Capell\Insights\Filament\Widgets\PopularPagesFilamentWidget;
+use Capell\Insights\Filament\Widgets\RecentJourneysFilamentWidget;
+use Capell\Insights\Filament\Widgets\TopActionsFilamentWidget;
+use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Capell\Insights\Health\InsightsHealthCheck;
 use Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution;
 use Capell\Insights\Manifest\InsightsHealthContribution;
@@ -182,13 +182,13 @@ it('declares the shipped admin page, widgets, models, routes, and overview stats
         ]);
 
     expect(insightsContribution($manifest, 'dashboard-widget')['widgetClasses'] ?? null)->toBe([
-        InsightsOverviewStatsWidget::class,
-        PopularPagesWidget::class,
-        TrendingPagesWidget::class,
-        LiveInsightsStatsWidget::class,
-        RecentJourneysWidget::class,
-        TopActionsWidget::class,
-        AcquisitionSourcesWidget::class,
+        InsightsOverviewStatsFilamentWidget::class,
+        PopularPagesFilamentWidget::class,
+        TrendingPagesFilamentWidget::class,
+        LiveInsightsStatsFilamentWidget::class,
+        RecentJourneysFilamentWidget::class,
+        TopActionsFilamentWidget::class,
+        AcquisitionSourcesFilamentWidget::class,
     ])->and(insightsContribution($manifest, 'overview-stat')['keys'] ?? null)->toBe([
         'insights_overview',
         'insights_overview.page-views',
@@ -266,10 +266,10 @@ it('uses concrete contribution marker classes with the expected contracts', func
             ->and(is_subclass_of($contributionClass, ExtensionContribution::class))->toBeTrue();
     }
 
-    $dashboardWidgetContributionClass = insightsContribution($manifest, 'dashboard-widget')['class'] ?? null;
+    $dashboardFilamentWidgetContributionClass = insightsContribution($manifest, 'dashboard-widget')['class'] ?? null;
     $overviewStatContributionClass = insightsContribution($manifest, 'overview-stat')['class'] ?? null;
 
-    throw_unless(is_string($dashboardWidgetContributionClass), RuntimeException::class, 'Expected Insights dashboard widget contribution class.');
+    throw_unless(is_string($dashboardFilamentWidgetContributionClass), RuntimeException::class, 'Expected Insights dashboard widget contribution class.');
     throw_unless(is_string($overviewStatContributionClass), RuntimeException::class, 'Expected Insights overview stat contribution class.');
 
     expect(class_implements(InsightsRoutesContribution::class))->toContain(RegistersExtensionRoute::class)
@@ -277,8 +277,8 @@ it('uses concrete contribution marker classes with the expected contracts', func
         ->and(class_implements(InsightsDailyRollupsScheduleContribution::class))->toContain(RunsScheduledExtensionJob::class)
         ->and(class_implements(InsightsSettingsContribution::class))->toContain(RegistersExtensionSetting::class)
         ->and(class_implements(InsightsHealthContribution::class))->toContain(ChecksExtensionHealth::class)
-        ->and(class_implements($dashboardWidgetContributionClass))->toContain(RegistersExtensionWidget::class)
-        ->and(class_implements($overviewStatContributionClass))->toContain(RegistersExtensionWidget::class);
+        ->and(class_implements($dashboardFilamentWidgetContributionClass))->toContain(RegistersExtensionFilamentWidget::class)
+        ->and(class_implements($overviewStatContributionClass))->toContain(RegistersExtensionFilamentWidget::class);
 });
 
 it('keeps marketplace screenshots backed by committed assets', function (): void {

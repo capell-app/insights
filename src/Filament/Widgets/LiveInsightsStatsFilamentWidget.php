@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Filament\Widgets;
 
-use Capell\Admin\Contracts\CapellWidgetContract;
+use Capell\Admin\Contracts\CapellFilamentWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
 use Capell\Insights\Actions\BuildLiveInsightsStatsAction;
 use Filament\Tables\Columns\TextColumn;
@@ -13,7 +13,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Collection;
 use Override;
 
-final class LiveInsightsStatsWidget extends BaseWidget implements CapellWidgetContract
+final class LiveInsightsStatsFilamentWidget extends BaseWidget implements CapellFilamentWidgetContract
 {
     use GatedByRoleAndSettings;
 

@@ -16,12 +16,12 @@ use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Filament\Pages\InsightsPage;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
-use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
-use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
-use Capell\Insights\Filament\Widgets\PopularPagesWidget;
-use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
-use Capell\Insights\Filament\Widgets\TopActionsWidget;
-use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesFilamentWidget;
+use Capell\Insights\Filament\Widgets\LiveInsightsStatsFilamentWidget;
+use Capell\Insights\Filament\Widgets\PopularPagesFilamentWidget;
+use Capell\Insights\Filament\Widgets\RecentJourneysFilamentWidget;
+use Capell\Insights\Filament\Widgets\TopActionsFilamentWidget;
+use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ class AdminServiceProvider extends ServiceProvider
             ->registerCommands()
             ->registerPages()
             ->registerOverviewStats()
-            ->registerDashboardWidgets()
+            ->registerDashboardFilamentWidgets()
             ->registerMarketingStudioActions()
             ->registerSchedule();
     }
@@ -82,14 +82,14 @@ class AdminServiceProvider extends ServiceProvider
         return $this;
     }
 
-    private function registerDashboardWidgets(): self
+    private function registerDashboardFilamentWidgets(): self
     {
-        CapellAdmin::registerDashboardWidget(PopularPagesWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
-        CapellAdmin::registerDashboardWidget(TrendingPagesWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
-        CapellAdmin::registerDashboardWidget(LiveInsightsStatsWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
-        CapellAdmin::registerDashboardWidget(RecentJourneysWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
-        CapellAdmin::registerDashboardWidget(TopActionsWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
-        CapellAdmin::registerDashboardWidget(AcquisitionSourcesWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardFilamentWidget(PopularPagesFilamentWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardFilamentWidget(TrendingPagesFilamentWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardFilamentWidget(LiveInsightsStatsFilamentWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardFilamentWidget(RecentJourneysFilamentWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardFilamentWidget(TopActionsFilamentWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
+        CapellAdmin::registerDashboardFilamentWidget(AcquisitionSourcesFilamentWidget::class, DashboardEnum::Main, DashboardEnum::MarketingStudio);
 
         return $this;
     }
