@@ -9,7 +9,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Settings\SettingsSchemaRegistry;
 use Capell\Insights\Filament\Pages\InsightsPage;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
-use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
+use Capell\Insights\Filament\Widgets\LiveInsightsStatsFilamentWidget;
 use Capell\Insights\Providers\InsightsServiceProvider;
 use Capell\Insights\Settings\InsightsSettings;
 use Illuminate\Support\Facades\Route;
@@ -36,8 +36,8 @@ it('places insights first in monitoring navigation', function (): void {
 });
 
 it('registers insights widgets with marketing studio', function (): void {
-    expect(CapellAdmin::getDashboardWidgets(DashboardEnum::MarketingStudio))
-        ->toContain(LiveInsightsStatsWidget::class);
+    expect(CapellAdmin::getDashboardFilamentWidgets(DashboardEnum::MarketingStudio))
+        ->toContain(LiveInsightsStatsFilamentWidget::class);
 });
 
 it('registers insights settings and extension settings surface', function (): void {

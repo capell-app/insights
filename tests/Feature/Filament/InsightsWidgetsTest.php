@@ -6,12 +6,12 @@ use Capell\Admin\Contracts\DashboardSettingsContributor;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
-use Capell\Insights\Filament\Widgets\AcquisitionSourcesWidget;
-use Capell\Insights\Filament\Widgets\LiveInsightsStatsWidget;
-use Capell\Insights\Filament\Widgets\PopularPagesWidget;
-use Capell\Insights\Filament\Widgets\RecentJourneysWidget;
-use Capell\Insights\Filament\Widgets\TopActionsWidget;
-use Capell\Insights\Filament\Widgets\TrendingPagesWidget;
+use Capell\Insights\Filament\Widgets\AcquisitionSourcesFilamentWidget;
+use Capell\Insights\Filament\Widgets\LiveInsightsStatsFilamentWidget;
+use Capell\Insights\Filament\Widgets\PopularPagesFilamentWidget;
+use Capell\Insights\Filament\Widgets\RecentJourneysFilamentWidget;
+use Capell\Insights\Filament\Widgets\TopActionsFilamentWidget;
+use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
@@ -139,16 +139,16 @@ it('keeps insights overview stat cache scoped to the current request', function 
 it('renders insights dashboard widgets', function (string $widgetClass): void {
     Livewire::test($widgetClass)->assertOk();
 })->with([
-    PopularPagesWidget::class,
-    TrendingPagesWidget::class,
-    LiveInsightsStatsWidget::class,
-    RecentJourneysWidget::class,
-    TopActionsWidget::class,
-    AcquisitionSourcesWidget::class,
+    PopularPagesFilamentWidget::class,
+    TrendingPagesFilamentWidget::class,
+    LiveInsightsStatsFilamentWidget::class,
+    RecentJourneysFilamentWidget::class,
+    TopActionsFilamentWidget::class,
+    AcquisitionSourcesFilamentWidget::class,
 ]);
 
 it('renders trending pages with previous count column', function (): void {
-    Livewire::test(TrendingPagesWidget::class)
+    Livewire::test(TrendingPagesFilamentWidget::class)
         ->assertOk()
         ->assertSee(__('capell-insights::widgets.previous_page_views'));
 });

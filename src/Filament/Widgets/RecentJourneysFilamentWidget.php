@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Filament\Widgets;
 
-use Capell\Admin\Contracts\CapellWidgetContract;
+use Capell\Admin\Contracts\CapellFilamentWidgetContract;
 use Capell\Admin\Filament\Concerns\GatedByRoleAndSettings;
 use Capell\Insights\Actions\BuildRecentJourneysQueryAction;
 use Capell\Insights\Filament\Widgets\Concerns\BuildsInsightsDashboardWindow;
@@ -14,7 +14,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Collection;
 use Override;
 
-final class RecentJourneysWidget extends BaseWidget implements CapellWidgetContract
+final class RecentJourneysFilamentWidget extends BaseWidget implements CapellFilamentWidgetContract
 {
     use BuildsInsightsDashboardWindow;
     use GatedByRoleAndSettings;
