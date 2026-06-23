@@ -1,7 +1,3 @@
-# Insights
-
-<!-- prettier-ignore-start -->
-
 ## What it does for you
 
 Insights shows you how your site and content are performing, with the key metrics in one place. You read the numbers to understand what visitors do and where to focus.
@@ -25,10 +21,3 @@ Go to **Insights** in the admin to read your metrics.
 - Your performance numbers in one place.
 - Old data is kept for the **retention** period you set.
 - Use the trends, not a single day, to make decisions.
-
----
-
-For how to use Insights, see the [admin guide](admin-guide.md).
-For developers: see the [README](../README.md).
-
-<!-- prettier-ignore-end -->
