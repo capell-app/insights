@@ -21,7 +21,7 @@ use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 
-class InsightsServiceProvider extends AbstractPackageServiceProvider
+final class InsightsServiceProvider extends AbstractPackageServiceProvider
 {
     public static string $name = 'capell-insights';
 
@@ -99,7 +99,7 @@ class InsightsServiceProvider extends AbstractPackageServiceProvider
     #[Override]
     protected function isPackageInstalled(): bool
     {
-        return CapellCore::isPackageInstalled(static::$packageName);
+        return CapellCore::isPackageInstalled(self::$packageName);
     }
 
     private function registerModels(): self
