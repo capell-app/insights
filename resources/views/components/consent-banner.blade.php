@@ -27,15 +27,28 @@
             );
             --capell-insights-banner-accent: #0f766e;
             --capell-insights-banner-accent-fg: #ffffff;
+            --capell-insights-banner-focus: color-mix(
+                in srgb,
+                var(--capell-insights-banner-accent) 32%,
+                transparent
+            );
             position: fixed;
-            right: 1rem;
-            bottom: 1rem;
-            left: 1rem;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 60;
             display: flex;
             justify-content: center;
             color: var(--capell-insights-banner-fg);
-            font: inherit;
+            font-family:
+                'IBM Plex Sans',
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                'Segoe UI',
+                sans-serif;
+            font-size: 1rem;
         }
 
         .capell-insights-consent-banner[hidden] {
@@ -43,18 +56,26 @@
         }
 
         .capell-insights-consent-banner__panel {
-            width: min(42rem, 100%);
-            border: 1px solid var(--capell-insights-banner-border);
-            border-radius: 0.5rem;
+            display: grid;
+            width: 100%;
+            gap: 0.9rem;
+            border-top: 1px solid var(--capell-insights-banner-border);
             background: var(--capell-insights-banner-bg);
-            box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 18%);
-            padding: 1rem;
+            box-shadow: 0 -1rem 2.5rem rgb(0 0 0 / 12%);
+            padding: 1rem clamp(1rem, 4vw, 2rem);
+        }
+
+        @media (min-width: 56rem) {
+            .capell-insights-consent-banner__panel {
+                grid-template-columns: minmax(18rem, 1fr) auto;
+                align-items: center;
+            }
         }
 
         .capell-insights-consent-banner__title {
             margin: 0;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 650;
             letter-spacing: 0;
             line-height: 1.4;
         }
@@ -72,7 +93,17 @@
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-top: 0.9rem;
+            margin-top: 0;
+        }
+
+        .capell-insights-consent-banner__actions {
+            align-items: center;
+        }
+
+        .capell-insights-consent-banner__choices {
+            grid-column: 1 / -1;
+            border-top: 1px solid var(--capell-insights-banner-border);
+            padding-top: 0.9rem;
         }
 
         .capell-insights-consent-banner__choice {
@@ -93,14 +124,37 @@
             min-height: 2.5rem;
             cursor: pointer;
             border: 1px solid var(--capell-insights-banner-border);
-            border-radius: 0.375rem;
+            border-radius: 0.25rem;
             background: transparent;
             color: inherit;
             padding: 0.625rem 0.85rem;
-            font: inherit;
+            font-family: inherit;
             font-size: 0.875rem;
             font-weight: 650;
             line-height: 1.2;
+            transition:
+                background-color 150ms ease,
+                border-color 150ms ease,
+                color 150ms ease,
+                transform 150ms ease;
+        }
+
+        .capell-insights-consent-banner__button:hover {
+            border-color: color-mix(
+                in srgb,
+                var(--capell-insights-banner-fg) 34%,
+                transparent
+            );
+            background: color-mix(in srgb, CanvasText 6%, transparent);
+        }
+
+        .capell-insights-consent-banner__button:focus-visible {
+            outline: 3px solid var(--capell-insights-banner-focus);
+            outline-offset: 2px;
+        }
+
+        .capell-insights-consent-banner__button:active {
+            transform: translateY(1px);
         }
 
         .capell-insights-consent-banner__button--primary {
@@ -108,22 +162,33 @@
             background: var(--capell-insights-banner-accent);
             color: var(--capell-insights-banner-accent-fg);
         }
+
+        .capell-insights-consent-banner__button--primary:hover {
+            border-color: var(--capell-insights-banner-accent);
+            background: color-mix(
+                in srgb,
+                var(--capell-insights-banner-accent) 88%,
+                black 12%
+            );
+        }
     </style>
 
     <div class="capell-insights-consent-banner__panel">
-        <h2
-            id="capell-insights-consent-title"
-            class="capell-insights-consent-banner__title"
-        >
-            {{ __('capell-insights::consent.banner.title') }}
-        </h2>
+        <div>
+            <h2
+                id="capell-insights-consent-title"
+                class="capell-insights-consent-banner__title"
+            >
+                {{ __('capell-insights::consent.banner.title') }}
+            </h2>
 
-        <p
-            id="capell-insights-consent-description"
-            class="capell-insights-consent-banner__description"
-        >
-            {{ __('capell-insights::consent.banner.description') }}
-        </p>
+            <p
+                id="capell-insights-consent-description"
+                class="capell-insights-consent-banner__description"
+            >
+                {{ __('capell-insights::consent.banner.description') }}
+            </p>
+        </div>
 
         <div class="capell-insights-consent-banner__actions">
             <button
