@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'enabled' => true,
+    'enabled' => env('CAPELL_INSIGHTS_ENABLED', true),
     'route_prefix' => 'capell/insights',
     'validate_beacon_origin' => true,
     'require_signed_beacons' => false,
