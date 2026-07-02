@@ -140,13 +140,6 @@
         "insights",
         "insights-admin",
         "insights-frontend",
-        "insights-consent-banner",
-        "insights-acquisition-reports",
-        "insights-conversion-funnels",
-        "insights-traffic-filtering",
-        "insights-session-journeys",
-        "insights-daily-rollups",
-        "insights-privacy-signals",
         "insights-privacy-center-mirror",
         "beacon",
         "cache-blocking"
