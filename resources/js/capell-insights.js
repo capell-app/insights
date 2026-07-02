@@ -108,22 +108,6 @@
         }
     }
 
-    function trackingAllowed() {
-        // Regions that don't require prior consent keep the opt-out default.
-        if (!config.consentRequired) {
-            return true
-        }
-
-        // In consent-required regions (e.g. UK/EU) nothing is tracked until the
-        // visitor has actively granted the analytics category.
-        var consentDecision = currentConsentDecision()
-
-        return Boolean(
-            consentDecision &&
-                consentIncludesInsights(consentDecision.categories),
-        )
-    }
-
     function storeConsentDecision(status, categories) {
         try {
             window.localStorage.setItem(
@@ -251,22 +235,6 @@
             .catch(function () {})
     }
 
-    function publishBannerHeight(banner) {
-        // Expose the banner height so the theme can reserve space and keep the
-        // footer from being covered by the fixed banner.
-        document.documentElement.style.setProperty(
-            '--capell-insights-banner-height',
-            banner.offsetHeight + 'px',
-        )
-    }
-
-    function clearBannerHeight() {
-        document.documentElement.style.setProperty(
-            '--capell-insights-banner-height',
-            '0px',
-        )
-    }
-
     function initializeConsentBanner() {
         var banner = document.querySelector(consentBannerSelector)
 
@@ -279,21 +247,6 @@
         )
 
         banner.hidden = false
-        publishBannerHeight(banner)
-
-        if (typeof ResizeObserver === 'function') {
-            new ResizeObserver(function () {
-                if (!banner.hidden) {
-                    publishBannerHeight(banner)
-                }
-            }).observe(banner)
-        } else {
-            window.addEventListener('resize', function () {
-                if (!banner.hidden) {
-                    publishBannerHeight(banner)
-                }
-            })
-        }
 
         banner.addEventListener('click', function (event) {
             if (!event.target || !event.target.closest) {
@@ -319,7 +272,6 @@
                         'aria-expanded',
                         String(!choices.hidden),
                     )
-                    publishBannerHeight(banner)
                 }
 
                 return
@@ -340,7 +292,6 @@
                 }
 
                 banner.hidden = true
-                clearBannerHeight()
             })
         })
     }
@@ -513,11 +464,7 @@
     function trackClick(event) {
         var clickedElement = trackedElementFromTarget(event.target)
 
-        if (
-            !config.trackClicks ||
-            !trackingAllowed() ||
-            ignoredBySelector(clickedElement)
-        ) {
+        if (!config.trackClicks || ignoredBySelector(clickedElement)) {
             return
         }
 
@@ -548,11 +495,7 @@
     }
 
     function trackPageView() {
-        if (
-            !config.trackPageViews ||
-            !trackingAllowed() ||
-            ignoredBySelector(document.body)
-        ) {
+        if (!config.trackPageViews || ignoredBySelector(document.body)) {
             return
         }
 

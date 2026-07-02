@@ -27,19 +27,7 @@ it('injects the frontend insights tracker at the end of the body', function (): 
         ->toContain('data-capell-insights-tracker')
         ->toContain(route('capell-insights.events'))
         ->toContain(route('capell-insights.consent'))
-        ->toContain('"consentRequired":true')
         ->toContain('"ignoredSelectors":["[data-capell-insights-ignore]","[wire\\\\:click]"]');
-});
-
-it('does not require consent up front outside the UK and Europe', function (): void {
-    config()->set('capell-insights.default_consent_region', 'outside_uk_or_europe');
-
-    /** @var RenderHookRegistry<RenderHookContext> $registry */
-    $registry = resolve(RenderHookRegistry::class);
-
-    $output = $registry->renderAll(RenderHookLocation::BodyEnd);
-
-    expect($output)->toContain('"consentRequired":false');
 });
 
 it('does not inject the frontend insights tracker on ignored admin paths', function (): void {

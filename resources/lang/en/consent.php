@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 return [
     'banner' => [
-        'title' => 'We value your privacy',
-        'description' => 'We use cookies to run this site and, with your consent, to measure how visitors use it. No analytics or marketing cookies are set until you accept.',
-        'accept_all' => 'Accept all',
+        'title' => 'Privacy-friendly analytics',
+        'description' => 'We use first-party analytics to understand which pages help visitors. Essential cookies always stay on; analytics is optional and never leaves this site.',
+        'accept_all' => 'Accept analytics',
         'reject' => 'Reject non-essential',
         'manage' => 'Manage choices',
         'save' => 'Save choices',
