@@ -49,9 +49,24 @@ it('builds funnel reports from named conversion events', function (): void {
         endsAt: CarbonImmutable::parse('2026-06-30 23:59:59'),
     );
 
-    RecordConversionAction::run($firstVisit->uuid, 'landing.viewed', 'https://example.test/');
-    RecordConversionAction::run($firstVisit->uuid, 'lead.submitted', 'https://example.test/contact');
-    RecordConversionAction::run($secondVisit->uuid, 'landing.viewed', 'https://example.test/');
+    RecordConversionAction::run(
+        visitUuid: $firstVisit->uuid,
+        eventName: 'landing.viewed',
+        url: 'https://example.test/',
+        occurredAt: '2026-06-10 09:00:00',
+    );
+    RecordConversionAction::run(
+        visitUuid: $firstVisit->uuid,
+        eventName: 'lead.submitted',
+        url: 'https://example.test/contact',
+        occurredAt: '2026-06-10 09:05:00',
+    );
+    RecordConversionAction::run(
+        visitUuid: $secondVisit->uuid,
+        eventName: 'landing.viewed',
+        url: 'https://example.test/',
+        occurredAt: '2026-06-11 09:00:00',
+    );
 
     $report = BuildFunnelConversionReportAction::run($window, [
         'landing.viewed',
