@@ -13,6 +13,7 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
+            "url": "/screenshot-fixtures/insights/insights-overview-dashboard-widgets",
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator reviews analytics overview stats for seeded visits and events.",
             "screenshotPath": "packages/insights/docs/screenshots/insights-overview-dashboard-widgets.png"
@@ -25,6 +26,7 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
+            "url": "/screenshot-fixtures/insights/popular-pages-widget",
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator identifies high-traffic pages from seeded page-view data.",
             "screenshotPath": "packages/insights/docs/screenshots/popular-pages-widget.png"
@@ -37,6 +39,7 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
+            "url": "/screenshot-fixtures/insights/recent-journeys-widget",
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "An administrator follows recent visitor journeys across pages and events.",
             "screenshotPath": "packages/insights/docs/screenshots/recent-journeys-widget.png"
@@ -49,6 +52,7 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
+            "url": "/screenshot-fixtures/insights/insights-settings-screen",
             "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
             "useCase": "A site owner configures tracking, consent, retention, and beacon behavior.",
             "screenshotPath": "packages/insights/docs/screenshots/insights-settings-screen.png"
