@@ -4,4 +4,4 @@ declare(strict_types=1);
 
 use Capell\Insights\Tests\InsightsTestCase;
 
-pest()->extend(InsightsTestCase::class)->group('insights')->in(__DIR__);
+pest()->extend(InsightsTestCase::class)->group('insights')->in('.');
