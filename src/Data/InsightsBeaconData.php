@@ -4,22 +4,44 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Data;
 
-use Spatie\LaravelData\Attributes\MapName;
 use Spatie\LaravelData\Data;
-use Spatie\LaravelData\Mappers\SnakeCaseMapper;
 
-#[MapName(SnakeCaseMapper::class)]
 final class InsightsBeaconData extends Data
 {
     /**
-     * @param  list<InsightsEventData>  $events
+     * @param  list<array{data: InsightsEventData, occurred_at: string|null}>  $events
      */
     public function __construct(
-        public string $visitUuid,
-        public string $url,
-        public ?string $title = null,
-        public ?int $siteId = null,
-        public ?int $languageId = null,
+        public ?string $visitUuid,
         public array $events = [],
     ) {}
+
+    /**
+     * @param  array{visit_id?: mixed, events?: list<array<string, mixed>>}  $validated
+     */
+    public static function fromValidated(array $validated): self
+    {
+        $visitUuid = isset($validated['visit_id']) && is_string($validated['visit_id'])
+            ? $validated['visit_id']
+            : null;
+
+        $events = [];
+        $eventPayloads = $validated['events'] ?? [];
+
+        foreach ($eventPayloads as $eventPayload) {
+            $occurredAt = isset($eventPayload['occurred_at']) && is_string($eventPayload['occurred_at'])
+                ? $eventPayload['occurred_at']
+                : null;
+
+            $events[] = [
+                'data' => InsightsEventData::from($eventPayload),
+                'occurred_at' => $occurredAt,
+            ];
+        }
+
+        return new self(
+            visitUuid: $visitUuid,
+            events: $events,
+        );
+    }
 }

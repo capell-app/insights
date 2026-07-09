@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Data\InsightsBeaconData;
 use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Data\InsightsEventMetadataData;
@@ -58,6 +59,28 @@ it('normalizes event data', function (): void {
         ->and($data->path())->toBe('/path')
         ->and($data->metadata)->toBeInstanceOf(InsightsEventMetadataData::class)
         ->and($data->metadata?->nearestLandmark)->toBe('main');
+});
+
+it('normalizes beacon request data into event payloads', function (): void {
+    $occurredAt = now()->toIso8601String();
+
+    $data = InsightsBeaconData::fromValidated([
+        'visit_id' => 'visit-uuid',
+        'events' => [[
+            'type' => 'click',
+            'url' => 'https://example.test/path',
+            'occurred_at' => $occurredAt,
+            'target_selector' => 'button[data-capell-insights]',
+        ]],
+    ]);
+
+    $event = $data->events[0]['data'];
+
+    expect($data->visitUuid)->toBe('visit-uuid')
+        ->and($data->events[0]['occurred_at'])->toBe($occurredAt)
+        ->and($event)->toBeInstanceOf(InsightsEventData::class)
+        ->and($event->type)->toBe(InsightsEventType::Click)
+        ->and($event->targetSelector)->toBe('button[data-capell-insights]');
 });
 
 it('casts event model metadata as data', function (): void {
