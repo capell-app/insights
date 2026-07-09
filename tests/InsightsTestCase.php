@@ -11,6 +11,7 @@ use Capell\Frontend\Contracts\SettingsMigrationProviderInterface;
 use Capell\Frontend\Providers\FrontendServiceProvider;
 use Capell\Insights\Providers\InsightsServiceProvider;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
+use Capell\PrivacyCenter\Providers\PrivacyCenterServiceProvider;
 use Capell\Tests\AbstractTestCase;
 use Illuminate\Foundation\Application;
 use Livewire\LivewireServiceProvider;
@@ -67,6 +68,7 @@ class InsightsTestCase extends AbstractTestCase
             FrontendServiceProvider::class,
             PaginateRouteServiceProvider::class,
             LivewireServiceProvider::class,
+            PrivacyCenterServiceProvider::class,
             InsightsServiceProvider::class,
         ];
     }
@@ -81,6 +83,7 @@ class InsightsTestCase extends AbstractTestCase
 
         CapellCore::forcePackageInstalled(AdminServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(FrontendServiceProvider::$packageName);
+        CapellCore::forcePackageInstalled(PrivacyCenterServiceProvider::$packageName);
         CapellCore::forcePackageInstalled(InsightsServiceProvider::$packageName);
     }
 }

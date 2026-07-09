@@ -10,6 +10,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
+use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
@@ -18,6 +19,7 @@ use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
+use Illuminate\Database\Eloquent\Model;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 
@@ -63,6 +65,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
             $this
                 ->registerModels()
                 ->registerSettings()
+                ->registerPrivacyCenterEraser()
                 ->registerProtectedTables();
         });
     }
@@ -131,6 +134,33 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
     private function registerSettingsMigrations(): self
     {
         $this->app->singleton(InsightsSettingsMigrationProvider::class);
+
+        return $this;
+    }
+
+    private function registerPrivacyCenterEraser(): self
+    {
+        $registryClass = implode('\\', ['Capell', 'PrivacyCenter', 'Support', 'PrivacySubjectEraserRegistry']);
+
+        if (! class_exists($registryClass) || ! $this->app->bound($registryClass)) {
+            return $this;
+        }
+
+        $registry = $this->app->make($registryClass);
+
+        if (! is_object($registry) || ! method_exists($registry, 'register')) {
+            return $this;
+        }
+
+        $registry->register('insights', static function (Model $subject): int {
+            if (! $subject instanceof InsightsVisit) {
+                return 0;
+            }
+
+            AnonymizeInsightsVisitAction::run($subject);
+
+            return 1;
+        });
 
         return $this;
     }
