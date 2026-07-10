@@ -41,8 +41,8 @@ final class UpdateInsightsConsentAction
             'policy_version' => $this->policyVersion(),
             'terms_accepted_at' => $acceptedTerms ? now()->toImmutable() : null,
             'decided_at' => now()->toImmutable(),
-            'ip_hash' => $this->hashVisitorValue($request->ip()),
-            'user_agent_hash' => $this->hashVisitorValue($request->userAgent()),
+            'ip_hash' => $this->hashVisitorValue($request->ip(), $visit->site_id),
+            'user_agent_hash' => $this->hashVisitorValue($request->userAgent(), $visit->site_id),
         ]);
 
         $visit->forceFill([
@@ -79,7 +79,7 @@ final class UpdateInsightsConsentAction
         return CreateInsightsVisitAction::run($request, $region);
     }
 
-    private function hashVisitorValue(?string $value): ?string
+    private function hashVisitorValue(?string $value, ?int $siteId): ?string
     {
         if (config('capell-insights.hash_visitor_data', true) !== true) {
             return null;
@@ -89,7 +89,9 @@ final class UpdateInsightsConsentAction
             return null;
         }
 
-        return hash_hmac('sha256', $value, $this->hashSalt());
+        $salt = $this->hashSalt($siteId);
+
+        return $salt === null ? null : hash_hmac('sha256', $value, $salt);
     }
 
     private function policyVersion(): string
@@ -99,8 +101,8 @@ final class UpdateInsightsConsentAction
         return is_string($policyVersion) && $policyVersion !== '' ? $policyVersion : '1.0';
     }
 
-    private function hashSalt(): string
+    private function hashSalt(?int $siteId): ?string
     {
-        return ResolveInsightsHashSaltAction::run();
+        return ResolveInsightsHashSaltAction::run($siteId);
     }
 }

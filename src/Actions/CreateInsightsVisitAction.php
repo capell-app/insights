@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Actions;
 
+use Capell\Core\Models\Language;
+use Capell\Core\Models\Site;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsVisit;
@@ -24,8 +26,8 @@ final class CreateInsightsVisitAction
 
         return InsightsVisit::query()->create([
             'uuid' => (string) Str::uuid(),
-            'site_id' => $this->integerInput($request, 'site_id'),
-            'language_id' => $this->integerInput($request, 'language_id'),
+            'site_id' => $this->modelKey($request->attributes->get('site'), Site::class),
+            'language_id' => $this->modelKey($request->attributes->get('language'), Language::class),
             'consent_region' => $region,
             'consent_status' => InsightsConsentStatus::Pending,
             'landing_url' => $referer ?? $request->fullUrl(),
@@ -33,14 +35,14 @@ final class CreateInsightsVisitAction
             'utm_source' => $this->stringInput($request, 'utm_source'),
             'utm_medium' => $this->stringInput($request, 'utm_medium'),
             'utm_campaign' => $this->stringInput($request, 'utm_campaign'),
-            'ip_hash' => $this->hashVisitorValue($request->ip()),
-            'user_agent_hash' => $this->hashVisitorValue($request->userAgent()),
+            'ip_hash' => $this->hashVisitorValue($request->ip(), $this->modelKey($request->attributes->get('site'), Site::class)),
+            'user_agent_hash' => $this->hashVisitorValue($request->userAgent(), $this->modelKey($request->attributes->get('site'), Site::class)),
             'started_at' => now()->toImmutable(),
             'last_seen_at' => now()->toImmutable(),
         ]);
     }
 
-    private function hashVisitorValue(?string $value): ?string
+    private function hashVisitorValue(?string $value, ?int $siteId): ?string
     {
         if (config('capell-insights.hash_visitor_data', true) !== true) {
             return null;
@@ -50,18 +52,23 @@ final class CreateInsightsVisitAction
             return null;
         }
 
-        return hash_hmac('sha256', $value, $this->hashSalt());
+        $salt = $this->hashSalt($siteId);
+
+        return $salt === null ? null : hash_hmac('sha256', $value, $salt);
     }
 
-    private function integerInput(Request $request, string $key): ?int
+    /**
+     * @param  class-string<Site|Language>  $expectedClass
+     */
+    private function modelKey(mixed $model, string $expectedClass): ?int
     {
-        $value = $request->input($key);
-
-        if (! is_numeric($value)) {
+        if (! $model instanceof $expectedClass) {
             return null;
         }
 
-        return (int) $value;
+        $key = $model->getKey();
+
+        return is_numeric($key) ? (int) $key : null;
     }
 
     private function stringInput(Request $request, string $key): ?string
@@ -75,8 +82,8 @@ final class CreateInsightsVisitAction
         return $value;
     }
 
-    private function hashSalt(): string
+    private function hashSalt(?int $siteId): ?string
     {
-        return ResolveInsightsHashSaltAction::run();
+        return ResolveInsightsHashSaltAction::run($siteId);
     }
 }

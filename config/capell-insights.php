@@ -28,6 +28,7 @@ return [
     'session_timeout_minutes' => 30,
     'hash_visitor_data' => true,
     'hash_salt' => null,
+    'hash_rotation_days' => 30,
     'ignored_ips' => [],
     'ignored_user_agents' => [
         '*bot*',

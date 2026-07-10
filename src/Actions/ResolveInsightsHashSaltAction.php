@@ -4,31 +4,36 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Actions;
 
+use Carbon\CarbonImmutable;
 use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * @method static ?string run(?int $siteId = null, ?CarbonImmutable $at = null)
+ */
 final class ResolveInsightsHashSaltAction
 {
     use AsAction;
 
-    public const string PUBLIC_DEFAULT_SALT = 'capell-insights';
-
     private const string APP_KEY_DERIVATION_CONTEXT = 'capell-insights';
 
-    public function handle(): string
+    public function handle(?int $siteId = null, ?CarbonImmutable $at = null): ?string
     {
-        $configuredSalt = $this->configuredPrivateSalt();
-
-        if ($configuredSalt !== null) {
-            return $configuredSalt;
-        }
+        $rootSalt = $this->configuredPrivateSalt();
 
         $applicationKey = $this->applicationKey();
+        $rootSalt ??= $applicationKey !== null
+            ? hash_hmac('sha256', self::APP_KEY_DERIVATION_CONTEXT, $applicationKey)
+            : null;
 
-        if ($applicationKey !== null) {
-            return hash_hmac('sha256', self::APP_KEY_DERIVATION_CONTEXT, $applicationKey);
+        if ($rootSalt === null) {
+            return null;
         }
 
-        return self::PUBLIC_DEFAULT_SALT;
+        return hash_hmac(
+            'sha256',
+            sprintf('%s:site:%s:period:%d', self::APP_KEY_DERIVATION_CONTEXT, $siteId ?? 'unknown', $this->rotationPeriod($at)),
+            $rootSalt,
+        );
     }
 
     private function configuredPrivateSalt(): ?string
@@ -41,7 +46,7 @@ final class ResolveInsightsHashSaltAction
 
         $configuredSalt = trim($configuredSalt);
 
-        if ($configuredSalt === '' || $configuredSalt === self::PUBLIC_DEFAULT_SALT) {
+        if ($configuredSalt === '' || $configuredSalt === 'capell-insights') {
             return null;
         }
 
@@ -63,5 +68,13 @@ final class ResolveInsightsHashSaltAction
         }
 
         return $applicationKey;
+    }
+
+    private function rotationPeriod(?CarbonImmutable $at): int
+    {
+        $rotationDays = config('capell-insights.hash_rotation_days', 30);
+        $resolvedRotationDays = is_numeric($rotationDays) && (int) $rotationDays > 0 ? (int) $rotationDays : 30;
+
+        return intdiv(($at ?? now()->toImmutable())->getTimestamp(), $resolvedRotationDays * 86_400);
     }
 }

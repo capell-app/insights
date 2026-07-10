@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Actions;
 
+use Capell\Core\Models\Site;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
@@ -109,6 +110,10 @@ final class RecordInsightsEventsAction
                 ->lockForUpdate()
                 ->first();
 
+            if ($visit instanceof InsightsVisit && $visit->site_id !== null && $request instanceof Request && ! $this->visitBelongsToTrustedSite($visit, $request)) {
+                return null;
+            }
+
             if ($startNewSession && $visit instanceof InsightsVisit && $request instanceof Request && $this->hasExpiredSession($visit)) {
                 return $this->startNextSessionVisit($visit, $request);
             }
@@ -116,7 +121,7 @@ final class RecordInsightsEventsAction
             return $visit;
         }
 
-        if (! $request instanceof Request || ! $consentRegion instanceof InsightsConsentRegion || ! $this->canRecordForRegion($consentRegion)) {
+        if (! $request instanceof Request || ! $this->hasTrustedSite($request) || ! $consentRegion instanceof InsightsConsentRegion || ! $this->canRecordForRegion($consentRegion)) {
             return null;
         }
 
@@ -341,5 +346,21 @@ final class RecordInsightsEventsAction
         }
 
         return $resolvedOccurredAt->greaterThan($latest) ? $latest : $resolvedOccurredAt;
+    }
+
+    private function hasTrustedSite(Request $request): bool
+    {
+        return $request->attributes->get('site') instanceof Site;
+    }
+
+    private function visitBelongsToTrustedSite(InsightsVisit $visit, Request $request): bool
+    {
+        $site = $request->attributes->get('site');
+
+        if (! $site instanceof Site || ! is_numeric($site->getKey())) {
+            return false;
+        }
+
+        return (int) $visit->site_id === (int) $site->getKey();
     }
 }

@@ -94,7 +94,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
     }
 
     /**
-     * Asserts a non-default secret is available for hashing visitor identifiers.
+     * Asserts a private secret is available before visitor identifiers are hashed.
      */
     public function visitorHashSecretCheck(): DoctorCheckResultData
     {
@@ -105,7 +105,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             passed: $hasSecureSecret,
             message: $hasSecureSecret
                 ? 'A non-default secret is configured for hashing visitor identifiers.'
-                : 'Visitor identifiers are hashed with the public default salt and are reversible.',
+                : 'Visitor identifiers are not hashed until a private salt or application key is available.',
             remediation: $hasSecureSecret
                 ? null
                 : 'Set capell-insights.hash_salt to a private value (or rely on app.key) before production.',
@@ -193,7 +193,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
 
     public function hasSecureVisitorHashSecret(): bool
     {
-        return ResolveInsightsHashSaltAction::run() !== ResolveInsightsHashSaltAction::PUBLIC_DEFAULT_SALT;
+        return ResolveInsightsHashSaltAction::run() !== null;
     }
 
     /**
