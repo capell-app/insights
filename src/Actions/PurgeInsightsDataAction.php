@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Capell\Insights\Actions;
 
 use Capell\Insights\Models\InsightsConsent;
+use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
@@ -42,7 +43,12 @@ final class PurgeInsightsDataAction
             $resolvedBatchSize,
         );
 
-        $deletedRecords = $deletedEvents + $deletedConsents + $deletedVisits;
+        $deletedRollups = $this->deleteInBatches(
+            InsightsDailyRollup::query()->where('day', '<', $cutoff->toDateString()),
+            $resolvedBatchSize,
+        );
+
+        $deletedRecords = $deletedEvents + $deletedConsents + $deletedVisits + $deletedRollups;
 
         if ($deletedRecords > 0) {
             RememberInsightsDashboardAggregateAction::flush();

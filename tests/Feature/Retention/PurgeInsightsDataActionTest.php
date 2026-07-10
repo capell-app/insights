@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Capell\Insights\Actions\PurgeInsightsDataAction;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsConsent;
+use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
@@ -84,6 +85,28 @@ it('uses settings retention days when no override is provided', function (): voi
 
     expect(InsightsVisit::query()->whereKey($oldVisit->getKey())->exists())->toBeFalse()
         ->and(InsightsVisit::query()->whereKey($recentVisit->getKey())->exists())->toBeTrue();
+});
+
+it('purges derived daily rollups on the same retention window', function (): void {
+    $oldRollup = InsightsDailyRollup::query()->create([
+        'day' => now()->subDays(91)->toDateString(),
+        'site_scope_id' => 1,
+        'language_scope_id' => 1,
+        'type' => 'page_view',
+        'path' => '/expired',
+    ]);
+    $recentRollup = InsightsDailyRollup::query()->create([
+        'day' => now()->subDays(30)->toDateString(),
+        'site_scope_id' => 1,
+        'language_scope_id' => 1,
+        'type' => 'page_view',
+        'path' => '/current',
+    ]);
+
+    PurgeInsightsDataAction::run(90);
+
+    expect(InsightsDailyRollup::query()->whereKey($oldRollup->getKey())->exists())->toBeFalse()
+        ->and(InsightsDailyRollup::query()->whereKey($recentRollup->getKey())->exists())->toBeTrue();
 });
 
 it('purges eligible records across multiple batches', function (): void {
