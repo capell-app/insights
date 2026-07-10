@@ -6,9 +6,12 @@ use Capell\Insights\Data\InsightsEventMetadataData;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Enums\InsightsEventType;
+use Capell\Insights\Jobs\ProcessInsightsBeaconJob;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
 
 it('does not store a uk or europe event without insights consent', function (): void {
@@ -211,7 +214,9 @@ it('creates a visit for first outside-region event posts without an existing vis
         ],
     ])
         ->assertOk()
-        ->assertJsonStructure(['visit_id']);
+        ->assertJsonStructure(['visit_id'])
+        ->assertCookie('capell_insights_visit')
+        ->assertCookieMissing((string) config('session.cookie'));
 
     $visit = InsightsVisit::query()->firstOrFail();
     $event = InsightsEvent::query()->firstOrFail();
@@ -356,6 +361,104 @@ it('does not require a csrf token for beacon posts', function (): void {
     $this->post(route('capell-insights.events'), pageViewPayload($visit))
         ->assertStatus(204)
         ->assertNoContent();
+});
+
+it('queues event batches for established visits', function (): void {
+    config()->set('capell-insights.ingest.queue_enabled', true);
+    Queue::fake();
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe(0);
+
+    $queuedJob = null;
+
+    Queue::assertPushed(ProcessInsightsBeaconJob::class, function (ProcessInsightsBeaconJob $job) use (&$queuedJob, $visit): bool {
+        $queuedJob = $job;
+
+        return $job->data->visitUuid === $visit->uuid;
+    });
+
+    expect($queuedJob)->toBeInstanceOf(ProcessInsightsBeaconJob::class);
+
+    $queuedJob->handle();
+
+    expect(InsightsEvent::query()->count())->toBe(1);
+});
+
+it('rotates expired visits synchronously before queueing later batches', function (): void {
+    config()->set('capell-insights.ingest.queue_enabled', true);
+    config()->set('capell-insights.session_timeout_minutes', 30);
+    Queue::fake();
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+        'last_seen_at' => now()->subHour()->toImmutable(),
+    ]);
+
+    $response = $this->postJson(route('capell-insights.events'), pageViewPayload($visit));
+
+    $response
+        ->assertOk()
+        ->assertJsonStructure(['visit_id'])
+        ->assertCookie('capell_insights_visit');
+
+    Queue::assertNothingPushed();
+
+    $nextVisit = InsightsVisit::query()->where('uuid', $response->json('visit_id'))->firstOrFail();
+
+    expect($nextVisit->uuid)->not->toBe($visit->uuid)
+        ->and(InsightsEvent::query()->firstOrFail()->visit_id)->toBe($nextVisit->getKey());
+});
+
+it('can sample event ingestion before persistence or queue dispatch', function (): void {
+    config()->set('capell-insights.ingest.queue_enabled', true);
+    config()->set('capell-insights.ingest.sample_rate', 0.0);
+    Queue::fake();
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertNoContent();
+
+    Queue::assertNothingPushed();
+    expect(InsightsEvent::query()->count())->toBe(0);
+});
+
+it('clamps client event timestamps to the configured ingestion window', function (): void {
+    $now = CarbonImmutable::parse('2026-07-10 12:00:00');
+
+    $this->travelTo($now);
+    config()->set('capell-insights.ingest.max_past_minutes', 60);
+    config()->set('capell-insights.ingest.max_future_minutes', 5);
+
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this->postJson(route('capell-insights.events'), [
+        'visit_id' => $visit->uuid,
+        'events' => [
+            pageViewEvent(['occurred_at' => $now->subDay()->toIso8601String()]),
+            clickEvent(['occurred_at' => $now->addDay()->toIso8601String()]),
+        ],
+    ])->assertNoContent();
+
+    $occurredAt = InsightsEvent::query()->orderBy('sequence')->pluck('occurred_at');
+
+    expect(CarbonImmutable::parse((string) $occurredAt[0])->equalTo($now->subHour()))->toBeTrue()
+        ->and(CarbonImmutable::parse((string) $occurredAt[1])->equalTo($now->addMinutes(5)))->toBeTrue();
 });
 
 /**

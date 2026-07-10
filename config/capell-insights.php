@@ -23,6 +23,7 @@ return [
     'retention_days' => 365,
     'purge_batch_size' => 500,
     'rollup_rebuild_days' => 30,
+    'rollup_overview_min_days' => 7,
     'dashboard_cache_ttl_seconds' => 60,
     'session_timeout_minutes' => 30,
     'hash_visitor_data' => true,
@@ -52,6 +53,15 @@ return [
     'ignored_selectors' => [
         '[data-capell-insights-ignore]',
         '[wire\\:click]',
+    ],
+    'ingest' => [
+        'queue_enabled' => env('CAPELL_INSIGHTS_QUEUE_ENABLED', true),
+        'queue_connection' => env('CAPELL_INSIGHTS_QUEUE_CONNECTION'),
+        'queue_name' => env('CAPELL_INSIGHTS_QUEUE_NAME', 'default'),
+        'sample_rate' => (float) env('CAPELL_INSIGHTS_SAMPLE_RATE', 1.0),
+        'throttle_per_minute' => (int) env('CAPELL_INSIGHTS_THROTTLE_PER_MINUTE', 30),
+        'max_past_minutes' => (int) env('CAPELL_INSIGHTS_MAX_PAST_MINUTES', 1440),
+        'max_future_minutes' => (int) env('CAPELL_INSIGHTS_MAX_FUTURE_MINUTES', 5),
     ],
     'tables' => [
         'visits' => 'insights_visits',

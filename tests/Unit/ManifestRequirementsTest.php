@@ -30,6 +30,7 @@ use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 function insightsPackagePath(string $path): string
@@ -199,12 +200,17 @@ it('declares the shipped admin page, widgets, models, routes, and overview stats
             'routes' => ['capell-insights.events', 'capell-insights.consent'],
             'prefix' => 'capell/insights',
             'methods' => ['POST'],
-            'middleware' => ['web', 'throttle:60,1'],
+            'middleware' => ['throttle:30,1'],
             'csrfExempt' => true,
         ]);
 
     expect(Route::has('capell-insights.events'))->toBeTrue()
         ->and(Route::has('capell-insights.consent'))->toBeTrue();
+
+    $eventsRoute = Route::getRoutes()->getByName('capell-insights.events');
+
+    expect($eventsRoute)->not->toBeNull()
+        ->and($eventsRoute?->gatherMiddleware())->not->toContain('web', StartSession::class);
 });
 
 it('declares scheduled jobs, commands, settings, and health surfaces', function (): void {

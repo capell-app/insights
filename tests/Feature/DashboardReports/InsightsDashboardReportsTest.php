@@ -11,6 +11,7 @@ use Capell\Insights\Actions\BuildTopActionsQueryAction;
 use Capell\Insights\Actions\BuildTrendingPagesQueryAction;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Enums\InsightsEventType;
+use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
@@ -164,6 +165,38 @@ it('builds overview stats without double counting visits across pages', function
 
     expect(insightsOverviewStatValue($stats, 'page-views'))->toBe(3)
         ->and(insightsOverviewStatValue($stats, 'unique-visits'))->toBe(2)
+        ->and(insightsOverviewStatValue($stats, 'clicks'))->toBe(1);
+});
+
+it('uses daily rollups for completed days in long overview windows', function (): void {
+    $window = new InsightsWindowData(
+        startsAt: CarbonImmutable::parse('2026-02-01 12:00:00'),
+        endsAt: CarbonImmutable::parse('2026-04-12 12:00:00'),
+    );
+    $visit = InsightsVisit::factory()->create();
+
+    insightsReportEvent($visit, InsightsEventType::PageView, '/start-boundary', 'https://example.test/start-boundary', $window->startsAt->addHour());
+    insightsReportEvent($visit, InsightsEventType::PageView, '/before-rollup-coverage', 'https://example.test/before-rollup-coverage', CarbonImmutable::parse('2026-03-01 10:00:00'));
+    insightsReportEvent($visit, InsightsEventType::PageView, '/rolled-up', 'https://example.test/rolled-up', CarbonImmutable::parse('2026-04-05 10:00:00'));
+    insightsReportEvent($visit, InsightsEventType::Click, '/end-boundary', 'https://example.test/end-boundary', $window->endsAt->subHour());
+
+    InsightsDailyRollup::query()->create([
+        'day' => '2026-04-05',
+        'site_scope_id' => 0,
+        'language_scope_id' => 0,
+        'type' => InsightsEventType::PageView->value,
+        'path' => '/rolled-up',
+        'url' => 'https://example.test/rolled-up',
+        'events' => 8,
+        'page_views' => 8,
+        'clicks' => 0,
+        'unique_visits' => 5,
+    ]);
+
+    $stats = BuildInsightsOverviewStatsAction::run($window)->keyBy('id');
+
+    expect(insightsOverviewStatValue($stats, 'page-views'))->toBe(10)
+        ->and(insightsOverviewStatValue($stats, 'unique-visits'))->toBe(1)
         ->and(insightsOverviewStatValue($stats, 'clicks'))->toBe(1);
 });
 

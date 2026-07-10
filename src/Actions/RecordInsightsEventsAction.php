@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * @method static Collection<int, InsightsEvent> run(?string $visitUuid, iterable<int, array{data: InsightsEventData, occurred_at: string|null}> $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null)
+ * @method static Collection<int, InsightsEvent> run(?string $visitUuid, iterable<int, array{data: InsightsEventData, occurred_at: string|null}> $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true)
  */
 final class RecordInsightsEventsAction
 {
@@ -29,7 +29,7 @@ final class RecordInsightsEventsAction
      * @param  iterable<int, array{data: InsightsEventData, occurred_at: string|null}>  $events
      * @return Collection<int, InsightsEvent>
      */
-    public function handle(?string $visitUuid, iterable $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null): Collection
+    public function handle(?string $visitUuid, iterable $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true): Collection
     {
         if (config('capell-insights.enabled', true) !== true) {
             return collect();
@@ -39,14 +39,14 @@ final class RecordInsightsEventsAction
             return collect();
         }
 
-        $recordedEvents = DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion): Collection {
+        return DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion, $clampOccurredAt, $startNewSession): Collection {
             $recordableEvents = $this->recordableEvents($events);
 
             if ($recordableEvents === []) {
                 return collect();
             }
 
-            $visit = $this->resolveVisit($visitUuid, $request, $consentRegion);
+            $visit = $this->resolveVisit($visitUuid, $request, $consentRegion, $startNewSession);
 
             if (! $visit instanceof InsightsVisit || ! $this->canRecordForVisit($visit)) {
                 return collect();
@@ -68,7 +68,7 @@ final class RecordInsightsEventsAction
                     'url' => $eventData->url,
                     'path' => $eventData->path(),
                     'title' => $eventData->title,
-                    'occurred_at' => $this->occurredAt($event['occurred_at']),
+                    'occurred_at' => $this->occurredAt($event['occurred_at'], $clampOccurredAt),
                     'sequence' => $sequence,
                     'event_name' => $eventData->eventName,
                     'label' => $eventData->label,
@@ -99,15 +99,9 @@ final class RecordInsightsEventsAction
                 ->get()
                 ->values();
         });
-
-        if ($recordedEvents->isNotEmpty()) {
-            RememberInsightsDashboardAggregateAction::flush();
-        }
-
-        return $recordedEvents;
     }
 
-    private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion): ?InsightsVisit
+    private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion, bool $startNewSession): ?InsightsVisit
     {
         if ($visitUuid !== null && trim($visitUuid) !== '') {
             $visit = InsightsVisit::query()
@@ -115,7 +109,7 @@ final class RecordInsightsEventsAction
                 ->lockForUpdate()
                 ->first();
 
-            if ($visit instanceof InsightsVisit && $request instanceof Request && $this->hasExpiredSession($visit)) {
+            if ($startNewSession && $visit instanceof InsightsVisit && $request instanceof Request && $this->hasExpiredSession($visit)) {
                 return $this->startNextSessionVisit($visit, $request);
             }
 
@@ -321,12 +315,31 @@ final class RecordInsightsEventsAction
         return $consent->decided_at->addDays((int) $expiresDays)->isPast();
     }
 
-    private function occurredAt(?string $occurredAt): CarbonImmutable
+    private function occurredAt(?string $occurredAt, bool $clamp): CarbonImmutable
     {
+        $now = now()->toImmutable();
+
         if ($occurredAt === null || trim($occurredAt) === '') {
-            return now()->toImmutable();
+            return $now;
         }
 
-        return CarbonImmutable::parse($occurredAt);
+        $resolvedOccurredAt = CarbonImmutable::parse($occurredAt);
+
+        if (! $clamp) {
+            return $resolvedOccurredAt;
+        }
+
+        $configuredPastMinutes = config('capell-insights.ingest.max_past_minutes', 1440);
+        $configuredFutureMinutes = config('capell-insights.ingest.max_future_minutes', 5);
+        $pastMinutes = is_numeric($configuredPastMinutes) ? max(0, (int) $configuredPastMinutes) : 1440;
+        $futureMinutes = is_numeric($configuredFutureMinutes) ? max(0, (int) $configuredFutureMinutes) : 5;
+        $earliest = $now->subMinutes($pastMinutes);
+        $latest = $now->addMinutes($futureMinutes);
+
+        if ($resolvedOccurredAt->lessThan($earliest)) {
+            return $earliest;
+        }
+
+        return $resolvedOccurredAt->greaterThan($latest) ? $latest : $resolvedOccurredAt;
     }
 }

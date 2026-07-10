@@ -7,6 +7,8 @@ use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Http\Controllers\InsightsBeaconController;
 use Capell\Insights\Http\Controllers\InsightsConsentController;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -15,15 +17,18 @@ use Illuminate\Support\Facades\Route;
 $routePrefix = trim(config('capell-insights.route_prefix', 'capell/insights'), '/');
 
 Route::prefix($routePrefix)
-    ->middleware(['web'])
     ->group(function (): void {
         Route::post('events', InsightsBeaconController::class)
-            ->middleware(['throttle:60,1'])
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                sprintf('throttle:%d,1', max(1, (int) config('capell-insights.ingest.throttle_per_minute', 30))),
+            ])
             ->withoutMiddleware([VerifyCsrfToken::class])
             ->name('capell-insights.events');
 
         Route::post('consent', InsightsConsentController::class)
-            ->middleware(['throttle:60,1'])
+            ->middleware(['web', 'throttle:60,1'])
             ->withoutMiddleware([VerifyCsrfToken::class])
             ->name('capell-insights.consent');
     });

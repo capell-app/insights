@@ -24,6 +24,8 @@ class InsightsTestCase extends AbstractTestCase
     {
         parent::setUp();
 
+        config()->set('capell-insights.ingest.queue_enabled', false);
+
         $this->registerAndMigrateSettings(
             CapellCore::getSettingMigrations(),
             __DIR__ . '/../../../vendor/capell-app/core/database/settings',
