@@ -36,7 +36,7 @@ final class RecordInsightsEventsAction
             return collect();
         }
 
-        if ($request instanceof Request && $this->isIgnoredRequest($request)) {
+        if ($request instanceof Request && $this->shouldIgnoreRequest($request)) {
             return collect();
         }
 
@@ -100,6 +100,15 @@ final class RecordInsightsEventsAction
                 ->get()
                 ->values();
         });
+    }
+
+    public function shouldIgnoreRequest(Request $request): bool
+    {
+        if ($this->isIgnoredIp($request->ip())) {
+            return true;
+        }
+
+        return $this->isIgnoredUserAgent($request->userAgent());
     }
 
     private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion, bool $startNewSession): ?InsightsVisit
@@ -199,15 +208,6 @@ final class RecordInsightsEventsAction
         }
 
         return false;
-    }
-
-    private function isIgnoredRequest(Request $request): bool
-    {
-        if ($this->isIgnoredIp($request->ip())) {
-            return true;
-        }
-
-        return $this->isIgnoredUserAgent($request->userAgent());
     }
 
     private function isIgnoredIp(?string $ipAddress): bool

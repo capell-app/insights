@@ -44,4 +44,18 @@ final class InsightsBeaconData extends Data
             events: $events,
         );
     }
+
+    public function forQueue(): self
+    {
+        return new self(
+            visitUuid: $this->visitUuid,
+            events: array_map(
+                static fn (array $event): array => [
+                    'data' => $event['data']->withoutUrlCredentialsOrQuery(),
+                    'occurred_at' => $event['occurred_at'],
+                ],
+                $this->events,
+            ),
+        );
+    }
 }

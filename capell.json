@@ -165,7 +165,9 @@
             "encryptedFields": [],
             "hashedTokenFields": [],
             "redactedOutputClasses": [],
-            "plaintextJustifications": []
+            "plaintextJustifications": [
+                "Insights queue jobs omit raw IP addresses, User-Agent, referer, origin, URL credentials, query strings and fragments; the remaining bounded event payload is encrypted by Laravel before queue storage."
+            ]
         },
         "publicOutput": {
             "cacheSafe": true,
