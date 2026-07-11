@@ -23,13 +23,15 @@ final class IngestInsightsBeaconAction
 
     public function handle(InsightsBeaconData $data, Request $request): ?string
     {
-        if (! $this->shouldSample($data, $request)) {
+        $recordEvents = resolve(RecordInsightsEventsAction::class);
+
+        if ($recordEvents->shouldIgnoreRequest($request) || ! $this->shouldSample($data, $request)) {
             return null;
         }
 
         if ($this->canQueue($data)) {
             ProcessInsightsBeaconJob::dispatch(
-                $data,
+                $data->forQueue(),
                 InsightsRequestContextData::fromRequest($request),
             )->afterCommit();
 

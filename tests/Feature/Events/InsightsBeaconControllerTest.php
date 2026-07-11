@@ -11,6 +11,7 @@ use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
 
@@ -204,7 +205,7 @@ it('stores an outside-region page view with default settings', function (): void
     expect(InsightsEvent::query()->count())->toBe(1);
 });
 
-it('creates a visit for first outside-region event posts without an existing visit id', function (): void {
+it('returns no content for a first outside-region event without an existing visit id', function (): void {
     config()->set('capell-insights.default_consent_region', InsightsConsentRegion::OutsideUkOrEurope->value);
 
     $this->postJson(route('capell-insights.events'), [
@@ -212,18 +213,10 @@ it('creates a visit for first outside-region event posts without an existing vis
         'events' => [
             pageViewEvent(),
         ],
-    ])
-        ->assertOk()
-        ->assertJsonStructure(['visit_id'])
-        ->assertCookie('capell_insights_visit')
-        ->assertCookieMissing((string) config('session.cookie'));
+    ])->assertNoContent();
 
-    $visit = InsightsVisit::query()->firstOrFail();
-    $event = InsightsEvent::query()->firstOrFail();
-
-    expect($event->visit_id)->toBe($visit->getKey())
-        ->and($visit->consent_region)->toBe(InsightsConsentRegion::OutsideUkOrEurope)
-        ->and($visit->consent_status)->toBe(InsightsConsentStatus::Pending);
+    expect(InsightsVisit::query()->count())->toBe(0)
+        ->and(InsightsEvent::query()->count())->toBe(0);
 });
 
 it('does not create a first visit when server region requires consent', function (): void {
@@ -365,6 +358,7 @@ it('does not require a csrf token for beacon posts', function (): void {
 
 it('queues event batches for established visits', function (): void {
     config()->set('capell-insights.ingest.queue_enabled', true);
+    config()->set('capell-insights.validate_beacon_origin', false);
     Queue::fake();
 
     $visit = InsightsVisit::factory()->create([
@@ -372,7 +366,14 @@ it('queues event batches for established visits', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.45'])
+        ->withHeaders([
+            'Referer' => 'https://example.test/private?token=referer-secret',
+            'User-Agent' => 'customer-browser-secret',
+        ])
+        ->postJson(route('capell-insights.events'), pageViewPayload($visit, [
+            'url' => 'https://user:event-secret@example.test/private?token=query-secret#fragment-secret',
+        ]))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(0);
@@ -382,14 +383,24 @@ it('queues event batches for established visits', function (): void {
     Queue::assertPushed(ProcessInsightsBeaconJob::class, function (ProcessInsightsBeaconJob $job) use (&$queuedJob, $visit): bool {
         $queuedJob = $job;
 
-        return $job->data->visitUuid === $visit->uuid;
+        return $job->data->visitUuid === $visit->uuid
+            && $job->data->events[0]['data']->url === 'https://example.test/private';
     });
 
-    expect($queuedJob)->toBeInstanceOf(ProcessInsightsBeaconJob::class);
+    expect($queuedJob)->toBeInstanceOf(ProcessInsightsBeaconJob::class)
+        ->and($queuedJob)->toBeInstanceOf(ShouldBeEncrypted::class)
+        ->and(serialize($queuedJob))
+        ->not->toContain('203.0.113.45')
+        ->not->toContain('customer-browser-secret')
+        ->not->toContain('referer-secret')
+        ->not->toContain('event-secret')
+        ->not->toContain('query-secret')
+        ->not->toContain('fragment-secret');
 
     $queuedJob->handle();
 
-    expect(InsightsEvent::query()->count())->toBe(1);
+    expect(InsightsEvent::query()->count())->toBe(1)
+        ->and(InsightsEvent::query()->value('url'))->toBe('https://example.test/private');
 });
 
 it('rotates expired visits synchronously before queueing later batches', function (): void {

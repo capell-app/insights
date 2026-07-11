@@ -37,4 +37,41 @@ final class InsightsEventData extends Data
 
         return $path;
     }
+
+    public function withoutUrlCredentialsOrQuery(): self
+    {
+        return new self(
+            type: $this->type,
+            url: $this->minimizedUrl(),
+            title: $this->title,
+            eventName: $this->eventName,
+            label: $this->label,
+            location: $this->location,
+            targetSelector: $this->targetSelector,
+            viewportX: $this->viewportX,
+            viewportY: $this->viewportY,
+            documentX: $this->documentX,
+            documentY: $this->documentY,
+            metadata: $this->metadata,
+        );
+    }
+
+    private function minimizedUrl(): string
+    {
+        $scheme = parse_url($this->url, PHP_URL_SCHEME);
+        $host = parse_url($this->url, PHP_URL_HOST);
+        $port = parse_url($this->url, PHP_URL_PORT);
+
+        if (! is_string($scheme) || ! in_array(strtolower($scheme), ['http', 'https'], true) || ! is_string($host) || $host === '') {
+            return $this->path();
+        }
+
+        return sprintf(
+            '%s://%s%s%s',
+            strtolower($scheme),
+            strtolower($host),
+            is_int($port) ? ':' . $port : '',
+            $this->path(),
+        );
+    }
 }

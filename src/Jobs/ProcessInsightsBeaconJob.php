@@ -7,10 +7,11 @@ namespace Capell\Insights\Jobs;
 use Capell\Insights\Actions\RecordInsightsEventsAction;
 use Capell\Insights\Data\InsightsBeaconData;
 use Capell\Insights\Data\InsightsRequestContextData;
+use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-final class ProcessInsightsBeaconJob implements ShouldQueue
+final class ProcessInsightsBeaconJob implements ShouldBeEncrypted, ShouldQueue
 {
     use Queueable;
 
