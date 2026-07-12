@@ -2,23 +2,16 @@
     use Capell\Insights\Actions\GetInsightsTrackerScriptAction;
     use Capell\Insights\Enums\InsightsConsentRegion;
     use Capell\Insights\Support\Consent\ConsentRegionResolver;
-    use Illuminate\Support\Facades\URL;
-
     $consentRegion = app(ConsentRegionResolver::class)->resolve();
     $consentRequired = config('capell-insights.require_consent_for_all_regions', false) === true
         || $consentRegion === InsightsConsentRegion::UkOrEurope
         || $consentRegion === InsightsConsentRegion::Unknown;
 
-    $eventsUrl = config('capell-insights.require_signed_beacons', false) === true
-        ? URL::temporarySignedRoute(
-            'capell-insights.events',
-            now()->addMinutes((int) config('capell-insights.signed_beacon_ttl_minutes', 60)),
-        )
-        : route('capell-insights.events');
+    $eventsUrl = route('capell-insights.events', [], false);
 
     $insightsConfig = [
         'eventsUrl' => $eventsUrl,
-        'consentUrl' => route('capell-insights.consent'),
+        'consentUrl' => route('capell-insights.consent', [], false),
         'consentRequired' => $consentRequired,
         'trackPageViews' => config('capell-insights.track_page_views', true) === true,
         'trackClicks' => config('capell-insights.track_clicks', true) === true,
