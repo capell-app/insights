@@ -130,7 +130,14 @@ it('can require signed beacon urls for event posts', function (): void {
     $this->postJson(
         URL::temporarySignedRoute('capell-insights.events', now()->addMinute()),
         pageViewPayload($visit),
-    )->assertNoContent();
+    )->assertForbidden();
+
+    $this
+        ->withHeader('Origin', 'http://localhost')
+        ->postJson(
+            URL::temporarySignedRoute('capell-insights.events', now()->addMinute()),
+            pageViewPayload($visit),
+        )->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(1);
 });

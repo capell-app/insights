@@ -26,9 +26,7 @@ final class ValidateInsightsBeaconRequestAction
 
         $origin = $request->headers->get('Origin') ?: $request->headers->get('Referer');
 
-        if (! is_string($origin) || $origin === '') {
-            return true;
-        }
+        throw_unless(is_string($origin) && $origin !== '', AccessDeniedHttpException::class, 'Missing insights beacon origin.');
 
         $originHost = parse_url($origin, PHP_URL_HOST);
         $requestHost = $request->getHost();
