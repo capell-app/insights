@@ -21,6 +21,10 @@ final class RegisterInsightsTrackerHook implements RenderHookExtensionInterface
 
     private static function shouldRenderForCurrentRequest(): bool
     {
+        if (config('capell-insights.require_signed_beacons', false) === true) {
+            return false;
+        }
+
         $path = '/' . trim(request()->path(), '/');
         $ignoredPaths = config('capell-insights.ignored_paths', []);
 
