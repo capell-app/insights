@@ -1,0 +1,62 @@
+{
+    "name": "capell-app/insights",
+    "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
+    "keywords": [
+        "capell",
+        "insights",
+        "laravel",
+        "filamentphp",
+        "cms"
+    ],
+    "homepage": "https://github.com/capell-app/insights",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Capell Team",
+            "email": "team@capell.app",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "capell-app/admin": "^0.0.4",
+        "capell-app/core": "^0.0.4",
+        "capell-app/frontend": "^0.0.4",
+        "lorisleiva/laravel-actions": "^2.8",
+        "spatie/laravel-data": "^4.5",
+        "spatie/laravel-package-tools": "^1.14.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Capell\\Insights\\": "src/",
+            "Capell\\Insights\\Database\\Factories\\": "database/factories"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Capell\\Insights\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Capell\\Insights\\Providers\\InsightsServiceProvider"
+            ]
+        },
+        "branch-alias": {
+            "dev-main": "0.0.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "pest"
+    },
+    "prefer-stable": true,
+    "type": "library",
+    "support": {
+        "source": "https://github.com/capell-app/capell-packages",
+        "docs": "https://docs.capell.app/packages/insights"
+    }
+}

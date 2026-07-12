@@ -1,0 +1,245 @@
+{
+    "manifest-version": 3,
+    "name": "capell-app/insights",
+    "slug": "insights",
+    "displayName": "Insights",
+    "kind": "package",
+    "capellApiVersion": "^0.0.1",
+    "version": "0.0.x-dev",
+    "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
+    "product": {
+        "group": "Capell Growth",
+        "tier": "premium",
+        "bundle": "growth"
+    },
+    "namespace": "Capell\\Insights",
+    "surfaces": ["admin", "frontend"],
+    "dependencies": {
+        "requires": [
+            "capell-app/admin",
+            "capell-app/core",
+            "capell-app/frontend"
+        ],
+        "supports": ["capell-app/privacy-center"],
+        "conflicts": []
+    },
+    "providers": {
+        "metadata": [],
+        "install": [],
+        "runtime": ["Capell\\Insights\\Providers\\InsightsServiceProvider"],
+        "admin": ["Capell\\Insights\\Providers\\AdminServiceProvider"],
+        "frontend": []
+    },
+    "contributes": [
+        {
+            "type": "admin-page",
+            "class": "Capell\\Insights\\Manifest\\InsightsAdminPageContribution",
+            "pageClass": "Capell\\Insights\\Filament\\Pages\\InsightsPage",
+            "labelKey": "capell-insights::settings.fieldset",
+            "permission": "View:InsightsPage"
+        },
+        {
+            "type": "dashboard-widget",
+            "class": "Capell\\Insights\\Manifest\\InsightsDashboardFilamentWidgetsContribution",
+            "widgetClasses": [
+                "Capell\\Insights\\Filament\\Widgets\\InsightsOverviewStatsFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\PopularPagesFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\TrendingPagesFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\LiveInsightsStatsFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\RecentJourneysFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\TopActionsFilamentWidget",
+                "Capell\\Insights\\Filament\\Widgets\\AcquisitionSourcesFilamentWidget"
+            ]
+        },
+        {
+            "type": "overview-stat",
+            "class": "Capell\\Insights\\Manifest\\InsightsOverviewStatsContribution",
+            "keys": [
+                "insights_overview",
+                "insights_overview.page-views",
+                "insights_overview.unique-visits",
+                "insights_overview.clicks"
+            ]
+        },
+        {
+            "type": "model",
+            "class": "Capell\\Insights\\Manifest\\InsightsModelsContribution",
+            "modelClasses": [
+                "Capell\\Insights\\Models\\InsightsVisit",
+                "Capell\\Insights\\Models\\InsightsConsent",
+                "Capell\\Insights\\Models\\InsightsEvent",
+                "Capell\\Insights\\Models\\InsightsDailyRollup"
+            ]
+        },
+        {
+            "type": "route",
+            "class": "Capell\\Insights\\Manifest\\InsightsRoutesContribution",
+            "routes": ["capell-insights.events", "capell-insights.consent"],
+            "prefix": "capell/insights",
+            "methods": ["POST"],
+            "middleware": ["throttle:30,1"],
+            "csrfExempt": true
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\Insights\\Manifest\\InsightsPurgeScheduleContribution",
+            "command": "insights:purge",
+            "name": "capell-insights-purge",
+            "frequency": "monthly"
+        },
+        {
+            "type": "scheduled-job",
+            "class": "Capell\\Insights\\Manifest\\InsightsDailyRollupsScheduleContribution",
+            "command": "insights:rollups:rebuild",
+            "name": "capell-insights-daily-rollups",
+            "frequency": "daily"
+        },
+        {
+            "type": "console-command",
+            "class": "Capell\\Insights\\Manifest\\InsightsConsoleCommandsContribution",
+            "commands": ["insights:purge", "insights:rollups:rebuild"],
+            "commandClasses": [
+                "Capell\\Insights\\Console\\Commands\\PurgeInsightsDataCommand",
+                "Capell\\Insights\\Console\\Commands\\RebuildInsightsDailyRollupsCommand"
+            ]
+        },
+        {
+            "type": "setting",
+            "class": "Capell\\Insights\\Manifest\\InsightsSettingsContribution",
+            "settingsClass": "Capell\\Insights\\Settings\\InsightsSettings",
+            "settingsGroup": "insights"
+        },
+        {
+            "type": "health-check",
+            "class": "Capell\\Insights\\Manifest\\InsightsHealthContribution",
+            "checkClass": "Capell\\Insights\\Health\\InsightsHealthCheck"
+        }
+    ],
+    "database": {
+        "migrations": true,
+        "settings": true,
+        "requiredTables": [
+            "insights_visits",
+            "insights_consents",
+            "insights_events",
+            "insights_daily_rollups"
+        ]
+    },
+    "commands": {
+        "install": null,
+        "setup": null,
+        "demo": null,
+        "doctor": null,
+        "purge": "insights:purge",
+        "rebuildRollups": "insights:rollups:rebuild",
+        "maintenance": ["insights:purge", "insights:rollups:rebuild"]
+    },
+    "settings": ["Capell\\Insights\\Settings\\InsightsSettings"],
+    "permissions": ["View:InsightsPage"],
+    "capabilities": [
+        "insights",
+        "insights-admin",
+        "insights-frontend",
+        "insights-privacy-center-mirror",
+        "beacon",
+        "cache-blocking"
+    ],
+    "security": {
+        "riskTier": "sensitive",
+        "publicSurface": {
+            "routeNames": ["capell-insights.consent", "capell-insights.events"],
+            "auth": "public",
+            "csrfExemptRoutes": [
+                "capell-insights.consent",
+                "capell-insights.events"
+            ],
+            "signedRoutes": [],
+            "tokenizedRoutes": [],
+            "webhookRoutes": [],
+            "throttledRoutes": [
+                "capell-insights.consent",
+                "capell-insights.events"
+            ]
+        },
+        "sensitiveData": {
+            "encryptedFields": [],
+            "hashedTokenFields": [],
+            "redactedOutputClasses": [],
+            "plaintextJustifications": [
+                "Insights queue jobs omit raw IP addresses, User-Agent, referer, origin, URL credentials, query strings and fragments; the remaining bounded event payload is encrypted by Laravel before queue storage."
+            ]
+        },
+        "publicOutput": {
+            "cacheSafe": true,
+            "forbidAuthoringSurface": true,
+            "forbidSecrets": true,
+            "forbidPublicBladeQueries": true
+        },
+        "externalHttpClients": {
+            "requiresTimeouts": false,
+            "requiresSecretRedaction": false,
+            "clients": []
+        },
+        "adminSurface": {
+            "authorization": "permissions",
+            "permissions": ["View:InsightsPage"]
+        }
+    },
+    "performance": {
+        "frontendRenderBudgetMs": 20,
+        "adminQueryBudget": 40,
+        "cacheTags": ["insights"],
+        "cacheSafety": {
+            "cacheable": false,
+            "variesBy": ["site", "locale"],
+            "sensitiveOutput": false,
+            "invalidationSources": [],
+            "queueInvalidation": true
+        }
+    },
+    "healthChecks": [
+        {
+            "key": "insights.package-health",
+            "label": "Insights package surfaces, providers, and install health are discoverable by Diagnostics.",
+            "class": "Capell\\Insights\\Health\\InsightsHealthCheck",
+            "severity": "critical",
+            "surface": "admin"
+        }
+    ],
+    "commercial": {
+        "proposedLicense": "paid",
+        "requestedCertification": "first-party",
+        "supportPolicy": "priority",
+        "privateDocsRequested": true
+    },
+    "marketplace": {
+        "summary": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
+        "description": "Insights gives Capell sites first-party traffic analytics that respect privacy by default: it records page views, clicks, and visitor journeys server-side, hashes visitor identifiers, and gates UK/EU tracking behind consent. Dashboards for popular pages, trending pages, top actions, and recent journeys live right inside the admin Marketing Studio — no Google Analytics, no cookie soup, no tag manager. Retention windows and an automatic purge keep data lean and compliant. When Privacy Center is installed, consent decisions are mirrored into your central consent ledger automatically.",
+        "screenshots": [
+            {
+                "path": "docs/assets/marketplace/extension-card.jpg",
+                "alt": "Insights extension preview image",
+                "caption": "Insights extension preview"
+            },
+            {
+                "path": "docs/screenshots/insights-settings-screen.png",
+                "alt": "Insights settings screen",
+                "caption": "Insights settings screen."
+            },
+            {
+                "path": "docs/screenshots/frontend-page-with-tracker-active.png",
+                "alt": "Styled public page with the Insights tracker script active",
+                "caption": "Route-backed public page proving the Insights tracker renders through the frontend BodyEnd hook."
+            },
+            {
+                "path": "docs/screenshots/consent-banner-flow.png",
+                "alt": "Styled public page with the Insights consent banner visible",
+                "caption": "Packaged consent banner rendered on a route-backed public page."
+            }
+        ],
+        "categories": ["admin", "frontend", "growth"]
+    },
+    "contributionTraceability": {
+        "deferredContributions": []
+    }
+}

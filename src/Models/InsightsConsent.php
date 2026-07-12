@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Capell\Insights\Models;
+
+use Capell\Insights\Data\InsightsConsentData;
+use Capell\Insights\Database\Factories\InsightsConsentFactory;
+use Capell\Insights\Enums\InsightsConsentRegion;
+use Capell\Insights\Enums\InsightsConsentStatus;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Override;
+
+/**
+ * @property InsightsConsentRegion $consent_region
+ * @property InsightsConsentStatus $status
+ * @property InsightsConsentData $categories
+ * @property string $policy_version
+ * @property string|null $ip_hash
+ * @property string|null $user_agent_hash
+ * @property CarbonImmutable|null $terms_accepted_at
+ * @property CarbonImmutable|null $decided_at
+ */
+class InsightsConsent extends Model
+{
+    /** @use HasFactory<InsightsConsentFactory> */
+    use HasFactory;
+
+    protected $guarded = [];
+
+    protected static string $factory = InsightsConsentFactory::class;
+
+    #[Override]
+    public function getTable(): string
+    {
+        $tableName = config('capell-insights.tables.consents');
+
+        return is_string($tableName) ? $tableName : 'insights_consents';
+    }
+
+    /**
+     * @return BelongsTo<InsightsVisit, $this>
+     */
+    public function visit(): BelongsTo
+    {
+        return $this->belongsTo(InsightsVisit::class, 'visit_id');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    #[Override]
+    protected function casts(): array
+    {
+        return [
+            'consent_region' => InsightsConsentRegion::class,
+            'status' => InsightsConsentStatus::class,
+            'categories' => InsightsConsentData::class,
+            'terms_accepted_at' => 'immutable_datetime',
+            'decided_at' => 'immutable_datetime',
+        ];
+    }
+}
