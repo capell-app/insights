@@ -2,7 +2,7 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Extension Adds
+## What This Plugin Adds
 
 Insights is an **Available**, **Schema-owning** Capell package in the **Capell Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
 
@@ -29,6 +29,10 @@ Status details:
 
 Screenshot contract: `docs/screenshots.json`.
 
+![Insights overview dashboard widgets](docs/screenshots/insights-overview-dashboard-widgets.png)
+
+![Popular pages widget](docs/screenshots/popular-pages-widget.png)
+
 - Insights overview dashboard widgets (admin, required).
 - Popular pages widget (admin, required).
 - Recent journeys widget (admin, required).
@@ -46,8 +50,9 @@ Screenshot contract: `docs/screenshots.json`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Filament classes: `InsightsPage`, `InsightsDashboardSettingsContributor`, `InsightsSettingsSchema`, `AcquisitionSourcesFilamentWidget`, `BuildsInsightsDashboardWindow`, `InsightsOverviewStatsFilamentWidget`, `LiveInsightsStatsFilamentWidget`, `PopularPagesFilamentWidget`, `RecentJourneysFilamentWidget`, `TopActionsFilamentWidget`, `TrendingPagesFilamentWidget`.
 - Route files: `packages/insights/routes/web.php`.
-- Actions: `BuildAcquisitionSourcesQueryAction`, `BuildFunnelConversionReportAction`, `BuildInsightsDigestAction`, `BuildInsightsOverviewStatsAction`, `BuildJourneyTimelineAction`, `BuildLiveInsightsStatsAction`, `BuildPopularPagesQueryAction`, `BuildRecentJourneysQueryAction`, `BuildTopActionsQueryAction`, `BuildTrendingPagesQueryAction`, `CreateInsightsVisitAction`, `ExportInsightsDigestCsvAction`, `and 16 more`.
-- Data objects: `InsightsBeaconData`, `InsightsConsentData`, `InsightsDigestData`, `InsightsEventData`, `InsightsEventMetadataData`, `InsightsJourneyStepData`, `InsightsPageSummaryData`, `InsightsVisitData`, `InsightsWindowData`.
+- Actions: `AnonymizeInsightsVisitAction`, `BuildAcquisitionSourcesQueryAction`, `BuildFunnelConversionReportAction`, `BuildInsightsDigestAction`, `BuildInsightsOverviewStatsAction`, `BuildJourneyTimelineAction`, `BuildLiveInsightsStatsAction`, `BuildPopularPagesQueryAction`, `BuildRecentJourneysQueryAction`, `BuildTopActionsQueryAction`, `BuildTrendingPagesQueryAction`, `CreateInsightsVisitAction`, `and 18 more`.
+- Data objects: `InsightsBeaconData`, `InsightsConsentData`, `InsightsDigestData`, `InsightsEventData`, `InsightsEventMetadataData`, `InsightsJourneyStepData`, `InsightsPageSummaryData`, `InsightsRequestContextData`, `InsightsVisitData`, `InsightsWindowData`.
+- Jobs: `ProcessInsightsBeaconJob`.
 - Command signatures: `insights:purge`, `insights:rollups:rebuild`.
 - Console command classes: `PurgeInsightsDataCommand`, `RebuildInsightsDailyRollupsCommand`.
 - Manifest contributions: `admin-page: Capell\Insights\Manifest\InsightsAdminPageContribution`, `console-command: Capell\Insights\Manifest\InsightsConsoleCommandsContribution`, `dashboard-widget: Capell\Insights\Manifest\InsightsDashboardFilamentWidgetsContribution`, `health-check: Capell\Insights\Manifest\InsightsHealthContribution`, `model: Capell\Insights\Manifest\InsightsModelsContribution`, `overview-stat: Capell\Insights\Manifest\InsightsOverviewStatsContribution`, `route: Capell\Insights\Manifest\InsightsRoutesContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsPurgeScheduleContribution`, `setting: Capell\Insights\Manifest\InsightsSettingsContribution`.
@@ -70,7 +75,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Public routes: route files exist and must be reviewed before public enablement.
 - Database changes: package migrations are declared.
 - Settings: `Capell\Insights\Settings\InsightsSettings`.
-- Queues or schedules: none detected in standard package paths.
+- Queues or schedules: review package jobs or schedules before install.
 - Cache tags: `insights`.
 - Commands: `insights:purge`, `insights:rollups:rebuild`.
 
