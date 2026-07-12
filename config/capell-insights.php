@@ -6,7 +6,7 @@ return [
     'enabled' => env('CAPELL_INSIGHTS_ENABLED', true),
     'route_prefix' => 'capell/insights',
     'validate_beacon_origin' => true,
-    'require_signed_beacons' => true,
+    'require_signed_beacons' => false,
     'honor_privacy_signals' => true,
     'signed_beacon_ttl_minutes' => 60,
     'allowed_beacon_origins' => [],
