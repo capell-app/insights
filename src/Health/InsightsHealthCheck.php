@@ -217,8 +217,8 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         }
 
         return str_contains($output, 'data-capell-insights-tracker')
-            && str_contains($output, route('capell-insights.events'))
-            && str_contains($output, route('capell-insights.consent'));
+            && str_contains($output, route('capell-insights.events', [], false))
+            && str_contains($output, route('capell-insights.consent', [], false));
     }
 
     public function hasPurgeSchedule(?Schedule $schedule = null): bool

@@ -4,7 +4,7 @@
 
 ## What This Plugin Adds
 
-Insights is an **Available**, **Schema-owning** Capell package in the **Capell Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
+Insights is an **Available**, **Schema-owning** Capell package in the **Capell Marketing & Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
 
 Cookie-light, GDPR-aware web analytics built into your Capell admin - page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.
 
@@ -14,7 +14,7 @@ Status details:
 
 - Status: Available
 - Tier: premium
-- Bundle: growth
+- Bundle: marketing-growth
 - Composer package: `capell-app/insights`
 - Namespace: `Capell\Insights`
 - Theme key: not applicable
