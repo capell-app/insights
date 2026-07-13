@@ -117,6 +117,7 @@ it('allows configured beacon origins when referer contains a path', function ():
 });
 
 it('can require signed beacon urls for event posts', function (): void {
+    config()->set('capell-insights.honor_privacy_signals', false);
     config()->set('capell-insights.require_signed_beacons', true);
 
     $visit = InsightsVisit::factory()->create([
@@ -127,10 +128,12 @@ it('can require signed beacon urls for event posts', function (): void {
     $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertForbidden();
 
-    $this->postJson(
-        URL::temporarySignedRoute('capell-insights.events', now()->addMinute()),
-        pageViewPayload($visit),
-    )->assertForbidden();
+    $this
+        ->withHeader('Origin', '')
+        ->postJson(
+            URL::temporarySignedRoute('capell-insights.events', now()->addMinute()),
+            pageViewPayload($visit),
+        )->assertForbidden();
 
     $this
         ->withHeader('Origin', 'http://localhost')
@@ -404,6 +407,9 @@ it('queues event batches for established visits', function (): void {
         ->not->toContain('query-secret')
         ->not->toContain('fragment-secret');
 
+    if (! $queuedJob instanceof ProcessInsightsBeaconJob) {
+        throw new RuntimeException('Expected a queued insights beacon job.');
+    }
     $queuedJob->handle();
 
     expect(InsightsEvent::query()->count())->toBe(1)
@@ -473,10 +479,12 @@ it('clamps client event timestamps to the configured ingestion window', function
         ],
     ])->assertNoContent();
 
-    $occurredAt = InsightsEvent::query()->orderBy('sequence')->pluck('occurred_at');
+    $events = InsightsEvent::query()->orderBy('sequence')->get();
+    $firstOccurredAt = $events->get(0)?->occurred_at;
+    $secondOccurredAt = $events->get(1)?->occurred_at;
 
-    expect(CarbonImmutable::parse((string) $occurredAt[0])->equalTo($now->subHour()))->toBeTrue()
-        ->and(CarbonImmutable::parse((string) $occurredAt[1])->equalTo($now->addMinutes(5)))->toBeTrue();
+    expect($firstOccurredAt?->equalTo($now->subHour()))->toBeTrue()
+        ->and($secondOccurredAt?->equalTo($now->addMinutes(5)))->toBeTrue();
 });
 
 /**

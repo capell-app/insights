@@ -74,7 +74,8 @@ final class ResolveInsightsHashSaltAction
     {
         $rotationDays = config('capell-insights.hash_rotation_days', 30);
         $resolvedRotationDays = is_numeric($rotationDays) && (int) $rotationDays > 0 ? (int) $rotationDays : 30;
+        $date = $at ?? now()->toImmutable();
 
-        return intdiv(($at ?? now()->toImmutable())->getTimestamp(), $resolvedRotationDays * 86_400);
+        return ($date->year * 1_000) + intdiv($date->dayOfYear, $resolvedRotationDays);
     }
 }
