@@ -14,15 +14,18 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 
-$routePrefix = trim(config('capell-insights.route_prefix', 'capell/insights'), '/');
+$configuredRoutePrefix = config('capell-insights.route_prefix', 'capell/insights');
+$routePrefix = trim(is_string($configuredRoutePrefix) ? $configuredRoutePrefix : 'capell/insights', '/');
+$configuredThrottle = config('capell-insights.ingest.throttle_per_minute', 30);
+$throttle = is_numeric($configuredThrottle) ? max(1, (int) $configuredThrottle) : 30;
 
 Route::prefix($routePrefix)
-    ->group(function (): void {
+    ->group(function () use ($throttle): void {
         Route::post('events', InsightsBeaconController::class)
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
-                sprintf('throttle:%d,1', max(1, (int) config('capell-insights.ingest.throttle_per_minute', 30))),
+                sprintf('throttle:%d,1', $throttle),
             ])
             ->withoutMiddleware([VerifyCsrfToken::class])
             ->name('capell-insights.events');

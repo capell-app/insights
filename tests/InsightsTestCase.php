@@ -26,6 +26,7 @@ class InsightsTestCase extends AbstractTestCase
 
         config()->set('capell-insights.ingest.queue_enabled', false);
         config()->set('capell-insights.require_signed_beacons', false);
+        $this->withHeader('Origin', 'http://localhost');
 
         $this->registerAndMigrateSettings(
             CapellCore::getSettingMigrations(),

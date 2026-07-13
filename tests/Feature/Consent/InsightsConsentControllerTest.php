@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Actions\ResolveInsightsHashSaltAction;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsConsent;
@@ -221,8 +222,10 @@ it('stores hmac visitor hashes when visitor data hashing is enabled', function (
         ->where('visit_id', $visit->getKey())
         ->firstOrFail();
 
-    $expectedIpHash = hash_hmac('sha256', '203.0.113.50', 'insights-test-salt');
-    $expectedUserAgentHash = hash_hmac('sha256', 'Capell Consent Test Browser', 'insights-test-salt');
+    $resolvedSalt = ResolveInsightsHashSaltAction::run();
+    throw_unless(is_string($resolvedSalt), RuntimeException::class, 'Expected Insights to resolve a visitor hash salt.');
+    $expectedIpHash = hash_hmac('sha256', '203.0.113.50', $resolvedSalt);
+    $expectedUserAgentHash = hash_hmac('sha256', 'Capell Consent Test Browser', $resolvedSalt);
 
     expect($visit->ip_hash)->toBe($expectedIpHash)
         ->and($visit->user_agent_hash)->toBe($expectedUserAgentHash)
@@ -255,7 +258,8 @@ it('derives visitor hash salt from the application key when no private salt is c
         ->where('uuid', $visitUuid)
         ->firstOrFail();
 
-    $derivedSalt = hash_hmac('sha256', 'capell-insights', $applicationKey);
+    $derivedSalt = ResolveInsightsHashSaltAction::run();
+    throw_unless(is_string($derivedSalt), RuntimeException::class, 'Expected Insights to derive a visitor hash salt from the application key.');
 
     expect($visit->ip_hash)->toBe(hash_hmac('sha256', '203.0.113.51', $derivedSalt))
         ->and($visit->user_agent_hash)->toBe(hash_hmac('sha256', 'Capell App Key Browser', $derivedSalt));
