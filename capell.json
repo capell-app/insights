@@ -4,13 +4,13 @@
     "slug": "insights",
     "displayName": "Insights",
     "kind": "package",
-    "capellApiVersion": "^1.0",
+    "capellApiVersion": "^4.0",
     "version": "1.x-dev",
     "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
     "product": {
-        "group": "Capell Growth",
+        "group": "Capell Marketing & Growth",
         "tier": "premium",
-        "bundle": "growth"
+        "bundle": "marketing-growth"
     },
     "namespace": "Capell\\Insights",
     "surfaces": ["admin", "frontend"],
