@@ -4,7 +4,7 @@
     "slug": "insights",
     "displayName": "Insights",
     "kind": "package",
-    "capellApiVersion": "^4.0",
+    "capellApiVersion": "^1.0",
     "version": "1.x-dev",
     "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin — page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
     "product": {

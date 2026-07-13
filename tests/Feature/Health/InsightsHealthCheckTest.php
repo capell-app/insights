@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 it('reports a compatible capell api version', function (): void {
-    expect(InsightsHealthCheck::compatibleCapellApiVersion())->toBe('^4.0');
+    expect(InsightsHealthCheck::compatibleCapellApiVersion())->toBe('^1.0');
 });
 
 it('runs real diagnostics returning check results', function (): void {
