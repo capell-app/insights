@@ -25,17 +25,22 @@
                 CanvasText 18%,
                 transparent
             );
-            --capell-insights-banner-accent: #0f766e;
-            --capell-insights-banner-accent-fg: #ffffff;
+            --capell-insights-banner-accent: var(
+                --theme-primary,
+                var(--foundation-primary-action, CanvasText)
+            );
+            --capell-insights-banner-accent-fg: var(
+                --theme-primary-contrast,
+                Canvas
+            );
             --capell-insights-banner-focus: color-mix(
                 in srgb,
                 var(--capell-insights-banner-accent) 32%,
                 transparent
             );
             position: fixed;
-            right: 0;
+            inset-inline: 0;
             bottom: 0;
-            left: 0;
             z-index: 60;
             display: flex;
             justify-content: center;
