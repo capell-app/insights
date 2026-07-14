@@ -1,0 +1,39 @@
+{
+    "whatThisPluginAdds": {
+        "text": "Insights records first-party page views, events, journeys, conversions, and consent state for reporting inside Capell.",
+        "evidence": [
+            "src/Actions/IngestInsightsBeaconAction.php",
+            "src/Actions/RecordInsightsEventAction.php",
+            "routes/web.php",
+            "tests/Feature/Events/InsightsBeaconControllerTest.php"
+        ]
+    },
+    "surfaceOutcome": {
+        "text": "Admins can review overview metrics, trends, journeys, and dashboard widgets. Public pages send consent-aware events through the Insights beacon.",
+        "evidence": [
+            "src/Filament/Pages/InsightsPage.php",
+            "src/Support/RenderHooks/RegisterInsightsTrackerHook.php",
+            "tests/Feature/Filament/InsightsWidgetsTest.php",
+            "tests/Feature/Frontend/InsightsRenderHookTest.php"
+        ]
+    },
+    "whyItMatters": {
+        "developers": {
+            "text": "Typed Actions handle beacon validation, event storage, rollups, consent, and retention instead of spreading analytics logic across controllers and views.",
+            "evidence": [
+                "src/Actions/ValidateInsightsBeaconRequestAction.php",
+                "src/Actions/RebuildInsightsDailyRollupsAction.php",
+                "src/Actions/PurgeInsightsDataAction.php",
+                "tests/Feature/Reports/RebuildInsightsDailyRollupsActionTest.php"
+            ]
+        },
+        "teams": {
+            "text": "Teams can inspect site activity and conversion paths without sending visitor analytics to a third-party reporting service.",
+            "evidence": [
+                "docs/overview.admin.md",
+                "src/Actions/BuildJourneyTimelineAction.php",
+                "src/Actions/BuildFunnelConversionReportAction.php"
+            ]
+        }
+    }
+}
