@@ -6,6 +6,9 @@ it('contains the browser tracking primitives', function (): void {
     $source = insightsScriptSource();
 
     expect($source)
+        ->toContain('return new URL(url, window.location.origin).toString()')
+        ->toContain('config.eventsUrl = currentOriginUrl(config.eventsUrl)')
+        ->toContain('config.consentUrl = currentOriginUrl(config.consentUrl)')
         ->toContain('navigator.sendBeacon')
         ->toContain('keepalive: true')
         ->toContain('data-capell-insights-ignore')
