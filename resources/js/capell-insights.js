@@ -15,6 +15,13 @@
         return
     }
 
+    function currentOriginUrl(url) {
+        return new URL(url, window.location.origin).toString()
+    }
+
+    config.eventsUrl = currentOriginUrl(config.eventsUrl)
+    config.consentUrl = currentOriginUrl(config.consentUrl)
+
     var defaultIgnoredSelectors = ['[data-capell-insights-ignore]']
     var sequence = 0
     var eventQueue = []

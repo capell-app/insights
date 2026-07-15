@@ -6,9 +6,11 @@
 
 Insights is an **Available**, **Schema-owning** Capell package in the **Capell Marketing & Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
 
-Cookie-light, GDPR-aware web analytics built into your Capell admin - page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.
+Insights records first-party page views, events, journeys, conversions, and consent state for reporting inside Capell.
 
-After install, admins get package-owned management surfaces and public users may see package-owned frontend output or routes.
+Admins can review overview metrics, trends, journeys, and dashboard widgets. Public pages send consent-aware events through the Insights beacon.
+
+Evidence: [`src/Actions/IngestInsightsBeaconAction.php`](src/Actions/IngestInsightsBeaconAction.php), [`src/Actions/RecordInsightsEventAction.php`](src/Actions/RecordInsightsEventAction.php), [`routes/web.php`](routes/web.php), [`tests/Feature/Events/InsightsBeaconControllerTest.php`](tests/Feature/Events/InsightsBeaconControllerTest.php), [`src/Filament/Pages/InsightsPage.php`](src/Filament/Pages/InsightsPage.php), [`src/Support/RenderHooks/RegisterInsightsTrackerHook.php`](src/Support/RenderHooks/RegisterInsightsTrackerHook.php), [`tests/Feature/Filament/InsightsWidgetsTest.php`](tests/Feature/Filament/InsightsWidgetsTest.php), [`tests/Feature/Frontend/InsightsRenderHookTest.php`](tests/Feature/Frontend/InsightsRenderHookTest.php).
 
 Status details:
 
@@ -21,9 +23,11 @@ Status details:
 
 ## Why It Matters
 
-**For developers:** The package gives developers package-owned service providers, Actions, Data objects, models, Laravel routes, Filament classes, and Blade views instead of pushing this behaviour into core or application code.
+**For developers:** Typed Actions handle beacon validation, event storage, rollups, consent, and retention instead of spreading analytics logic across controllers and views.
 
-**For teams:** Cookie-light, GDPR-aware web analytics built into your Capell admin - page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.
+**For teams:** Teams can inspect site activity and conversion paths without sending visitor analytics to a third-party reporting service.
+
+Evidence: [`src/Actions/ValidateInsightsBeaconRequestAction.php`](src/Actions/ValidateInsightsBeaconRequestAction.php), [`src/Actions/RebuildInsightsDailyRollupsAction.php`](src/Actions/RebuildInsightsDailyRollupsAction.php), [`src/Actions/PurgeInsightsDataAction.php`](src/Actions/PurgeInsightsDataAction.php), [`tests/Feature/Reports/RebuildInsightsDailyRollupsActionTest.php`](tests/Feature/Reports/RebuildInsightsDailyRollupsActionTest.php), [`docs/overview.admin.md`](docs/overview.admin.md), [`src/Actions/BuildJourneyTimelineAction.php`](src/Actions/BuildJourneyTimelineAction.php), [`src/Actions/BuildFunnelConversionReportAction.php`](src/Actions/BuildFunnelConversionReportAction.php).
 
 ## Screens And Workflow
 
@@ -54,6 +58,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Data objects: `InsightsBeaconData`, `InsightsConsentData`, `InsightsDigestData`, `InsightsEventData`, `InsightsEventMetadataData`, `InsightsJourneyStepData`, `InsightsPageSummaryData`, `InsightsRequestContextData`, `InsightsVisitData`, `InsightsWindowData`.
 - Jobs: `ProcessInsightsBeaconJob`.
 - Command signatures: `insights:purge`, `insights:rollups:rebuild`.
+- Scheduled commands: `insights:purge (monthly)`, `insights:rollups:rebuild (daily)`.
 - Console command classes: `PurgeInsightsDataCommand`, `RebuildInsightsDailyRollupsCommand`.
 - Manifest contributions: `admin-page: Capell\Insights\Manifest\InsightsAdminPageContribution`, `console-command: Capell\Insights\Manifest\InsightsConsoleCommandsContribution`, `dashboard-widget: Capell\Insights\Manifest\InsightsDashboardFilamentWidgetsContribution`, `health-check: Capell\Insights\Manifest\InsightsHealthContribution`, `model: Capell\Insights\Manifest\InsightsModelsContribution`, `overview-stat: Capell\Insights\Manifest\InsightsOverviewStatsContribution`, `route: Capell\Insights\Manifest\InsightsRoutesContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsPurgeScheduleContribution`, `setting: Capell\Insights\Manifest\InsightsSettingsContribution`.
 - Health checks: `Capell\Insights\Health\InsightsHealthCheck`.
@@ -64,28 +69,34 @@ Screenshot contract: `docs/screenshots.json`.
 
 - Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
+- Core record references in migrations: `sites via site_id`, `languages via language_id`.
 - Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: Docs gap unless the package has an explicit pruning command, retention setting, or tested cascade path.
+- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `insights:purge` (monthly).
 
 ## Install Impact
 
-- Admin navigation: adds package-owned Filament classes when registered.
+- Required packages: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
+- Admin navigation: declares `admin-page: InsightsAdminPageContribution`; each Filament page or resource controls its own navigation visibility.
+- Admin/editor extensions: `dashboard-widget: InsightsDashboardFilamentWidgetsContribution`, `overview-stat: InsightsOverviewStatsContribution`.
 - Permissions: `View:InsightsPage`.
-- Public routes: route files exist and must be reviewed before public enablement.
+- Public routes: loads `routes/web.php`; registers `InsightsRoutesContribution`.
 - Database changes: package migrations are declared.
+- Config: `config/capell-insights.php`.
 - Settings: `Capell\Insights\Settings\InsightsSettings`.
-- Queues or schedules: review package jobs or schedules before install.
+- Queues or schedules: scheduled commands `insights:purge (monthly)`, `insights:rollups:rebuild (daily)`; queue jobs `ProcessInsightsBeaconJob`.
 - Cache tags: `insights`.
 - Commands: `insights:purge`, `insights:rollups:rebuild`.
 
 ## Common Pitfalls
 
+- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
 - Run migrations before opening package resources or public routes.
-- Configure package settings before testing production-like workflows.
-- Review route middleware, throttling, signed URLs, and public-output safety before exposing routes.
+- Review package configuration before production-like verification: `config/capell-insights.php`, `Capell\Insights\Settings\InsightsSettings`.
+- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
+- Register the host scheduler so these declared commands run at their documented frequencies: `insights:purge (monthly)`, `insights:rollups:rebuild (daily)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Keep `composer.json`, `composer.local.json`, `capell.json`, docs, screenshots, and tests aligned when the package surface changes.
+- Custom write integrations must preserve invalidation for `insights` cache tags.
 
 ## Troubleshooting
 
@@ -94,19 +105,22 @@ Screenshot contract: `docs/screenshots.json`.
 | Package surface is missing after install | Provider or manifest is not loaded | Confirm `capell.json`, package `composer.json`, and provider registration | Reinstall the package, refresh Composer autoload, and clear host caches |
 | Admin screen or command fails on missing table | Package migrations have not run | Check the tables listed in `Data Model` | Run host migrations and rerun the focused package test |
 | Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
-| Background work does not run | Queue worker or scheduled command is not active | Check package jobs, commands, and host scheduler configuration | Start the queue or scheduler, then run the focused command or package test |
+| Background work does not run | Queue worker or declared schedule is not active | Check the jobs and scheduled commands listed in `Technical Shape` | Start the queue worker or host scheduler, then run the focused command or package test |
 | Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
 
 ## Quick Start
 
 1. Install the package: `composer require capell-app/insights`.
 2. Run the required setup: `php artisan migrate`.
-3. Open the related Capell admin surface and verify Insights appears.
+3. Open the Insights overview dashboard widgets and confirm the admin workflow loads.
 
 ## Next Steps
 
 - [Package docs](docs/README.md)
 - [Overview](docs/overview.md)
+- [Admin guide](docs/admin-guide.md)
+- Configuration files: [`config/capell-insights.php`](config/capell-insights.php).
+- [Troubleshooting](#troubleshooting)
 - [Screenshot contract](docs/screenshots.json)
 - [Marketplace assets](docs/assets/marketplace/)
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
