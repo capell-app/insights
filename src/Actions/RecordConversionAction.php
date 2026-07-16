@@ -8,14 +8,16 @@ use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Data\InsightsEventMetadataData;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static InsightsEvent|null run(?string $visitUuid, string $eventName, string $url, ?string $label = null, ?string $sourcePackage = null, ?float $value = null, ?string $currency = null, ?string $occurredAt = null)
  */
 final class RecordConversionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(
         ?string $visitUuid,

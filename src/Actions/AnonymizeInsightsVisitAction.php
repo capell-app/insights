@@ -6,14 +6,16 @@ namespace Capell\Insights\Actions;
 
 use Capell\Insights\Models\InsightsVisit;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static InsightsVisit run(InsightsVisit $visit)
  */
 final class AnonymizeInsightsVisitAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(InsightsVisit $visit): InsightsVisit
     {

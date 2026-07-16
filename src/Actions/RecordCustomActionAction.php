@@ -7,14 +7,16 @@ namespace Capell\Insights\Actions;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsEvent;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static InsightsEvent|null run(?string $visitUuid, InsightsEventData $data, ?string $occurredAt = null)
  */
 final class RecordCustomActionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(?string $visitUuid, InsightsEventData $data, ?string $occurredAt = null): ?InsightsEvent
     {

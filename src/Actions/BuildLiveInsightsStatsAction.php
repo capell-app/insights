@@ -10,14 +10,16 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, array{id: string, metric: string, value: int|string}> run(int $minutes = 15, ?int $siteId = null, ?int $limit = 5)
  */
 final class BuildLiveInsightsStatsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, array{id: string, metric: string, value: int|string}>

@@ -8,11 +8,13 @@ use Capell\Insights\Data\InsightsJourneyStepData;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Models\InsightsVisit;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class BuildRecentJourneysQueryAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}>

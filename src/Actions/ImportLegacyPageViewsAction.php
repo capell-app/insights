@@ -12,12 +12,14 @@ use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use stdClass;
 
 final class ImportLegacyPageViewsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(int $chunkSize = 500): int
     {

@@ -14,8 +14,8 @@ This guide is for owners and operators who want to understand how their site and
 
 1. Open **Monitoring > Insights**.
 2. The **Insights overview** shows headline figures such as **Visits**, **Unique visits**, **Page views**, **Events**, and **Clicks**.
-3. Each figure shows a **Change** and **Change %** against the previous period, so you can see the direction of travel.
-4. Judge performance on the trend across days or weeks, not on a single day.
+3. Each figure is the recorded total for the dashboard window.
+4. Compare the figures across regular checks, not against a single isolated visit or event.
 
 ![An administrator reviews analytics overview stats for seeded visits and events.](screenshots/insights-overview-dashboard-widgets.png)
 
@@ -27,6 +27,20 @@ This guide is for owners and operators who want to understand how their site and
 4. The **Trending pages** panel highlights pages gaining attention right now.
 
 ![An administrator identifies high-traffic pages from seeded page-view data.](screenshots/popular-pages-widget.png)
+
+### How to see which actions visitors take
+
+1. Open **Monitoring > Insights**.
+2. Find the **Top actions** panel.
+3. It lists the five most-recorded event names in the current dashboard window, with the number of **Events** for each one.
+4. Use it to see which tracked interactions happen most often before you decide what to improve.
+
+### How to see where visits come from
+
+1. Open **Monitoring > Insights**.
+2. Find the **Acquisition sources** panel.
+3. It lists the five leading sources in the current dashboard window, including **Source**, **Medium**, **Campaign**, **Referrer**, and **Visits**.
+4. Compare these rows to understand which campaigns and referring sites are bringing people to the site.
 
 ### How to follow recent visitor journeys
 

@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Capell\Insights\Actions;
 
 use Carbon\CarbonImmutable;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static ?string run(?int $siteId = null, ?CarbonImmutable $at = null)
  */
 final class ResolveInsightsHashSaltAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     private const string APP_KEY_DERIVATION_CONTEXT = 'capell-insights';
 

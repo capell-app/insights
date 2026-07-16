@@ -7,14 +7,16 @@ namespace Capell\Insights\Actions;
 use Capell\Insights\Data\InsightsDigestData;
 use Capell\Insights\Data\InsightsWindowData;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static InsightsDigestData run(InsightsWindowData $window, list<string> $funnelSteps = [], int $limit = 10)
  */
 final class BuildInsightsDigestAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  list<string>  $funnelSteps

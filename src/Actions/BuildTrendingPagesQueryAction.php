@@ -12,14 +12,16 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int<1, max>, change_percentage: float}> run(InsightsWindowData $window, ?int $limit = null)
  */
 final class BuildTrendingPagesQueryAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, array{path: string, url: string, current_page_views: int, previous_page_views: int, change: int<1, max>, change_percentage: float}>

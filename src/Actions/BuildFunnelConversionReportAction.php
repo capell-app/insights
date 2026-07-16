@@ -10,14 +10,16 @@ use Capell\Insights\Models\InsightsEvent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static array{name: string, visitors: int, steps: list<array{name: string, visitors: int, conversion_rate: float}>} run(InsightsWindowData $window, list<string> $steps, string $name = 'default')
  */
 final class BuildFunnelConversionReportAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  list<string>  $steps

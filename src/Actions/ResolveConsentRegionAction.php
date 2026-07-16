@@ -6,14 +6,16 @@ namespace Capell\Insights\Actions;
 
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Support\Consent\ConsentRegionResolver;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static InsightsConsentRegion run()
  */
 final class ResolveConsentRegionAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(): InsightsConsentRegion
     {

@@ -9,14 +9,16 @@ use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static int run(?CarbonImmutable $startsAt = null, ?CarbonImmutable $endsAt = null)
  */
 final class RebuildInsightsDailyRollupsAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(?CarbonImmutable $startsAt = null, ?CarbonImmutable $endsAt = null): int
     {

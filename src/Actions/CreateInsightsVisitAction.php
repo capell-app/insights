@@ -11,14 +11,16 @@ use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsVisit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static InsightsVisit run(Request $request, InsightsConsentRegion $region)
  */
 final class CreateInsightsVisitAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Request $request, InsightsConsentRegion $region): InsightsVisit
     {

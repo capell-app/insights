@@ -10,11 +10,13 @@ use Capell\PrivacyCenter\Actions\RecordConsentAction;
 use Capell\PrivacyCenter\Data\ConsentRecordData;
 use Capell\PrivacyCenter\Enums\ConsentDecision;
 use Capell\PrivacyCenter\Enums\CookieCategory;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class MirrorInsightsConsentToPrivacyCenterAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /** @var array<string, string> */
     private const array CATEGORY_MAP = [

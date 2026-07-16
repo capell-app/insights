@@ -12,11 +12,13 @@ use Capell\Insights\Models\InsightsVisit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Validation\ValidationException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class UpdateInsightsConsentAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(
         Request $request,

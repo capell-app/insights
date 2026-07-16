@@ -10,14 +10,16 @@ use Capell\Insights\Models\InsightsEvent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static Collection<int, array{action: string, event_name: string|null, label: string|null, location: string|null, events: int}> run(InsightsWindowData $window, ?int $limit = 5)
  */
 final class BuildTopActionsQueryAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @return Collection<int, array{action: string, event_name: string|null, label: string|null, location: string|null, events: int}>

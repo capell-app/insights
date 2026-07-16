@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Capell\Insights\Actions;
 
 use Illuminate\Http\Request;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 final class ValidateInsightsBeaconRequestAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(Request $request): bool
     {

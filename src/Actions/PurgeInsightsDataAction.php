@@ -11,14 +11,16 @@ use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static int run(?int $retentionDays = null, ?int $batchSize = null)
  */
 final class PurgeInsightsDataAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(?int $retentionDays = null, ?int $batchSize = null): int
     {

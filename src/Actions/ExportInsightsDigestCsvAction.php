@@ -6,7 +6,8 @@ namespace Capell\Insights\Actions;
 
 use Capell\Insights\Data\InsightsDigestData;
 use Capell\Insights\Data\InsightsWindowData;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use RuntimeException;
 
 /**
@@ -14,7 +15,8 @@ use RuntimeException;
  */
 final class ExportInsightsDigestCsvAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     /**
      * @param  list<string>  $funnelSteps

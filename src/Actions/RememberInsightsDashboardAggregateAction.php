@@ -8,11 +8,13 @@ use Capell\Insights\Data\InsightsWindowData;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 use JsonException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 final class RememberInsightsDashboardAggregateAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     private const string CACHE_PREFIX = 'capell-insights:dashboard:';
 

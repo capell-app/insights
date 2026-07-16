@@ -6,13 +6,15 @@ namespace Capell\Insights\Actions;
 
 use Capell\Insights\Providers\InsightsServiceProvider;
 use Illuminate\Support\Facades\Cache;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 use ReflectionClass;
 use RuntimeException;
 
 final class GetInsightsTrackerScriptAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(): string
     {

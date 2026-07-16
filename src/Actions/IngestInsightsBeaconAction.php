@@ -12,14 +12,16 @@ use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
-use Lorisleiva\Actions\Concerns\AsAction;
+use Lorisleiva\Actions\Concerns\AsFake;
+use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
  * @method static string|null run(InsightsBeaconData $data, Request $request)
  */
 final class IngestInsightsBeaconAction
 {
-    use AsAction;
+    use AsFake;
+    use AsObject;
 
     public function handle(InsightsBeaconData $data, Request $request): ?string
     {
