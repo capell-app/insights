@@ -17,11 +17,11 @@ final class BuildRecentJourneysQueryAction
     use AsObject;
 
     /**
-     * @return Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}>
+     * @return Collection<int, array{id: int, visit: string, steps: int<0, max>, landing_url: string, last_path: string}>
      */
     public function handle(?int $limit = 5, ?InsightsWindowData $window = null): Collection
     {
-        /** @var Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}> $recentJourneys */
+        /** @var Collection<int, array{id: int, visit: string, steps: int<0, max>, landing_url: string, last_path: string}> $recentJourneys */
         $recentJourneys = RememberInsightsDashboardAggregateAction::run(
             RememberInsightsDashboardAggregateAction::windowKey('recent-journeys', $window, [
                 'limit' => $limit,
@@ -33,7 +33,7 @@ final class BuildRecentJourneysQueryAction
     }
 
     /**
-     * @return Collection<int, array{id: int, visit: string, steps: int, landing_url: string, last_path: string}>
+     * @return Collection<int, array{id: int, visit: string, steps: int<0, max>, landing_url: string, last_path: string}>
      */
     private function buildRecentJourneys(?int $limit = 5, ?InsightsWindowData $window = null): Collection
     {

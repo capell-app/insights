@@ -50,14 +50,20 @@ final class RecentJourneysFilamentWidget extends BaseWidget implements CapellFil
     }
 
     /**
-     * @return Collection<int, array{id: string, visit: string, steps: int, last_path: string}>
+     * @return Collection<int, array{id: string, visit: string, steps: int, landing_url: string, last_path: string}>
      */
     private function getRecords(): Collection
     {
         return BuildRecentJourneysQueryAction::run(5, $this->getInsightsWindow())
-            ->map(fn (array $journey): array => [
-                ...$journey,
-                'id' => 'journey-' . $journey['id'],
-            ]);
+            ->map(
+                /**
+                 * @param  array{id: int, visit: string, steps: int<0, max>, landing_url: string, last_path: string}  $journey
+                 * @return array{id: string, visit: string, steps: int, landing_url: string, last_path: string}
+                 */
+                fn (array $journey): array => [
+                    ...$journey,
+                    'id' => 'journey-' . $journey['id'],
+                ],
+            );
     }
 }

@@ -9,6 +9,7 @@ use Capell\Insights\Actions\BuildPopularPagesQueryAction;
 use Capell\Insights\Actions\BuildRecentJourneysQueryAction;
 use Capell\Insights\Actions\BuildTopActionsQueryAction;
 use Capell\Insights\Actions\BuildTrendingPagesQueryAction;
+use Capell\Insights\Data\InsightsJourneyStepData;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsDailyRollup;
@@ -16,6 +17,7 @@ use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
+use PHPUnit\Framework\Assert;
 
 /**
  * @param  Collection<array-key, array{id: string, label: string, value: int}>  $stats
@@ -90,12 +92,19 @@ it('builds an ordered journey timeline with seconds since previous step', functi
     insightsReportEvent($visit, InsightsEventType::Custom, '/pricing', 'https://example.test/pricing', $startedAt->addSeconds(75), sequence: 3, eventName: 'signup_started');
 
     $steps = BuildJourneyTimelineAction::run($visit);
+    $firstStep = $steps->get(0);
+    $secondStep = $steps->get(1);
+    $thirdStep = $steps->get(2);
+
+    Assert::assertInstanceOf(InsightsJourneyStepData::class, $firstStep);
+    Assert::assertInstanceOf(InsightsJourneyStepData::class, $secondStep);
+    Assert::assertInstanceOf(InsightsJourneyStepData::class, $thirdStep);
 
     expect($steps->pluck('sequence')->all())->toBe([1, 2, 3])
-        ->and($steps[0]->secondsSincePreviousStep)->toBeNull()
-        ->and($steps[1]->secondsSincePreviousStep)->toBe(45)
-        ->and($steps[2]->secondsSincePreviousStep)->toBe(30)
-        ->and($steps[2]->eventName)->toBe('signup_started');
+        ->and($firstStep->secondsSincePreviousStep)->toBeNull()
+        ->and($secondStep->secondsSincePreviousStep)->toBe(45)
+        ->and($thirdStep->secondsSincePreviousStep)->toBe(30)
+        ->and($thirdStep->eventName)->toBe('signup_started');
 });
 
 it('returns recent journeys ordered by last seen date', function (): void {
