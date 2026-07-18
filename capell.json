@@ -189,7 +189,7 @@
         "cacheTags": ["insights"],
         "cacheSafety": {
             "cacheable": false,
-            "variesBy": ["site", "locale"],
+            "variesBy": [],
             "sensitiveOutput": false,
             "invalidationSources": [],
             "queueInvalidation": true
