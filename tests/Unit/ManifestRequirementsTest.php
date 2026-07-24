@@ -7,6 +7,7 @@ use Capell\Core\Contracts\Extensions\ExtensionContribution;
 use Capell\Core\Contracts\Extensions\RegistersExtensionFilamentWidget;
 use Capell\Core\Contracts\Extensions\RegistersExtensionRoute;
 use Capell\Core\Contracts\Extensions\RegistersExtensionSetting;
+use Capell\Core\Contracts\Extensions\RunsExtensionMigration;
 use Capell\Core\Contracts\Extensions\RunsScheduledExtensionJob;
 use Capell\Core\Support\Manifest\ManifestValidator;
 use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
@@ -22,6 +23,7 @@ use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Capell\Insights\Health\InsightsHealthCheck;
 use Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution;
 use Capell\Insights\Manifest\InsightsHealthContribution;
+use Capell\Insights\Manifest\InsightsMigrationsContribution;
 use Capell\Insights\Manifest\InsightsPurgeScheduleContribution;
 use Capell\Insights\Manifest\InsightsRoutesContribution;
 use Capell\Insights\Manifest\InsightsSettingsContribution;
@@ -148,6 +150,16 @@ it('declares installed settings and page permission surfaces', function (): void
     ])->and($manifest['permissions'] ?? [])->toContain('View:InsightsPage')
         ->and($maintenanceCommands)->toContain('insights:rollups:rebuild')
         ->and($requiredTables)->toContain('insights_daily_rollups');
+});
+
+it('declares migrations for every required table', function (): void {
+    $manifest = insightsPackageJson('capell.json');
+
+    expect(insightsContribution($manifest, 'migration'))->toMatchArray([
+        'class' => InsightsMigrationsContribution::class,
+        'tables' => data_get($manifest, 'database.requiredTables'),
+    ])->and(class_implements(InsightsMigrationsContribution::class))
+        ->toContain(RunsExtensionMigration::class);
 });
 
 it('passes the Capell manifest validator', function (): void {

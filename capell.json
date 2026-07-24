@@ -113,6 +113,24 @@
             "type": "health-check",
             "class": "Capell\\Insights\\Manifest\\InsightsHealthContribution",
             "checkClass": "Capell\\Insights\\Health\\InsightsHealthCheck"
+        },
+        {
+            "type": "migration",
+            "class": "Capell\\Insights\\Manifest\\InsightsMigrationsContribution",
+            "tables": [
+                "insights_visits",
+                "insights_consents",
+                "insights_events",
+                "insights_daily_rollups"
+            ],
+            "migrationFiles": [
+                "2026_05_10_190855_01_create_insights_visits_table",
+                "2026_05_10_190855_02_create_insights_consents_table",
+                "2026_05_10_190855_03_create_insights_events_table",
+                "2026_05_10_190855_05_import_legacy_page_views",
+                "2026_06_06_000001_create_insights_daily_rollups_table",
+                "2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table"
+            ]
         }
     ],
     "database": {

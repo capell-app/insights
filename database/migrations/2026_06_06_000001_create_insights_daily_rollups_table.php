@@ -26,10 +26,6 @@ return new class extends Migration
             $table->unsignedBigInteger('unique_visits')->default(0);
             $table->timestamps();
 
-            $table->unique(
-                ['day', 'site_scope_id', 'language_scope_id', 'type', 'path'],
-                'insights_rollups_day_scope_type_path_unique',
-            );
             $table->index(['day', 'type'], 'insights_rollups_day_type_index');
             $table->index(['site_id', 'language_id', 'day'], 'insights_rollups_site_language_day_index');
         });

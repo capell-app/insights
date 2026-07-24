@@ -31,9 +31,10 @@ final class RebuildInsightsDailyRollupsAction
 
         $rollupTable = (new InsightsDailyRollup)->getTable();
         $eventTable = (new InsightsEvent)->getTable();
+        $requiresApplicationDigest = DB::getDriverName() !== 'mysql';
         $now = now();
 
-        $rowCount = DB::transaction(function () use ($eventTable, $now, $resolvedEndsAt, $resolvedStartsAt, $rollupTable): int {
+        $rowCount = DB::transaction(function () use ($eventTable, $now, $requiresApplicationDigest, $resolvedEndsAt, $resolvedStartsAt, $rollupTable): int {
             InsightsDailyRollup::query()
                 ->whereDate('day', '>=', $resolvedStartsAt->toDateString())
                 ->whereDate('day', '<=', $resolvedEndsAt->toDateString())
@@ -56,22 +57,31 @@ final class RebuildInsightsDailyRollupsAction
                 ->whereNotNull('path')
                 ->groupByRaw('DATE(occurred_at), site_id, language_id, type, path')
                 ->get()
-                ->map(fn (object $row): array => [
-                    'day' => (string) $row->day,
-                    'site_id' => $row->site_id === null ? null : (int) $row->site_id,
-                    'language_id' => $row->language_id === null ? null : (int) $row->language_id,
-                    'site_scope_id' => (int) $row->site_scope_id,
-                    'language_scope_id' => (int) $row->language_scope_id,
-                    'type' => (string) $row->type,
-                    'path' => (string) $row->path,
-                    'url' => $row->url === null ? null : (string) $row->url,
-                    'events' => (int) $row->events,
-                    'page_views' => (int) $row->page_views,
-                    'clicks' => (int) $row->clicks,
-                    'unique_visits' => (int) $row->unique_visits,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ])
+                ->map(function (object $row) use ($now, $requiresApplicationDigest): array {
+                    $path = (string) $row->path;
+                    $values = [
+                        'day' => (string) $row->day,
+                        'site_id' => $row->site_id === null ? null : (int) $row->site_id,
+                        'language_id' => $row->language_id === null ? null : (int) $row->language_id,
+                        'site_scope_id' => (int) $row->site_scope_id,
+                        'language_scope_id' => (int) $row->language_scope_id,
+                        'type' => (string) $row->type,
+                        'path' => $path,
+                        'url' => $row->url === null ? null : (string) $row->url,
+                        'events' => (int) $row->events,
+                        'page_views' => (int) $row->page_views,
+                        'clicks' => (int) $row->clicks,
+                        'unique_visits' => (int) $row->unique_visits,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+
+                    if ($requiresApplicationDigest) {
+                        $values['path_digest'] = hash('sha256', $path);
+                    }
+
+                    return $values;
+                })
                 ->all();
 
             foreach (array_chunk($rows, 500) as $chunk) {

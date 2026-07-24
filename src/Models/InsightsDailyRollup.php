@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Override;
 
 /**
@@ -18,6 +19,7 @@ use Override;
  * @property int $language_scope_id
  * @property string $type
  * @property string $path
+ * @property string $path_digest
  * @property string|null $url
  * @property int $events
  * @property int $page_views
@@ -38,6 +40,15 @@ class InsightsDailyRollup extends Model
         $tableName = config('capell-insights.tables.daily_rollups');
 
         return is_string($tableName) ? $tableName : 'insights_daily_rollups';
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (InsightsDailyRollup $rollup): void {
+            if (DB::getDriverName() !== 'mysql' && $rollup->isDirty('path')) {
+                $rollup->path_digest = hash('sha256', $rollup->path);
+            }
+        });
     }
 
     /**
