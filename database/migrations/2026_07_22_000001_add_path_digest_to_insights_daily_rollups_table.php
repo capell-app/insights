@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Enums\Database\DatabaseCapability;
+use Capell\Core\Facades\CapellDatabase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
@@ -20,12 +22,14 @@ return new class extends Migration
             return;
         }
 
+        $connection = Schema::getConnection();
+        $schema = CapellDatabase::for($connection)->schemaDialect();
+        $usesGeneratedDigest = $schema->supports(DatabaseCapability::HashGeneratedColumn, $connection);
+
         if (! Schema::hasColumn($tableName, 'path_digest')) {
-            if (DB::getDriverName() === 'mysql') {
-                DB::statement(sprintf(
-                    'ALTER TABLE `%s` ADD COLUMN `path_digest` CHAR(64) AS (SHA2(`path`, 256)) STORED',
-                    str_replace('`', '``', $tableName),
-                ));
+            if ($usesGeneratedDigest) {
+                $digest = $schema->hashColumn($tableName, 'path_digest', 'path');
+                DB::statement($digest->sql, $digest->bindings);
             } else {
                 Schema::table($tableName, function (Blueprint $table): void {
                     $table->char('path_digest', 64)->nullable();
@@ -33,7 +37,7 @@ return new class extends Migration
             }
         }
 
-        if (DB::getDriverName() !== 'mysql') {
+        if (! $usesGeneratedDigest) {
             DB::table($tableName)
                 ->select(['id', 'path', 'path_digest'])
                 ->orderBy('id')
@@ -75,11 +79,11 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Preserve the digest schema because it may have been created by the
-     * previously published initial migration before this corrective migration.
-     */
-    public function down(): void {}
+    public function down(): void
+    {
+        // Intentionally forward-only: the digest schema may have been created by
+        // the previously published initial migration before this correction.
+    }
 
     private function hasDigestUniqueIndex(string $tableName): bool
     {

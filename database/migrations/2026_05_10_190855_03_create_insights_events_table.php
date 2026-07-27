@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\Database\DatabaseIndexDefinition;
+use Capell\Core\Facades\CapellDatabase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -43,28 +45,22 @@ return new class extends Migration
             $table->index(['visit_id', 'sequence'], 'insights_events_visit_sequence_index');
         });
 
-        if (DB::connection()->getDriverName() === 'mysql') {
-            DB::statement(sprintf(
-                'ALTER TABLE %s ADD INDEX `insights_events_path_type_occurred_index` (`path`(191), `type`, `occurred_at`)',
-                $this->quoteIdentifier($tableName),
-            ));
+        $connection = Schema::getConnection();
+        $index = CapellDatabase::for($connection)->schemaDialect()->prefixedIndex(
+            new DatabaseIndexDefinition(
+                table: $tableName,
+                name: 'insights_events_path_type_occurred_index',
+                columns: ['path', 'type', 'occurred_at'],
+                prefixLengths: ['path' => 191],
+            ),
+        );
 
-            return;
-        }
-
-        Schema::table($tableName, function (Blueprint $table): void {
-            $table->index(['path', 'type', 'occurred_at'], 'insights_events_path_type_occurred_index');
-        });
+        DB::statement($index->sql, $index->bindings);
     }
 
     public function down(): void
     {
         Schema::dropIfExists($this->tableName('capell-insights.tables.events', 'insights_events'));
-    }
-
-    private function quoteIdentifier(string $identifier): string
-    {
-        return '`' . str_replace('`', '``', $identifier) . '`';
     }
 
     private function tableName(string $key, string $fallback): string

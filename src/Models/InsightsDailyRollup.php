@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Models;
 
+use Capell\Core\Enums\Database\DatabaseCapability;
+use Capell\Core\Facades\CapellDatabase;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Override;
 
 /**
@@ -45,7 +46,10 @@ class InsightsDailyRollup extends Model
     protected static function booted(): void
     {
         static::saving(function (InsightsDailyRollup $rollup): void {
-            if (DB::getDriverName() !== 'mysql' && $rollup->isDirty('path')) {
+            $connection = $rollup->getConnection();
+            $schema = CapellDatabase::for($connection)->schemaDialect();
+
+            if (! $schema->supports(DatabaseCapability::HashGeneratedColumn, $connection) && $rollup->isDirty('path')) {
                 $rollup->path_digest = hash('sha256', $rollup->path);
             }
         });
