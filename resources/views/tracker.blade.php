@@ -2,6 +2,7 @@
     use Capell\Insights\Actions\GetInsightsTrackerScriptAction;
     use Capell\Insights\Enums\InsightsConsentRegion;
     use Capell\Insights\Support\Consent\ConsentRegionResolver;
+
     $consentRegion = app(ConsentRegionResolver::class)->resolve();
     $consentRequired = config('capell-insights.require_consent_for_all_regions', false) === true
         || $consentRegion === InsightsConsentRegion::UkOrEurope
@@ -25,7 +26,7 @@
 @endphp
 
 @if (config('capell-insights.consent_banner_enabled', true) === true)
-    @include ('capell-insights::components.consent-banner')
+    @include('capell-insights::components.consent-banner')
 @endif
 
 <script

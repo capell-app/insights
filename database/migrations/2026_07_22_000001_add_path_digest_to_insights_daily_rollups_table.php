@@ -103,9 +103,7 @@ return new class extends Migration
     {
         $tableName = config('capell-insights.tables.daily_rollups', 'insights_daily_rollups');
 
-        if (! is_string($tableName) || preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $tableName) !== 1) {
-            throw new RuntimeException('Insights daily rollups table name must be a safe SQL identifier.');
-        }
+        throw_if(! is_string($tableName) || preg_match('/^[A-Za-z_]\w*$/', $tableName) !== 1, RuntimeException::class, 'Insights daily rollups table name must be a safe SQL identifier.');
 
         return $tableName;
     }
