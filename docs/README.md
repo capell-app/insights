@@ -10,7 +10,6 @@ Start at the [package README](../README.md) when deciding whether to install thi
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | [Admin Guide](admin-guide.md)                                   | Use Insights dashboards and manage tracking and consent settings.                  |
 | [Credits And Acknowledgements](credits-and-acknowledgements.md) | Upstream services, dependencies, and acknowledgements.                             |
-| [Improvement Plan](improvement-plan.md)                         | Current review findings, shipped slices, and follow-up roadmap.                    |
 | [Overview](overview.md)                                         | Package boundary, runtime surfaces, install notes, and first troubleshooting path. |
 | [Tracking And Consent](tracking-and-consent.md)                 | Focused package workflow, setup, troubleshooting, or implementation details.       |
 

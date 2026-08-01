@@ -37,18 +37,18 @@ Screenshot contract: `docs/screenshots.json`.
 
 ![Popular pages widget](docs/screenshots/popular-pages-widget.png)
 
-- Insights overview dashboard widgets (admin, required).
-- Popular pages widget (admin, required).
-- Recent journeys widget (admin, required).
-- Insights settings screen (admin, required).
-- Frontend page with tracker active (frontend, optional).
-- Consent banner flow (frontend, optional).
+- Insights overview dashboard widgets (admin, required evidence).
+- Popular pages widget (admin, required evidence).
+- Recent journeys widget (admin, required evidence).
+- Insights settings screen (admin, required evidence).
+- Frontend page with tracker active (frontend, supplementary evidence).
+- Consent banner flow (frontend, supplementary evidence).
 
 ## Technical Shape
 
 - Service providers: `Capell\Insights\Providers\InsightsServiceProvider`, `Capell\Insights\Providers\AdminServiceProvider`.
 - Config files: `packages/insights/config/capell-insights.php`.
-- Migrations: `packages/insights/database/migrations/2026_05_10_190855_01_create_insights_visits_table.php`, `packages/insights/database/migrations/2026_05_10_190855_02_create_insights_consents_table.php`, `packages/insights/database/migrations/2026_05_10_190855_03_create_insights_events_table.php`, `packages/insights/database/migrations/2026_05_10_190855_05_import_legacy_page_views.php`, `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`.
+- Migrations: `packages/insights/database/migrations/2026_05_10_190855_01_create_insights_visits_table.php`, `packages/insights/database/migrations/2026_05_10_190855_02_create_insights_consents_table.php`, `packages/insights/database/migrations/2026_05_10_190855_03_create_insights_events_table.php`, `packages/insights/database/migrations/2026_05_10_190855_05_import_legacy_page_views.php`, `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`, `packages/insights/database/migrations/2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`.
 - Settings migrations: `packages/insights/database/settings/2026_05_10_190856_01_create_insights_settings.php`, `packages/insights/database/settings/2026_06_14_000001_rename_insights_form_tracking_setting.php`.
 - Settings classes: `InsightsSettings`, `InsightsSettingsMigrationProvider`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
@@ -58,9 +58,9 @@ Screenshot contract: `docs/screenshots.json`.
 - Data objects: `InsightsBeaconData`, `InsightsConsentData`, `InsightsDigestData`, `InsightsEventData`, `InsightsEventMetadataData`, `InsightsJourneyStepData`, `InsightsPageSummaryData`, `InsightsRequestContextData`, `InsightsVisitData`, `InsightsWindowData`.
 - Jobs: `ProcessInsightsBeaconJob`.
 - Command signatures: `insights:purge`, `insights:rollups:rebuild`.
-- Scheduled commands: `insights:purge (monthly)`, `insights:rollups:rebuild (daily)`.
+- Scheduled commands: `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`.
 - Console command classes: `PurgeInsightsDataCommand`, `RebuildInsightsDailyRollupsCommand`.
-- Manifest contributions: `admin-page: Capell\Insights\Manifest\InsightsAdminPageContribution`, `console-command: Capell\Insights\Manifest\InsightsConsoleCommandsContribution`, `dashboard-widget: Capell\Insights\Manifest\InsightsDashboardFilamentWidgetsContribution`, `health-check: Capell\Insights\Manifest\InsightsHealthContribution`, `model: Capell\Insights\Manifest\InsightsModelsContribution`, `overview-stat: Capell\Insights\Manifest\InsightsOverviewStatsContribution`, `route: Capell\Insights\Manifest\InsightsRoutesContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsPurgeScheduleContribution`, `setting: Capell\Insights\Manifest\InsightsSettingsContribution`.
+- Manifest contributions: `admin-page: Capell\Insights\Manifest\InsightsAdminPageContribution`, `console-command: Capell\Insights\Manifest\InsightsConsoleCommandsContribution`, `dashboard-widget: Capell\Insights\Manifest\InsightsDashboardFilamentWidgetsContribution`, `health-check: Capell\Insights\Manifest\InsightsHealthContribution`, `migration: Capell\Insights\Manifest\InsightsMigrationsContribution`, `model: Capell\Insights\Manifest\InsightsModelsContribution`, `overview-stat: Capell\Insights\Manifest\InsightsOverviewStatsContribution`, `route: Capell\Insights\Manifest\InsightsRoutesContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution`, `scheduled-job: Capell\Insights\Manifest\InsightsPurgeScheduleContribution`, `setting: Capell\Insights\Manifest\InsightsSettingsContribution`.
 - Health checks: `Capell\Insights\Health\InsightsHealthCheck`.
 - Blade views: `packages/insights/resources/views/components/consent-banner.blade.php`, `packages/insights/resources/views/filament/pages/insights.blade.php`, `packages/insights/resources/views/tracker.blade.php`.
 - Cache tags: `insights`.
@@ -70,9 +70,9 @@ Screenshot contract: `docs/screenshots.json`.
 - Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`.
+- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`, `2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `insights:purge` (monthly).
+- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `insights:purge` (monthly; registered by the package provider).
 
 ## Install Impact
 
@@ -84,7 +84,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Database changes: package migrations are declared.
 - Config: `config/capell-insights.php`.
 - Settings: `Capell\Insights\Settings\InsightsSettings`.
-- Queues or schedules: scheduled commands `insights:purge (monthly)`, `insights:rollups:rebuild (daily)`; queue jobs `ProcessInsightsBeaconJob`.
+- Queues or schedules: scheduled commands `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`; queue jobs `ProcessInsightsBeaconJob`.
 - Cache tags: `insights`.
 - Commands: `insights:purge`, `insights:rollups:rebuild`.
 
@@ -94,7 +94,7 @@ Screenshot contract: `docs/screenshots.json`.
 - Run migrations before opening package resources or public routes.
 - Review package configuration before production-like verification: `config/capell-insights.php`, `Capell\Insights\Settings\InsightsSettings`.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
-- Register the host scheduler so these declared commands run at their documented frequencies: `insights:purge (monthly)`, `insights:rollups:rebuild (daily)`.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`.
 - Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
 - Custom write integrations must preserve invalidation for `insights` cache tags.
 
@@ -112,7 +112,7 @@ Screenshot contract: `docs/screenshots.json`.
 
 1. Install the package: `composer require capell-app/insights`.
 2. Run the required setup: `php artisan migrate`.
-3. Open the Insights overview dashboard widgets and confirm the admin workflow loads.
+3. Open the package admin surface at `/screenshot-fixtures/insights/insights-overview-dashboard-widgets` and confirm Insights is available.
 
 ## Next Steps
 
