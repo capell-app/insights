@@ -88,6 +88,23 @@
             "notes": "Capture through the Insights package-owned public fixture route in a fresh browser context with no capell_insights_consent localStorage entry and no capell_insights_visit cookie. The route forces the packaged consent banner on for this screen.",
             "useCase": "A first-time visitor reviews the packaged accept, reject, and manage choices before analytics tracking begins.",
             "screenshotPath": "packages/insights/docs/screenshots/consent-banner-flow.png"
+        },
+        {
+            "id": "frontend-page-with-tracker-active-real",
+            "title": "Public root page with the Insights tracker active.",
+            "package": "insights",
+            "surface": "frontend",
+            "targetType": "frontend-url",
+            "target": null,
+            "scenario": "frontend-page",
+            "url": "/",
+            "waitFor": "script[data-capell-insights-tracker]",
+            "user": false,
+            "required": true,
+            "notes": "Captured from the seeded public root route on the isolated Packages workbench; this is the real frontend hook output rather than the package-owned screenshot fixture.",
+            "useCase": "A visitor loads a real public page where the Insights tracker script is active.",
+            "screenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active-real.png",
+            "darkScreenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active-real-dark.png"
         }
     ]
 }

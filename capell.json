@@ -251,6 +251,12 @@
                 "path": "docs/screenshots/consent-banner-flow.png",
                 "alt": "Styled public page with the Insights consent banner visible",
                 "caption": "Packaged consent banner rendered on a route-backed public page."
+            },
+            {
+                "path": "docs/screenshots/frontend-page-with-tracker-active-real.png",
+                "alt": "Seeded public root page with the Insights tracker active",
+                "caption": "Authentic route-backed public tracker output.",
+                "required": true
             }
         ],
         "categories": ["admin", "frontend", "growth"]

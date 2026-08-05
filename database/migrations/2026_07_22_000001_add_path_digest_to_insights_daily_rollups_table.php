@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /** @contract-migration-approved Replaces an incompatible unique index after the digest column is populated. */
     private const string UNIQUE_INDEX = 'insights_rollups_day_scope_type_path_unique';
 
     public function up(): void
