@@ -105,6 +105,25 @@
             "useCase": "A visitor loads a real public page where the Insights tracker script is active.",
             "screenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active-real.png",
             "darkScreenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active-real-dark.png"
+        },
+        {
+            "id": "insights-admin-sidebar-menu-open",
+            "title": "Insights overview dashboard widgets with admin sidebar menu open.",
+            "package": "insights",
+            "surface": "admin",
+            "targetType": "admin-surface",
+            "target": null,
+            "required": false,
+            "url": "/screenshot-fixtures/insights/insights-overview-dashboard-widgets",
+            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case. Capture this same admin surface with the fully collapsible sidebar opened.",
+            "useCase": "An administrator reviews analytics overview stats for seeded visits and events.",
+            "screenshotPath": "packages/insights/docs/screenshots/insights-admin-sidebar-menu-open.png",
+            "beforeWait": [
+                {
+                    "type": "click",
+                    "selector": ".fi-topbar-open-collapse-sidebar-btn"
+                }
+            ]
         }
     ]
 }

@@ -12,6 +12,7 @@ use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
+use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
@@ -106,6 +107,13 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
     protected function isPackageInstalled(): bool
     {
         return CapellCore::isPackageInstalled(self::$packageName);
+    }
+
+    protected function bootInstalledPackage(): self
+    {
+        $this->surface()->metricCollector(InsightsTrafficMetricsCollector::class);
+
+        return $this;
     }
 
     private function registerModels(): self

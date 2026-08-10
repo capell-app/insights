@@ -27,6 +27,7 @@ use Capell\Insights\Manifest\InsightsMigrationsContribution;
 use Capell\Insights\Manifest\InsightsPurgeScheduleContribution;
 use Capell\Insights\Manifest\InsightsRoutesContribution;
 use Capell\Insights\Manifest\InsightsSettingsContribution;
+use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
@@ -176,7 +177,9 @@ it('passes the Capell manifest validator', function (): void {
 
     throw_unless(is_array($contributionTraceability), RuntimeException::class, 'Expected Insights contribution traceability to be an array.');
 
-    expect($contributionTraceability['deferredContributions'] ?? null)->toBe([]);
+    expect($contributionTraceability['deferredContributions'] ?? null)->toBe([])
+        ->and(data_get($contributionTraceability, 'runtimeIntegrations.metricCollectors'))
+        ->toBe([InsightsTrafficMetricsCollector::class]);
 });
 
 it('declares the shipped admin page, widgets, models, routes, and overview stats', function (): void {

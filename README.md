@@ -15,7 +15,7 @@ Evidence: [`src/Actions/IngestInsightsBeaconAction.php`](src/Actions/IngestInsig
 Status details:
 
 - Status: Available
-- Tier: premium
+- Tier: free
 - Bundle: marketing-growth
 - Composer package: `capell-app/insights`
 - Namespace: `Capell\Insights`
