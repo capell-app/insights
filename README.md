@@ -43,6 +43,8 @@ Screenshot contract: `docs/screenshots.json`.
 - Insights settings screen (admin, required evidence).
 - Frontend page with tracker active (frontend, supplementary evidence).
 - Consent banner flow (frontend, supplementary evidence).
+- Public root page with the Insights tracker active (frontend, required evidence).
+- Insights overview dashboard widgets with admin sidebar menu open (admin, supplementary evidence).
 
 ## Technical Shape
 
