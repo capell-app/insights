@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Models\Site;
 use Capell\Insights\Actions\BuildAcquisitionSourcesQueryAction;
 use Capell\Insights\Actions\BuildInsightsOverviewStatsAction;
 use Capell\Insights\Actions\BuildJourneyTimelineAction;
@@ -131,6 +132,35 @@ it('returns recent journeys ordered by last seen date', function (): void {
             'steps' => 2,
             'last_path' => '/recent/contact',
         ]);
+});
+
+it('excludes recent journeys from another site when the window is site scoped', function (): void {
+    Site::factory()->create(['id' => 1]);
+    Site::factory()->create(['id' => 2]);
+
+    $ownSiteVisit = InsightsVisit::factory()->create([
+        'site_id' => 1,
+        'last_seen_at' => CarbonImmutable::parse('2026-04-21 10:00:00'),
+    ]);
+    $otherSiteVisit = InsightsVisit::factory()->create([
+        'site_id' => 2,
+        'last_seen_at' => CarbonImmutable::parse('2026-04-22 10:00:00'),
+    ]);
+
+    insightsReportEvent($ownSiteVisit, InsightsEventType::PageView, '/own', 'https://example.test/own', CarbonImmutable::parse('2026-04-21 10:00:00'));
+    insightsReportEvent($otherSiteVisit, InsightsEventType::PageView, '/other', 'https://example.test/other', CarbonImmutable::parse('2026-04-22 10:00:00'));
+
+    $window = new InsightsWindowData(
+        startsAt: CarbonImmutable::parse('2026-04-20 00:00:00'),
+        endsAt: CarbonImmutable::parse('2026-04-27 00:00:00'),
+        siteId: 1,
+    );
+
+    $journeys = BuildRecentJourneysQueryAction::run(window: $window);
+
+    expect($journeys->pluck('visit')->all())
+        ->toBe([$ownSiteVisit->uuid])
+        ->not->toContain($otherSiteVisit->uuid);
 });
 
 it('groups top actions in the current window and excludes page views', function (): void {
