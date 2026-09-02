@@ -33,7 +33,7 @@ class InsightsDailyRollup extends Model
     /** @use HasFactory<Factory<static>> */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     #[Override]
     public function getTable(): string
@@ -43,6 +43,7 @@ class InsightsDailyRollup extends Model
         return is_string($tableName) ? $tableName : 'insights_daily_rollups';
     }
 
+    #[Override]
     protected static function booted(): void
     {
         static::saving(function (InsightsDailyRollup $rollup): void {

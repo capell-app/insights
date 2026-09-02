@@ -43,7 +43,7 @@ class InsightsEvent extends Model
     /** @use HasFactory<InsightsEventFactory> */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     protected static string $factory = InsightsEventFactory::class;
 

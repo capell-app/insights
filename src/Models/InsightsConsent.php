@@ -29,7 +29,7 @@ class InsightsConsent extends Model
     /** @use HasFactory<InsightsConsentFactory> */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     protected static string $factory = InsightsConsentFactory::class;
 

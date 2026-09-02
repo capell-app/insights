@@ -35,7 +35,7 @@ class InsightsVisit extends Model
     /** @use HasFactory<InsightsVisitFactory> */
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['id'];
 
     protected static string $factory = InsightsVisitFactory::class;
 
