@@ -6,48 +6,118 @@ namespace Capell\Insights\Support\Consent;
 
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Settings\InsightsSettings;
+use Illuminate\Http\Request;
 use Throwable;
+use Torann\GeoIP\GeoIP;
+use Torann\GeoIP\Location;
 
 final class ConsentRegionResolver
 {
     private const array UK_AND_EUROPE_COUNTRY_CODES = [
         'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE',
         'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT',
-        'RO', 'SK', 'SI', 'ES', 'SE', 'GB', 'UK', 'IS', 'LI', 'NO', 'CH',
+        'RO', 'SK', 'SI', 'ES', 'SE', 'GB', 'IS', 'LI', 'NO', 'CH',
     ];
 
     public function resolve(): InsightsConsentRegion
     {
-        $configuredRegion = $this->resolveConfiguredRegion();
+        $edgeRegion = $this->resolveEdgeRegion(request());
 
-        if ($configuredRegion instanceof InsightsConsentRegion) {
-            return $configuredRegion;
+        if ($edgeRegion instanceof InsightsConsentRegion) {
+            return $edgeRegion;
         }
 
-        if (! function_exists('geoip')) {
-            return InsightsConsentRegion::Unknown;
+        $geoipService = config('geoip.service');
+
+        if (function_exists('geoip') && app()->bound('geoip') && is_string($geoipService) && $geoipService !== '') {
+            try {
+                $geoip = resolve('geoip');
+                $ip = request()->ip();
+
+                if (! $geoip instanceof GeoIP || $ip === null || ! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    return InsightsConsentRegion::Unknown;
+                }
+
+                return $this->resolveProviderRegion($geoip, $ip);
+            } catch (Throwable) {
+                // A failed lookup must not enable tracking through a permissive default.
+                return InsightsConsentRegion::Unknown;
+            }
         }
 
-        try {
-            return $this->resolveFromLocation(geoip(request()->ip()));
-        } catch (Throwable) {
-            return InsightsConsentRegion::Unknown;
-        }
+        return $this->resolveConfiguredRegion() ?? InsightsConsentRegion::Unknown;
     }
 
     public function resolveFromLocation(mixed $location): InsightsConsentRegion
     {
         $countryCode = $this->countryCodeFromLocation($location);
 
-        if ($countryCode === null) {
+        if ($countryCode === null || data_get($location, 'default', false)) {
             return InsightsConsentRegion::Unknown;
         }
 
+        return $this->regionForCountryCode($countryCode);
+    }
+
+    private function resolveProviderRegion(GeoIP $geoip, string $ip): InsightsConsentRegion
+    {
+        // This lookup is always for the requesting visitor, so both cache modes apply.
+        $cache = in_array($geoip->config('cache', 'none'), ['all', 'some'], true)
+            ? $geoip->getCache()
+            : null;
+        // The ordinary GeoIP cache can contain defaults whose flags were overwritten.
+        $key = 'capell-insights:consent-country:v1:' . $ip;
+        $cachedRegion = $this->resolveFromLocation($cache?->get($key));
+
+        if ($cachedRegion !== InsightsConsentRegion::Unknown) {
+            return $cachedRegion;
+        }
+
+        // getLocation() hides failures behind fallback hydration and rewrites default flags.
+        $location = $geoip->getService()->locate($ip);
+        $region = $this->resolveFromLocation($location);
+
+        if ($region !== InsightsConsentRegion::Unknown) {
+            $cache?->set($key, new Location([
+                'iso_code' => $this->countryCodeFromLocation($location),
+                'default' => false,
+            ]));
+        }
+
+        return $region;
+    }
+
+    private function regionForCountryCode(string $countryCode): InsightsConsentRegion
+    {
         if (in_array($countryCode, self::UK_AND_EUROPE_COUNTRY_CODES, true)) {
             return InsightsConsentRegion::UkOrEurope;
         }
 
         return InsightsConsentRegion::OutsideUkOrEurope;
+    }
+
+    private function resolveEdgeRegion(Request $request): ?InsightsConsentRegion
+    {
+        $parameter = config('capell-insights.edge_country_server_parameter', 'CAPELL_EDGE_COUNTRY');
+
+        // HTTP_* keys are client headers, never server-authenticated edge metadata.
+        if (! is_string($parameter) || $parameter === '' || str_starts_with(strtoupper($parameter), 'HTTP_')) {
+            return null;
+        }
+
+        // FPM imports process variables into $_SERVER. local_only excludes
+        // FastCGI request params, which ordinary getenv() would also return.
+        if (getenv($parameter, true) !== false) {
+            return null;
+        }
+
+        $countryCode = $this->normalizeCountryCode($request->server($parameter));
+
+        if ($countryCode === null) {
+            return null;
+        }
+
+        return $this->regionForCountryCode($countryCode);
     }
 
     private function resolveConfiguredRegion(): ?InsightsConsentRegion
@@ -95,10 +165,19 @@ final class ConsentRegionResolver
                 ?? null;
         }
 
-        if (! is_string($countryCode) || trim($countryCode) === '') {
+        return $this->normalizeCountryCode($countryCode);
+    }
+
+    private function normalizeCountryCode(mixed $countryCode): ?string
+    {
+        if (! is_string($countryCode)) {
             return null;
         }
 
-        return strtoupper(trim($countryCode));
+        if (! in_array($countryCode, Iso3166CountryCodes::ALPHA_2, true)) {
+            return null;
+        }
+
+        return $countryCode;
     }
 }

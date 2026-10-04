@@ -1,6 +1,6 @@
 ---
 name: capell-insights-development
-description: Use when editing Capell Insights beacons, consent, journeys, or reporting.
+description: First-party visits, events, consent, journeys, page views, clicks, and insights widgets. Use when editing Capell Insights beacons, consent, journeys, or reporting.
 ---
 
 # Capell Insights

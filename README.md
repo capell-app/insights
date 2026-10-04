@@ -10,8 +10,6 @@ Insights records first-party page views, events, journeys, conversions, and cons
 
 Admins can review overview metrics, trends, journeys, and dashboard widgets. Public pages send consent-aware events through the Insights beacon.
 
-Evidence: [`src/Actions/IngestInsightsBeaconAction.php`](src/Actions/IngestInsightsBeaconAction.php), [`src/Actions/RecordInsightsEventAction.php`](src/Actions/RecordInsightsEventAction.php), [`routes/web.php`](routes/web.php), [`tests/Feature/Events/InsightsBeaconControllerTest.php`](tests/Feature/Events/InsightsBeaconControllerTest.php), [`src/Filament/Pages/InsightsPage.php`](src/Filament/Pages/InsightsPage.php), [`src/Support/RenderHooks/RegisterInsightsTrackerHook.php`](src/Support/RenderHooks/RegisterInsightsTrackerHook.php), [`tests/Feature/Filament/InsightsWidgetsTest.php`](tests/Feature/Filament/InsightsWidgetsTest.php), [`tests/Feature/Frontend/InsightsRenderHookTest.php`](tests/Feature/Frontend/InsightsRenderHookTest.php).
-
 Status details:
 
 - Status: Available
@@ -27,17 +25,15 @@ Status details:
 
 **For teams:** Teams can inspect site activity and conversion paths without sending visitor analytics to a third-party reporting service.
 
-Evidence: [`src/Actions/ValidateInsightsBeaconRequestAction.php`](src/Actions/ValidateInsightsBeaconRequestAction.php), [`src/Actions/RebuildInsightsDailyRollupsAction.php`](src/Actions/RebuildInsightsDailyRollupsAction.php), [`src/Actions/PurgeInsightsDataAction.php`](src/Actions/PurgeInsightsDataAction.php), [`tests/Feature/Reports/RebuildInsightsDailyRollupsActionTest.php`](tests/Feature/Reports/RebuildInsightsDailyRollupsActionTest.php), [`docs/overview.admin.md`](docs/overview.admin.md), [`src/Actions/BuildJourneyTimelineAction.php`](src/Actions/BuildJourneyTimelineAction.php), [`src/Actions/BuildFunnelConversionReportAction.php`](src/Actions/BuildFunnelConversionReportAction.php).
-
 ## Screens And Workflow
 
 Screenshot contract: `docs/screenshots.json`.
 
-![Insights overview dashboard widgets](docs/screenshots/insights-overview-dashboard-widgets.png)
+![Live Insights dashboard statistics](docs/screenshots/insights-overview-dashboard-widgets.png)
 
 ![Popular pages widget](docs/screenshots/popular-pages-widget.png)
 
-- Insights overview dashboard widgets (admin, required evidence).
+- Live Insights dashboard statistics (admin, required evidence).
 - Popular pages widget (admin, required evidence).
 - Recent journeys widget (admin, required evidence).
 - Insights settings screen (admin, required evidence).
@@ -247,7 +243,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/insights`.
-2. Open the package admin surface at `/screenshot-fixtures/insights/insights-overview-dashboard-widgets` and confirm Insights is available.
+2. Open the package admin surface at `/admin` and confirm Insights is available.
 
 ## Next Steps
 
@@ -262,6 +258,5 @@ Screenshot contract: `docs/screenshots.json`.
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
 - Related packages: [Privacy Center](../privacy-center/README.md).
-- Focused tests: `vendor/bin/pest packages/insights/tests --configuration=phpunit.xml`.
 
 <!-- prettier-ignore-end -->

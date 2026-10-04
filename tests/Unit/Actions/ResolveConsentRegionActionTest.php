@@ -6,15 +6,33 @@ use Capell\Insights\Actions\ResolveConsentRegionAction;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Support\Consent\ConsentRegionResolver;
+use Torann\GeoIP\GeoIP;
 
-it('returns forced uk or europe consent region from config', function (): void {
+beforeEach(function (): void {
+    config()->set('geoip.service');
+    $geoip = Mockery::mock(GeoIP::class);
+    $geoip->shouldReceive('config')->with('cache', 'none')->andReturn('none');
+    $geoip->shouldNotReceive('getService');
+    app()->instance('geoip', $geoip);
+});
+
+it('uses the uk or europe config fallback when GeoIP is not configured', function (): void {
     config()->set('capell-insights.default_consent_region', 'uk_or_europe');
 
     expect(ResolveConsentRegionAction::run())->toBe(InsightsConsentRegion::UkOrEurope);
 });
 
-it('returns forced outside uk or europe consent region from config', function (): void {
+it('uses the outside uk or europe config fallback when GeoIP is not configured', function (): void {
     config()->set('capell-insights.default_consent_region', 'outside_uk_or_europe');
+
+    expect(ResolveConsentRegionAction::run())->toBe(InsightsConsentRegion::OutsideUkOrEurope);
+});
+
+it('uses the configured fallback when GeoIP is not bound', function (): void {
+    config()->set('geoip.service', 'missing');
+    config()->set('capell-insights.default_consent_region', 'outside_uk_or_europe');
+
+    app()->offsetUnset('geoip');
 
     expect(ResolveConsentRegionAction::run())->toBe(InsightsConsentRegion::OutsideUkOrEurope);
 });

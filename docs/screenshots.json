@@ -7,16 +7,34 @@
     "entries": [
         {
             "id": "insights-overview-dashboard-widgets",
-            "title": "Insights overview dashboard widgets.",
+            "title": "Live Insights dashboard statistics.",
             "package": "insights",
             "surface": "admin",
             "targetType": "admin-surface",
-            "target": null,
+            "target": "LiveInsightsStatsFilamentWidget",
             "required": true,
-            "url": "/screenshot-fixtures/insights/insights-overview-dashboard-widgets",
-            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
-            "useCase": "An administrator reviews analytics overview stats for seeded visits and events.",
-            "screenshotPath": "packages/insights/docs/screenshots/insights-overview-dashboard-widgets.png"
+            "url": "/admin",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
+            "useCase": "An administrator reviews current visitor activity and page-view counts from real tracking data.",
+            "screenshotPath": "packages/insights/docs/screenshots/insights-overview-dashboard-widgets.png",
+            "waitFor": ".fi-wi-table:has-text(\"Live statistics\")",
+            "scenario": "admin-index",
+            "beforeWait": [
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-section:not(.fi-collapsed) [wire\\:snapshot*=\"live-insights-stats-filament-widget\"]",
+                    "block": "start"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-wi-table:has-text(\"Live statistics\")"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-wi-table:has-text(\"Live statistics\")",
+                    "block": "start"
+                }
+            ]
         },
         {
             "id": "popular-pages-widget",
@@ -26,10 +44,28 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "url": "/screenshot-fixtures/insights/popular-pages-widget",
-            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "url": "/admin",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An administrator identifies high-traffic pages from seeded page-view data.",
-            "screenshotPath": "packages/insights/docs/screenshots/popular-pages-widget.png"
+            "screenshotPath": "packages/insights/docs/screenshots/popular-pages-widget.png",
+            "waitFor": ".fi-wi-table:has-text(\"Popular pages\")",
+            "scenario": "admin-index",
+            "beforeWait": [
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-section:not(.fi-collapsed) [wire\\:snapshot*=\"popular-pages-filament-widget\"]",
+                    "block": "start"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-wi-table:has-text(\"Popular pages\")"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-wi-table:has-text(\"Popular pages\")",
+                    "block": "start"
+                }
+            ]
         },
         {
             "id": "recent-journeys-widget",
@@ -39,10 +75,28 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "url": "/screenshot-fixtures/insights/recent-journeys-widget",
-            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "url": "/admin",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An administrator follows recent visitor journeys across pages and events.",
-            "screenshotPath": "packages/insights/docs/screenshots/recent-journeys-widget.png"
+            "screenshotPath": "packages/insights/docs/screenshots/recent-journeys-widget.png",
+            "waitFor": ".fi-wi-table:has-text(\"Recent journeys\")",
+            "scenario": "admin-index",
+            "beforeWait": [
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-section:not(.fi-collapsed) [wire\\:snapshot*=\"recent-journeys-filament-widget\"]",
+                    "block": "start"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-wi-table:has-text(\"Recent journeys\")"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-wi-table:has-text(\"Recent journeys\")",
+                    "block": "start"
+                }
+            ]
         },
         {
             "id": "insights-settings-screen",
@@ -52,10 +106,12 @@
             "targetType": "admin-surface",
             "target": null,
             "required": true,
-            "url": "/screenshot-fixtures/insights/insights-settings-screen",
-            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case.",
+            "url": "/admin/extensions?manage=capell-app%2Finsights&surface=insights",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "A site owner configures tracking, consent, retention, and beacon behavior.",
-            "screenshotPath": "packages/insights/docs/screenshots/insights-settings-screen.png"
+            "screenshotPath": "packages/insights/docs/screenshots/insights-settings-screen.png",
+            "waitFor": "[role=\"dialog\"].fi-modal-open input[id$=\".retention_days\"]",
+            "scenario": "admin-form"
         },
         {
             "id": "frontend-page-with-tracker-active",
@@ -85,6 +141,7 @@
             "waitFor": "[data-capell-insights-consent-banner]:not([hidden])",
             "user": false,
             "required": false,
+            "fullPage": false,
             "notes": "Capture through the Insights package-owned public fixture route in a fresh browser context with no capell_insights_consent localStorage entry and no capell_insights_visit cookie. The route forces the packaged consent banner on for this screen.",
             "useCase": "A first-time visitor reviews the packaged accept, reject, and manage choices before analytics tracking begins.",
             "screenshotPath": "packages/insights/docs/screenshots/consent-banner-flow.png"
@@ -114,16 +171,40 @@
             "targetType": "admin-surface",
             "target": null,
             "required": false,
-            "url": "/screenshot-fixtures/insights/insights-overview-dashboard-widgets",
-            "notes": "Capture after installing capell-app/insights in the isolated demo harness and seeding the data required for this use case. Capture this same admin surface with the fully collapsible sidebar opened.",
+            "url": "/admin",
+            "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
             "useCase": "An administrator reviews analytics overview stats for seeded visits and events.",
             "screenshotPath": "packages/insights/docs/screenshots/insights-admin-sidebar-menu-open.png",
             "beforeWait": [
                 {
                     "type": "click",
                     "selector": ".fi-topbar-open-collapse-sidebar-btn"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-sidebar.fi-sidebar-open"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-section:not(.fi-collapsed) [wire\\:snapshot*=\"live-insights-stats-filament-widget\"]",
+                    "block": "start"
+                },
+                {
+                    "type": "waitFor",
+                    "selector": ".fi-wi-table:has-text(\"Live statistics\")"
+                },
+                {
+                    "type": "scrollIntoView",
+                    "selector": ".fi-wi-table:has-text(\"Live statistics\")",
+                    "block": "start"
                 }
-            ]
+            ],
+            "waitFor": ".fi-wi-table:has-text(\"Live statistics\")",
+            "scenario": "admin-index"
         }
+    ],
+    "fixtureCommands": [
+        "capell:screenshot-admin-fixture --package=insights",
+        "capell:screenshot-dashboard-widgets --widget=insights_live_stats --widget=insights_popular_pages --widget=insights_recent_journeys"
     ]
 }

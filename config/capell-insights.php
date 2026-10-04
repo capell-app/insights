@@ -17,6 +17,7 @@ return [
     'consent_banner_enabled' => env('CAPELL_INSIGHTS_CONSENT_BANNER_ENABLED', true),
     'screenshot_fixtures_enabled' => env('CAPELL_INSIGHTS_SCREENSHOT_FIXTURES_ENABLED', false),
     'require_consent_for_all_regions' => false,
+    'edge_country_server_parameter' => 'CAPELL_EDGE_COUNTRY',
     'default_consent_region' => null,
     'policy_version' => '1.0',
     'consent_expires_days' => 180,

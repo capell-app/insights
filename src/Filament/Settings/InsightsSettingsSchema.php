@@ -15,10 +15,12 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Override;
 
 final class InsightsSettingsSchema implements HasSchema
 {
     /** @return list<Component> */
+    #[Override]
     public static function make(Schema $configurator): array
     {
         return [
@@ -51,37 +53,45 @@ final class InsightsSettingsSchema implements HasSchema
                             Section::make(__('capell-insights::settings.consent_retention'))->columns(2)->schema([
                                 Select::make('default_consent_region')
                                     ->label(__('capell-insights::settings.default_consent_region'))
+                                    ->helperText(__('capell-insights::settings.default_consent_region_helper'))
                                     ->options(collect(InsightsConsentRegion::cases())
                                         ->mapWithKeys(fn (InsightsConsentRegion $region): array => [$region->value => $region->getLabel()])
                                         ->all())
                                     ->nullable(),
                                 TextInput::make('policy_version')
                                     ->label(__('capell-insights::settings.policy_version'))
+                                    ->helperText(__('capell-insights::settings.policy_version_helper'))
                                     ->required(),
                                 TextInput::make('retention_days')
                                     ->label(__('capell-insights::settings.retention_days'))
+                                    ->helperText(__('capell-insights::settings.retention_days_helper'))
                                     ->integer()
                                     ->minValue(1)
                                     ->suffix(__('capell-admin::form.days')),
                             ]),
                             Section::make(__('capell-insights::settings.developer'))->columns(2)->schema([
                                 Toggle::make('hash_visitor_data')
-                                    ->label(__('capell-insights::settings.hash_visitor_data')),
+                                    ->label(__('capell-insights::settings.hash_visitor_data'))
+                                    ->helperText(__('capell-insights::settings.hash_visitor_data_helper')),
                                 TextInput::make('hash_salt')
                                     ->label(__('capell-insights::settings.hash_salt'))
+                                    ->helperText(__('capell-insights::settings.hash_salt_helper'))
                                     ->nullable(),
                                 Textarea::make('ignored_paths')
                                     ->label(__('capell-insights::settings.ignored_paths'))
+                                    ->helperText(__('capell-insights::settings.ignored_paths_helper'))
                                     ->formatStateUsing(self::listToTextarea(...))
                                     ->dehydrateStateUsing(self::textareaToList(...))
                                     ->rows(3),
                                 Textarea::make('ignored_selectors')
                                     ->label(__('capell-insights::settings.ignored_selectors'))
+                                    ->helperText(__('capell-insights::settings.ignored_selectors_helper'))
                                     ->formatStateUsing(self::listToTextarea(...))
                                     ->dehydrateStateUsing(self::textareaToList(...))
                                     ->rows(3),
                                 TextInput::make('route_prefix')
                                     ->label(__('capell-insights::settings.route_prefix'))
+                                    ->helperText(__('capell-insights::settings.route_prefix_helper'))
                                     ->required(),
                             ]),
                         ]),

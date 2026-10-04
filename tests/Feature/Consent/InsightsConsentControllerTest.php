@@ -8,9 +8,16 @@ use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
+use Torann\GeoIP\GeoIP;
 
 beforeEach(function (): void {
     config()->set('capell-insights.default_consent_region', InsightsConsentRegion::UkOrEurope->value);
+    config()->set('geoip.service');
+
+    $geoip = Mockery::mock(GeoIP::class);
+    $geoip->shouldReceive('config')->with('cache', 'none')->andReturn('none');
+    $geoip->shouldNotReceive('getService');
+    app()->instance('geoip', $geoip);
 });
 
 it('rejects granular consent without accepted terms', function (): void {

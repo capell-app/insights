@@ -178,6 +178,29 @@ it('starts with strict consent even when the configured region is outside the UK
     expect($output)->toContain('"consentRequired":true');
 });
 
+it('renders identical shared HTML for different edge visitor countries', function (): void {
+    config()->set('capell-insights.default_consent_region');
+    $geoip = Mockery::mock(GeoIP::class);
+    $geoip->shouldReceive('config')->with('cache', 'none')->andReturn('none');
+    $geoip->shouldNotReceive('getService');
+    app()->instance('geoip', $geoip);
+
+    /** @var RenderHookRegistry<RenderHookContext> $registry */
+    $registry = resolve(RenderHookRegistry::class);
+    $baseline = null;
+
+    foreach (['US', 'GB', 'DE'] as $country) {
+        $request = Request::create('/', server: ['REMOTE_ADDR' => '203.0.113.55', 'CAPELL_EDGE_COUNTRY' => $country]);
+        app()->instance('request', $request);
+        $html = $registry->renderAll(RenderHookLocation::BodyEnd);
+        $baseline ??= $html;
+
+        expect($html)->toBe($baseline)
+            ->toContain('"consentRequired":true')
+            ->toContain(route('capell-insights.consent-policy', [], false));
+    }
+});
+
 it('does not inject the frontend insights tracker on ignored admin paths', function (): void {
     app()->instance('request', Request::create('/admin/pages', Symfony\Component\HttpFoundation\Request::METHOD_GET));
     config()->set('capell-insights.ignored_paths', ['/admin*']);
