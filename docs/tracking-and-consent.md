@@ -65,14 +65,7 @@ fastcgi_param CAPELL_EDGE_COUNTRY $capell_edge_country;
 
 Accept only a single uppercase, recognised ISO 3166-1 alpha-2 string. Missing, empty, `XX`, `T1`, `ZZ`, unassigned codes, aliases such as `UK`, arrays and comma-separated/duplicate values are ignored. Invalid or environment-sourced edge geography continues to GeoIP when available and configured. Any attempted lookup terminates resolution; it never continues to the saved/default region. Consent resolution calls the configured Torann provider directly, bypassing its location cache and fallback hydration: `getLocation()` catches provider exceptions and can return a configured default indistinguishable from a successful lookup. A truthy provider `default` flag, missing or invalid lookup country, empty result, non-public request IP or thrown error resolves to unknown and requires consent. Successful provider results are accepted even when their fields match `geoip.default_location`; configuration fields are never used to infer lookup success. Only when GeoIP is unavailable or unconfigured does resolution use the saved admin region, then the configured default.
 
-The generated 249-code list is derived from [league/iso3166 4.3.0](https://github.com/alcohol/iso3166/blob/4.3.0/src/ISO3166.php), rather than country-name or flag guesses. Neither League nor Symfony Intl is an installed dependency here. Regenerate from the pinned upstream data without installing dependencies:
-
-```bash
-curl --fail --location https://raw.githubusercontent.com/alcohol/iso3166/4.3.0/src/ISO3166.php -o /tmp/insights-iso3166.php
-php packages/insights/scripts/generate-country-codes.php /tmp/insights-iso3166.php
-```
-
-The generator verifies the source SHA-256 and extracts codes without executing downloaded PHP. When updating its source version, review the upstream changes, update the URL/hash and regenerate the list in the same change.
+The package ships a 249-code list derived from [league/iso3166 4.3.0](https://github.com/alcohol/iso3166/blob/4.3.0/src/ISO3166.php). Country validation uses this bundled list; no additional country-data dependency is needed in the host application.
 
 Shared HTML remains identical across visitor countries: it starts with strict consent and fetches the visitor's policy after load. HTML-cache rejects the policy response's explicit `private, no-store` directives and JSON content type. Edge cache rules must respect those directives; do not force-cache the policy endpoint or embed its decision into shared HTML.
 
@@ -171,14 +164,13 @@ If the constructor shape changes, update this doc with the action in the same ch
 
 ## Retention
 
-Use the package command for cleanup in the host app. In this repository, test the behavior directly:
+Run retention cleanup in your installed Capell application:
 
 ```bash
-vendor/bin/pest packages/insights/tests --configuration=phpunit.xml
-node --test tests/JavaScript/insights-consent-policy.test.mjs
+php artisan insights:purge
 ```
 
-The runtime command is `insights:purge {--days=}` in the host application. This repository does not run `php artisan`.
+Use `--days=<days>` to override the configured retention period for that run.
 
 ## Safety Notes
 
