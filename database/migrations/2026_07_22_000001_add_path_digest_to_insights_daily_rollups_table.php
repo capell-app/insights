@@ -89,7 +89,7 @@ return new class extends Migration
     private function hasDigestUniqueIndex(string $tableName): bool
     {
         foreach (Schema::getIndexes($tableName) as $index) {
-            if (($index['name'] ?? null) !== self::UNIQUE_INDEX) {
+            if (($index['name']) !== self::UNIQUE_INDEX) {
                 continue;
             }
 
