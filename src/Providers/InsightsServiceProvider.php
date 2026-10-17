@@ -6,11 +6,14 @@ namespace Capell\Insights\Providers;
 
 use Capell\Admin\Data\Extensions\ExtensionManagementSurfaceData;
 use Capell\Admin\Facades\CapellAdmin;
+use Capell\Core\Actions\Install\RegisterProviderCommandsInCurrentProcessAction;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
+use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
+use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
@@ -20,8 +23,11 @@ use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Routing\Router;
 use Override;
+use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
 
 final class InsightsServiceProvider extends AbstractPackageServiceProvider
@@ -30,6 +36,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
 
     public static string $packageName = 'capell-app/insights';
 
+    #[Override]
     public function configurePackage(Package $package): void
     {
         $package
@@ -37,7 +44,6 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
             ->hasConfigFile('capell-insights')
             ->hasTranslations()
             ->hasViews(self::$name)
-            ->hasRoute('web')
             ->hasMigrations([
                 '2026_05_10_190855_01_create_insights_visits_table',
                 '2026_05_10_190855_02_create_insights_consents_table',
@@ -52,34 +58,32 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
     #[Override]
     public function registeringPackage(): void
     {
-        parent::registeringPackage();
-
+        // The original admin provider emitted contributions before the main provider.
         $this->app->register(AdminServiceProvider::class);
+
+        parent::registeringPackage();
     }
 
+    #[Override]
     public function packageRegistered(): void
     {
-        $this
-
-            ->registerSettingsMigrations();
-
-        $this->app->booted(function (): void {
-            if (! $this->isPackageInstalled()) {
-                return;
-            }
-
-            $this
-                ->registerModels()
-                ->registerSettings()
-                ->registerPrivacyCenterEraser()
-                ->registerProtectedTables();
-        });
+        $this->registerSettingsMigrations();
     }
 
-    public function packageBooted(): void
+    #[Override]
+    protected function bootInstalledRuntime(): void
     {
-        if (! $this->isPackageInstalled()) {
-            return;
+        $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', self::$name);
+        $this->publishSettingsMigrations();
+        // Late activation may run inside a foreign route group.
+        $router = $this->app->make(Router::class);
+        $groups = new ReflectionProperty(Router::class, 'groupStack');
+        $previous = $groups->getValue($router);
+        $groups->setValue($router, []);
+        try {
+            $this->loadRoutesFrom(__DIR__ . '/../../routes/web.php');
+        } finally {
+            $groups->setValue($router, $previous);
         }
 
         if (config('capell-insights.enabled', true) === true && $this->app->bound(FrontendHookRegistrar::class)) {
@@ -92,6 +96,31 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
             );
         }
 
+        $this->registerModels()
+            ->registerSettings()
+            ->registerPrivacyCenterEraser()
+            ->registerProtectedTables();
+        $this->surface()->metricCollector(InsightsTrafficMetricsCollector::class);
+        if ($this->app->runningInConsole()) {
+            RegisterProviderCommandsInCurrentProcessAction::run(function (): void {
+                $this->commands([PurgeInsightsDataCommand::class, RebuildInsightsDailyRollupsCommand::class]);
+            });
+        }
+
+        $this->registerSchedule(static function (Schedule $schedule): void {
+            $schedule->command('insights:purge')->monthly();
+            $schedule->command('insights:rollups:rebuild')->daily();
+        });
+    }
+
+    #[Override]
+    protected function isPackageInstalled(): bool
+    {
+        return CapellCore::isPackageInstalled(self::$packageName);
+    }
+
+    private function publishSettingsMigrations(): void
+    {
         if (! $this->app->runningInConsole()) {
             return;
         }
@@ -103,20 +132,6 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
             $provider->path() . '/2026_05_10_190856_01_create_insights_settings.php' => database_path('settings/2026_05_10_190856_01_create_insights_settings.php'),
             $provider->path() . '/2026_06_14_000001_rename_insights_form_tracking_setting.php' => database_path('settings/2026_06_14_000001_rename_insights_form_tracking_setting.php'),
         ], 'capell-insights-settings');
-    }
-
-    #[Override]
-    protected function isPackageInstalled(): bool
-    {
-        return CapellCore::isPackageInstalled(self::$packageName);
-    }
-
-    #[Override]
-    protected function bootInstalledPackage(): self
-    {
-        $this->surface()->metricCollector(InsightsTrafficMetricsCollector::class);
-
-        return $this;
     }
 
     private function registerModels(): self

@@ -146,9 +146,49 @@
                    border-color: var(--capell-insights-banner-accent);
                    background: color-mix(in srgb, var(--capell-insights-banner-accent) 88%, black 12%);
                }
+        @media(max-width: 640px)
+        {
+                   .capell-insights-consent-banner__panel--compact-mobile {
+                       gap: 0.5rem;
+                       padding: 0.5rem 0.75rem;
+                   }
+
+                   .capell-insights-consent-banner__panel--compact-mobile .capell-insights-consent-banner__title {
+                       font-size: 0.875rem;
+                   }
+
+                   .capell-insights-consent-banner__panel--compact-mobile .capell-insights-consent-banner__description {
+                       margin-top: 0.25rem;
+                       font-size: 0.75rem;
+                   }
+
+                   .capell-insights-consent-banner__panel--compact-mobile .capell-insights-consent-banner__actions {
+                       gap: 0.375rem;
+                   }
+
+                   .capell-insights-consent-banner__panel--compact-mobile .capell-insights-consent-banner__button {
+                       min-width: 44px;
+                       min-height: 44px;
+                       padding: 0.5rem;
+                       font-size: 0.75rem;
+                   }
+
+                   .capell-insights-consent-banner__panel--compact-mobile .capell-insights-consent-banner__choice-label {
+                       min-height: 44px;
+                   }
+
+                   .capell-insights-consent-banner__panel--compact-mobile .capell-insights-consent-banner__button--secondary {
+                       border-color: transparent;
+                       background: transparent;
+                       text-decoration: underline;
+                       text-underline-offset: 0.15em;
+                   }
+               }
     </style>
 
-    <div class="capell-insights-consent-banner__panel">
+    <div
+        class="capell-insights-consent-banner__panel capell-insights-consent-banner__panel--compact-mobile"
+    >
         <div>
             <h2
                 id="capell-insights-consent-title"
@@ -181,7 +221,7 @@
 
             <button
                 type="button"
-                class="capell-insights-consent-banner__button"
+                class="capell-insights-consent-banner__button capell-insights-consent-banner__button--secondary"
                 data-capell-insights-consent-action="manage"
                 aria-expanded="false"
                 aria-controls="capell-insights-consent-choices"

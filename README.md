@@ -42,6 +42,8 @@ Screenshot contract: `docs/screenshots.json`.
 - Public root page with the Insights tracker active (frontend, required evidence).
 - Insights overview dashboard widgets with admin sidebar menu open (admin, supplementary evidence).
 
+Developer integration: [use a custom consent interface](docs/custom-consent.md).
+
 ## Technical Shape
 
 ### Service providers

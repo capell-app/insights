@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
+use Sinnbeck\DomAssertions\Asserts\AssertElement;
 use Torann\GeoIP\GeoIP;
 
 it('injects the frontend insights tracker at the end of the body', function (): void {
@@ -42,6 +43,54 @@ it('injects the frontend insights tracker at the end of the body', function (): 
         ->toContain(route('capell-insights.consent', [], false))
         ->toContain('"consentRequired":true')
         ->toContain('"ignoredSelectors":["[data-capell-insights-ignore]","[wire\\\\:click]"]');
+});
+
+it('renders compact mobile consent actions with their accessible controls intact', function (): void {
+    $this->view('capell-insights::components.consent-banner')
+        ->assertElementExists('section.capell-insights-consent-banner', function (AssertElement $banner): void {
+            $banner->has('hidden')
+                ->has('role', 'dialog')
+                ->has('aria-modal', 'false')
+                ->has('aria-labelledby', 'capell-insights-consent-title')
+                ->has('aria-describedby', 'capell-insights-consent-description');
+
+            $banner->find('.capell-insights-consent-banner__panel--compact-mobile', function (AssertElement $panel): void {
+                $panel->contains('h2#capell-insights-consent-title', [
+                    'class' => 'capell-insights-consent-banner__title',
+                    'text' => __('capell-insights::consent.banner.title'),
+                ])->contains('p#capell-insights-consent-description', [
+                    'class' => 'capell-insights-consent-banner__description',
+                    'text' => __('capell-insights::consent.banner.description'),
+                ]);
+
+                $panel->find('.capell-insights-consent-banner__panel--compact-mobile > .capell-insights-consent-banner__actions', function (AssertElement $actions): void {
+                    $actions->contains('button', [], 3);
+
+                    foreach (['accept' => 'accept_all', 'reject' => 'reject', 'manage' => 'manage'] as $action => $translation) {
+                        $actions->find(sprintf('button[data-capell-insights-consent-action="%s"]', $action), function (AssertElement $button) use ($translation): void {
+                            $button->has('type', 'button')
+                                ->has('class', 'capell-insights-consent-banner__button')
+                                ->containsText(__('capell-insights::consent.banner.' . $translation));
+                        });
+                    }
+
+                    $actions->find('button[data-capell-insights-consent-action="manage"]', function (AssertElement $button): void {
+                        $button->has('class', 'capell-insights-consent-banner__button--secondary')
+                            ->has('aria-expanded', 'false')
+                            ->has('aria-controls', 'capell-insights-consent-choices');
+                    });
+                });
+
+                $panel->find('#capell-insights-consent-choices', function (AssertElement $choices): void {
+                    $choices->has('hidden')->has('data-capell-insights-consent-choices')
+                        ->contains('label input[type="checkbox"][data-capell-insights-consent-category]', [], 3)
+                        ->contains('button[data-capell-insights-consent-action="save"]', [
+                            'type' => 'button',
+                            'text' => __('capell-insights::consent.banner.save'),
+                        ]);
+                });
+            });
+        });
 });
 
 it('renders the public tracker without querying the configured database cache store', function (): void {
@@ -243,3 +292,54 @@ it('can disable the frontend consent banner', function (): void {
         ->not->toContain('role="dialog"')
         ->toContain('data-capell-insights-tracker');
 });
+
+it('publishes the same consent expiry used by the event recorder', function (mixed $configured, ?int $expected): void {
+    config()->set('capell-insights.consent_expires_days', $configured);
+    /** @var RenderHookRegistry<RenderHookContext> $registry */
+    $registry = resolve(RenderHookRegistry::class);
+    $output = $registry->renderAll(RenderHookLocation::BodyEnd);
+    if ($output === '') {
+        throw new UnexpectedValueException('The rendered tracker must not be empty.');
+    }
+
+    $dom = new DOMDocument;
+    $dom->loadHTML($output, LIBXML_NOERROR | LIBXML_NOWARNING);
+
+    $xpath = new DOMXPath($dom);
+    $nodes = $xpath->query('//script[@data-capell-insights-tracker]');
+    if ($nodes === false || ! ($tracker = $nodes->item(0)) instanceof DOMNode) {
+        throw new UnexpectedValueException('The rendered tracker configuration must exist.');
+    }
+
+    $config = json_decode($tracker->textContent, true, flags: JSON_THROW_ON_ERROR);
+    if (! is_array($config) || ! array_key_exists('consentExpiresDays', $config)) {
+        throw new UnexpectedValueException('The tracker must publish consent expiry.');
+    }
+
+    expect($config['consentExpiresDays'])->toBe($expected);
+})->with([
+    'normal' => [180, 180], 'numeric string' => ['30', 30],
+    'disabled null' => [null, null], 'disabled false' => [false, null],
+    'invalid' => ['invalid', null], 'zero' => [0, null], 'negative' => [-1, null],
+]);
+
+it('publishes an explicit opt-in restoration barrier for custom consent interfaces', function (mixed $configured, bool $expected): void {
+    config()->set('capell-insights.consent_restoration_required', $configured);
+    /** @var RenderHookRegistry<RenderHookContext> $registry */
+    $registry = resolve(RenderHookRegistry::class);
+    $output = $registry->renderAll(RenderHookLocation::BodyEnd);
+    if ($output === '') {
+        throw new UnexpectedValueException('The restoration barrier must render its tracker configuration.');
+    }
+    $dom = new DOMDocument;
+    $dom->loadHTML($output, LIBXML_NOERROR | LIBXML_NOWARNING);
+    $nodes = (new DOMXPath($dom))->query('//script[@data-capell-insights-tracker]');
+    if ($nodes === false || ! ($tracker = $nodes->item(0)) instanceof DOMNode) {
+        throw new UnexpectedValueException('The rendered tracker configuration must exist.');
+    }
+    $config = json_decode($tracker->textContent, true, flags: JSON_THROW_ON_ERROR);
+    if (! is_array($config) || ! array_key_exists('consentRestorationRequired', $config)) {
+        throw new UnexpectedValueException('The tracker must publish its restoration barrier.');
+    }
+    expect($config['consentRestorationRequired'])->toBe($expected);
+})->with(['opted in' => [true, true], 'standalone' => [false, false], 'string is not enabled' => ['true', false], 'unset' => [null, false]]);

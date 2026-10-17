@@ -9,10 +9,8 @@ use Capell\Admin\Data\MarketingStudioActionData;
 use Capell\Admin\Enums\DashboardEnum;
 use Capell\Admin\Enums\MarketingStudioSectionEnum;
 use Capell\Admin\Facades\CapellAdmin;
-use Capell\Core\Facades\CapellCore;
+use Capell\Core\Support\Packages\RegistersInstalledRuntime;
 use Capell\Insights\Actions\BuildInsightsOverviewStatsAction;
-use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
-use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Filament\Pages\InsightsPage;
 use Capell\Insights\Filament\Settings\Contributors\InsightsDashboardSettingsContributor;
@@ -23,7 +21,6 @@ use Capell\Insights\Filament\Widgets\RecentJourneysFilamentWidget;
 use Capell\Insights\Filament\Widgets\TopActionsFilamentWidget;
 use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Carbon\CarbonImmutable;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\ServiceProvider;
@@ -32,52 +29,29 @@ use RuntimeException;
 
 class AdminServiceProvider extends ServiceProvider
 {
+    use RegistersInstalledRuntime;
+
     private const string REQUEST_INSIGHTS_OVERVIEW_CACHE_KEY = 'capell.insights.admin.overview';
 
     #[Override]
     public function register(): void
     {
-        //
+        $this->registerInstalledRuntime(InsightsServiceProvider::$packageName, 'admin');
     }
 
-    public function boot(): void
+    protected function bootInstalledRuntime(): void
     {
-        if (! $this->isPackageInstalled()) {
-            return;
-        }
-
         $this
             ->registerDashboardSettingsContributor()
-            ->registerCommands()
             ->registerPages()
             ->registerOverviewStats()
             ->registerDashboardFilamentWidgets()
-            ->registerMarketingStudioActions()
-            ->registerSchedule();
-    }
-
-    protected function isPackageInstalled(): bool
-    {
-        return CapellCore::isPackageInstalled(InsightsServiceProvider::$packageName);
+            ->registerMarketingStudioActions();
     }
 
     private function registerDashboardSettingsContributor(): self
     {
         $this->app->tag([InsightsDashboardSettingsContributor::class], DashboardSettingsContributor::TAG);
-
-        return $this;
-    }
-
-    private function registerCommands(): self
-    {
-        if (! $this->app->runningInConsole()) {
-            return $this;
-        }
-
-        $this->commands([
-            PurgeInsightsDataCommand::class,
-            RebuildInsightsDailyRollupsCommand::class,
-        ]);
 
         return $this;
     }
@@ -167,16 +141,6 @@ class AdminServiceProvider extends ServiceProvider
     private function registerPages(): self
     {
         CapellAdmin::registerExtensionPage(InsightsServiceProvider::$packageName, InsightsPage::class);
-
-        return $this;
-    }
-
-    private function registerSchedule(): self
-    {
-        $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
-            $schedule->command('insights:purge')->monthly();
-            $schedule->command('insights:rollups:rebuild')->daily();
-        });
 
         return $this;
     }

@@ -1,220 +1,7 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
 import test from 'node:test'
-import vm from 'node:vm'
 
-const source = readFileSync(
-    new URL('../../resources/js/capell-insights.js', import.meta.url),
-    'utf8',
-)
-
-function browser({
-    consent = null,
-    consentPersistence = 'success',
-    privacy = {},
-    storageUnavailable = false,
-} = {}) {
-    const requests = []
-    const timers = new Map()
-    const documentListeners = new Map()
-    const windowListeners = new Map()
-    const bannerListeners = new Map()
-    const rootStyles = new Map()
-    const storage = new Map()
-    let timerId = 0
-    let resolvePolicy
-    let rejectPolicy
-    let resolveConsent
-    let rejectConsent
-    let visibilityState = 'visible'
-    const policy = new Promise((resolve, reject) => {
-        resolvePolicy = resolve
-        rejectPolicy = reject
-    })
-    if (consent) {
-        storage.set('capell_insights_consent', JSON.stringify(consent))
-    }
-    const config = {
-        eventsUrl: '/capell/insights/events',
-        consentUrl: '/capell/insights/consent',
-        consentPolicyUrl: '/capell/insights/consent-policy',
-        consentRequired: true,
-        policyVersion: '1.0',
-        honorPrivacySignals: true,
-        trackPageViews: true,
-        trackClicks: true,
-    }
-    const banner = {
-        hidden: true,
-        offsetHeight: 64,
-        addEventListener: (name, callback) =>
-            bannerListeners.set(name, callback),
-        contains: () => true,
-        querySelector: () => null,
-        querySelectorAll: () => [],
-    }
-    const document = {
-        title: 'Public page',
-        cookie: '',
-        readyState: 'complete',
-        body: { matches: () => false, closest: () => null },
-        documentElement: {
-            style: {
-                setProperty: (name, value) => rootStyles.set(name, value),
-            },
-        },
-        get visibilityState() {
-            return visibilityState
-        },
-        querySelector: (selector) => {
-            if (selector === '[data-capell-insights-tracker]') {
-                return { textContent: JSON.stringify(config) }
-            }
-
-            if (selector === '[data-capell-insights-consent-banner]') {
-                return banner
-            }
-
-            return null
-        },
-        addEventListener: (name, callback) =>
-            documentListeners.set(name, callback),
-    }
-    const window = {
-        location: {
-            origin: 'https://example.test',
-            href: 'https://example.test/page',
-        },
-        localStorage: {
-            getItem: (key) => {
-                if (storageUnavailable) throw new Error('Storage unavailable')
-                return storage.get(key) ?? null
-            },
-            setItem: (key, value) => {
-                if (storageUnavailable) throw new Error('Storage unavailable')
-                storage.set(key, value)
-            },
-        },
-        setTimeout: (callback, delay) => {
-            timers.set(++timerId, { callback, delay })
-            return timerId
-        },
-        clearTimeout: (id) => timers.delete(id),
-        addEventListener: (name, callback) =>
-            windowListeners.set(name, callback),
-    }
-    const response = (data) => ({
-        ok: true,
-        headers: { get: () => 'application/json' },
-        json: async () => data,
-    })
-    const consentResponse = (payload) =>
-        response({
-            visit_id: 'visit',
-            enabled_categories:
-                payload.status === 'accepted_all'
-                    ? ['essential', 'insights']
-                    : ['essential'],
-        })
-    const fetch = (url, options = {}) => {
-        requests.push({ url, ...options })
-        if (url.endsWith('/consent-policy')) return policy
-        if (url.endsWith('/consent')) {
-            const payload = JSON.parse(options.body)
-
-            if (consentPersistence === 'failed') {
-                return Promise.reject(new Error('Consent persistence failed'))
-            }
-
-            if (consentPersistence === 'non-ok') {
-                return Promise.resolve({ ok: false })
-            }
-
-            if (consentPersistence === 'delayed') {
-                return new Promise((resolve, reject) => {
-                    resolveConsent = () => resolve(consentResponse(payload))
-                    rejectConsent = reject
-                })
-            }
-
-            return Promise.resolve(consentResponse(payload))
-        }
-        return Promise.resolve(response({ visit_id: 'visit' }))
-    }
-    vm.runInNewContext(source, {
-        window,
-        document,
-        navigator: privacy,
-        fetch,
-        URL,
-        Blob,
-        AbortController,
-    })
-    return {
-        api: window.CapellInsights,
-        bannerHeight: () => rootStyles.get('--capell-insights-banner-height'),
-        bannerVisible: () => !banner.hidden,
-        clickConsent: (action) => {
-            const button = {
-                closest: (selector) =>
-                    selector === '[data-capell-insights-consent-action]'
-                        ? button
-                        : null,
-                getAttribute: (name) =>
-                    name === 'data-capell-insights-consent-action'
-                        ? action
-                        : null,
-            }
-
-            bannerListeners.get('click')?.({ target: button })
-        },
-        hideDocument: () => {
-            visibilityState = 'hidden'
-            documentListeners.get('visibilitychange')?.()
-        },
-        pagehide: () => windowListeners.get('pagehide')?.(),
-        requests,
-        resolve: (data) => resolvePolicy(response(data)),
-        resolveConsent: () => resolveConsent?.(),
-        rejectConsent: () =>
-            rejectConsent?.(new Error('Consent persistence failed')),
-        storedConsent: () => {
-            const stored = storage.get('capell_insights_consent')
-
-            return stored ? JSON.parse(stored) : null
-        },
-        reject: () => rejectPolicy(new Error('Network unavailable')),
-        malformed: () =>
-            resolvePolicy({
-                ok: true,
-                json: async () => {
-                    throw new Error('Invalid JSON')
-                },
-            }),
-        unavailable: () =>
-            resolvePolicy({
-                ok: false,
-                json: async () => ({ consent_required: false }),
-            }),
-        runTimers: async (maximumDelay = 150) => {
-            for (const [id, timer] of [...timers]) {
-                if (timer.delay <= maximumDelay) {
-                    timers.delete(id)
-                    timer.callback()
-                }
-            }
-            await settle()
-        },
-        events: () =>
-            requests
-                .filter((request) => request.url.endsWith('/events'))
-                .flatMap((request) => JSON.parse(request.body).events),
-    }
-}
-
-async function settle() {
-    for (let i = 0; i < 12; i++) await Promise.resolve()
-}
+import { browser, settle } from './browser.mjs'
 
 test('publishes the API immediately but drops events until the private policy resolves', async () => {
     const page = browser()
@@ -355,7 +142,7 @@ for (const lifecycleFlush of ['pagehide', 'hideDocument']) {
     })
 }
 
-for (const consentPersistence of ['failed', 'non-ok']) {
+for (const consentPersistence of ['failed', 'non-ok', 'malformed']) {
     test(`keeps tracking blocked when rejection persistence is ${consentPersistence}`, async () => {
         const page = browser({ consentPersistence })
         page.resolve({ consent_required: false })
@@ -443,4 +230,361 @@ test('requires a fresh choice when the stored policy version is obsolete', async
     await settle()
     await page.runTimers()
     assert.deepEqual(page.events(), [])
+})
+
+test('acknowledges the public consent request only after persistence', async () => {
+    const page = browser({ consentPersistence: 'delayed' })
+    const acknowledgement = page.api.consent({ status: 'accepted_all' })
+    assert.equal(typeof acknowledgement?.then, 'function')
+    page.resolveConsent()
+    assert.equal(await acknowledgement, true)
+})
+
+for (const consentPersistence of ['failed', 'non-ok', 'malformed']) {
+    test(`reports unsuccessful public consent persistence: ${consentPersistence}`, async () => {
+        const page = browser({ consentPersistence })
+        assert.equal(await page.api.consent({ status: 'accepted_all' }), false)
+    })
+}
+
+test('an older accepted response cannot replace a newer rejection', async () => {
+    const page = browser({ consentPersistence: 'delayed' })
+    page.resolve({ consent_required: true })
+    await settle()
+    const acceptance = page.api.consent({ status: 'accepted_all' })
+    const rejection = page.api.consent({ status: 'rejected_non_essential' })
+    assert.equal(page.storedConsent().status, 'rejected_non_essential')
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        1,
+    )
+    page.resolveConsentAt(0)
+    await acceptance
+    await settle()
+    assert.equal(page.storedConsent().status, 'rejected_non_essential')
+    page.resolveConsentAt(1)
+    await rejection
+    await settle()
+    assert.equal(page.storedConsent().status, 'rejected_non_essential')
+    assert.equal(await acceptance, false)
+    assert.equal(await rejection, true)
+    await page.runTimers()
+    assert.deepEqual(page.events(), [])
+})
+
+test('reuses an acknowledged granular choice without another consent record', async () => {
+    const page = browser()
+    const choice = {
+        status: 'granular',
+        terms_accepted: true,
+        categories: { insights: true, marketing: false, preferences: false },
+    }
+    assert.equal(await page.api.consent(choice), true)
+    assert.equal(await page.api.consent(choice), true)
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        1,
+    )
+})
+
+test('a remembered rejection still supersedes an in-flight acceptance', async () => {
+    const page = browser({
+        consentPersistence: 'delayed',
+        consent: {
+            status: 'rejected_non_essential',
+            categories: ['essential'],
+            policy_version: '1.0',
+        },
+    })
+    const acceptance = page.api.consent({ status: 'accepted_all' })
+    const rejection = page.api.consent({ status: 'rejected_non_essential' })
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        1,
+    )
+    page.resolveConsentAt(0)
+    assert.equal(await acceptance, false)
+    await settle()
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        2,
+    )
+    page.resolveConsentAt(1)
+    assert.equal(await rejection, true)
+    assert.equal(page.storedConsent().status, 'rejected_non_essential')
+})
+
+test('repeated rejection reuses the same acknowledged essential category', async () => {
+    const page = browser()
+    for (let i = 0; i < 3; i++)
+        assert.equal(
+            await page.api.consent({ status: 'rejected_non_essential' }),
+            true,
+        )
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        1,
+    )
+    assert.deepEqual(Array.from(page.storedConsent().categories), ['essential'])
+})
+
+test('granular analytics revocation stops queued and new events before failed persistence', async () => {
+    const page = browser({
+        consentPersistence: 'delayed',
+        consent: {
+            status: 'granular',
+            categories: ['essential', 'insights'],
+            policy_version: '1.0',
+        },
+    })
+    page.resolve({ consent_required: true })
+    await settle()
+    const alreadySent = page.events()
+    page.api.track({ type: 'click', event_name: 'queued-before-revocation' })
+    const decision = page.api.consent({
+        status: 'granular',
+        terms_accepted: true,
+        categories: { insights: false, marketing: true, preferences: false },
+    })
+    page.api.track({ type: 'click', event_name: 'after-revocation' })
+    page.api.flush()
+    assert.deepEqual(page.events(), alreadySent)
+    page.rejectConsent()
+    assert.equal(await decision, false)
+    page.api.track({ type: 'click', event_name: 'after-failure' })
+    page.api.flush()
+    assert.deepEqual(page.events(), alreadySent)
+})
+
+test('read-only restoration never accepts stale policy or creates another consent record', async () => {
+    const choice = {
+        status: 'granular',
+        terms_accepted: true,
+        categories: { insights: true, marketing: false, preferences: false },
+    }
+    for (const policy_version of ['0.9', '1.0']) {
+        const page = browser({
+            consent: {
+                status: 'granular',
+                categories: ['essential', 'insights'],
+                policy_version,
+            },
+        })
+        assert.equal(
+            await page.api.restoreConsent(choice),
+            policy_version === '1.0',
+        )
+        assert.equal(
+            page.requests.filter((request) => request.url.endsWith('/consent'))
+                .length,
+            0,
+        )
+    }
+})
+
+test('failed rejection cannot be reused as acknowledged consent', async () => {
+    const page = browser({ consentPersistence: 'failed' })
+    const rejection = { status: 'rejected_non_essential' }
+    assert.equal(await page.api.consent(rejection), false)
+    assert.equal(await page.api.restoreConsent(rejection), false)
+    assert.equal(await page.api.consent(rejection), false)
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        2,
+    )
+})
+
+test('accepted all replay matches the actual controller category set', async () => {
+    const page = browser()
+    const acceptance = { status: 'accepted_all' }
+    assert.equal(await page.api.consent(acceptance), true)
+    assert.equal(await page.api.restoreConsent(acceptance), true)
+    assert.equal(await page.api.consent(acceptance), true)
+    assert.equal(
+        page.requests.filter((request) => request.url.endsWith('/consent'))
+            .length,
+        1,
+    )
+    assert.deepEqual(
+        Array.from(page.storedConsent().categories).sort(),
+        ['essential', 'insights', 'marketing', 'preferences'].sort(),
+    )
+})
+
+for (const consentCategories of [
+    [true],
+    ['unknown'],
+    [],
+    ['essential', 'insights'],
+    ['essential', 'essential'],
+]) {
+    test(`rejects malformed or contradictory rejection acknowledgement ${JSON.stringify(consentCategories)}`, async () => {
+        const page = browser({ consentCategories })
+        assert.equal(
+            await page.api.consent({ status: 'rejected_non_essential' }),
+            false,
+        )
+        assert.equal(
+            await page.api.restoreConsent({ status: 'rejected_non_essential' }),
+            false,
+        )
+        await page.runTimers()
+        assert.deepEqual(page.events(), [])
+    })
+}
+
+test('expired same-policy choices require a fresh decision rather than silent renewal', async () => {
+    const choice = { status: 'accepted_all' }
+    const page = browser({
+        consent: {
+            status: 'accepted_all',
+            categories: ['essential', 'insights', 'marketing', 'preferences'],
+            policy_version: '1.0',
+            decided_at: new Date(Date.now() - 181 * 86400000).toISOString(),
+        },
+    })
+    const prior = page.storedConsent()
+    assert.equal(await page.api.restoreConsent(choice), false)
+    assert.deepEqual(page.storedConsent(), prior)
+    assert.equal(
+        page.requests.filter((r) => r.url.endsWith('/consent')).length,
+        0,
+    )
+    assert.equal(await page.api.consent(choice), true)
+    assert.equal(
+        page.requests.filter((r) => r.url.endsWith('/consent')).length,
+        1,
+    )
+    assert.ok(
+        Date.parse(page.storedConsent().decided_at) >
+            Date.parse(prior.decided_at),
+    )
+})
+
+for (const decided_at of [
+    null,
+    '',
+    'not-a-date',
+    new Date(Date.now() + 86400000).toISOString(),
+]) {
+    test(`invalid or future decision time cannot restore or deduplicate: ${decided_at}`, async () => {
+        const page = browser({
+            consent: {
+                status: 'rejected_non_essential',
+                categories: ['essential'],
+                policy_version: '1.0',
+                decided_at,
+            },
+        })
+        assert.equal(
+            await page.api.restoreConsent({ status: 'rejected_non_essential' }),
+            false,
+        )
+        assert.equal(
+            await page.api.consent({ status: 'rejected_non_essential' }),
+            true,
+        )
+        assert.equal(
+            page.requests.filter((r) => r.url.endsWith('/consent')).length,
+            1,
+        )
+    })
+}
+
+test('failed read-only restoration leaves acknowledged timestamps and categories intact', async () => {
+    const page = browser({
+        consent: {
+            status: 'accepted_all',
+            categories: ['essential', 'insights', 'marketing', 'preferences'],
+            policy_version: '1.0',
+        },
+    })
+    const prior = page.storedConsent()
+    assert.equal(
+        await page.api.restoreConsent({ status: 'rejected_non_essential' }),
+        false,
+    )
+    page.resolve({ consent_required: true })
+    await settle()
+    assert.deepEqual(page.events(), [])
+    assert.deepEqual(page.storedConsent(), prior)
+    assert.equal(
+        await page.api.restoreConsent({ status: 'accepted_all' }),
+        true,
+    )
+    assert.deepEqual(page.storedConsent(), prior)
+    assert.equal(
+        page.requests.filter((r) => r.url.endsWith('/consent')).length,
+        0,
+    )
+})
+
+test('disabled expiry retains an old acknowledged choice without creating a new record', async () => {
+    const page = browser({
+        consentExpiresDays: null,
+        consent: {
+            status: 'rejected_non_essential',
+            categories: ['essential'],
+            policy_version: '1.0',
+            decided_at: new Date(Date.now() - 365 * 86400000).toISOString(),
+        },
+    })
+    assert.equal(
+        await page.api.restoreConsent({ status: 'rejected_non_essential' }),
+        true,
+    )
+    assert.equal(
+        await page.api.consent({ status: 'rejected_non_essential' }),
+        true,
+    )
+    assert.equal(
+        page.requests.filter((r) => r.url.endsWith('/consent')).length,
+        0,
+    )
+})
+
+for (const consentRequired of [true, false]) {
+    for (const status of ['accepted_all', 'rejected_non_essential']) {
+        test(`expiry blocks queued and new events for ${status} with required policy ${consentRequired}`, async () => {
+            const page = browser({ consentExpiresDays: 1 })
+            page.resolve({ consent_required: consentRequired })
+            await settle()
+            assert.equal(await page.api.consent({ status }), true)
+            const sent = page.events()
+            page.api.track({
+                type: 'custom',
+                event_name: 'queued-before-expiry',
+            })
+            page.advanceTime(86400001)
+            page.api.track({ type: 'custom', event_name: 'after-expiry' })
+            page.api.flush()
+            await page.runTimers()
+            assert.deepEqual(page.events(), sent)
+            assert.equal(await page.api.restoreConsent({ status }), false)
+        })
+    }
+}
+
+test('a pending acceptance cannot send events before its acknowledgement', async () => {
+    const page = browser({ consentPersistence: 'delayed' })
+    page.resolve({ consent_required: true })
+    await settle()
+    const acceptance = page.api.consent({ status: 'accepted_all' })
+    page.api.track({ type: 'custom' })
+    page.api.flush()
+    await page.runTimers()
+    assert.deepEqual(page.events(), [])
+    page.resolveConsent()
+    assert.equal(await acceptance, true)
+    await page.runTimers()
+    assert.deepEqual(
+        page.events().map((event) => event.type),
+        ['page_view'],
+    )
 })

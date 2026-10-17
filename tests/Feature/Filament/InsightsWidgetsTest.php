@@ -14,9 +14,12 @@ use Capell\Insights\Filament\Widgets\TopActionsFilamentWidget;
 use Capell\Insights\Filament\Widgets\TrendingPagesFilamentWidget;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
+use Capell\Tests\Support\Concerns\CreatesAdminUser;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Livewire\Livewire;
+
+uses(CreatesAdminUser::class);
 
 it('exposes insights dashboard settings keys with translated labels', function (): void {
     $entries = (new InsightsDashboardSettingsContributor)->settingsKeys();
@@ -137,6 +140,8 @@ it('keeps insights overview stat cache scoped to the current request', function 
 });
 
 it('renders insights dashboard widgets', function (string $widgetClass): void {
+    $this->actingAsAdmin();
+
     Livewire::test($widgetClass)->assertOk();
 })->with([
     PopularPagesFilamentWidget::class,
@@ -148,6 +153,8 @@ it('renders insights dashboard widgets', function (string $widgetClass): void {
 ]);
 
 it('renders trending pages with previous count column', function (): void {
+    $this->actingAsAdmin();
+
     Livewire::test(TrendingPagesFilamentWidget::class)
         ->assertOk()
         ->assertSee(__('capell-insights::widgets.previous_page_views'));

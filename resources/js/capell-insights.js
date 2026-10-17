@@ -1,5 +1,10 @@
-;(function () {
+;(function initializeTracker() {
     'use strict'
+
+    if (typeof window.CapellInsights?.dispose === 'function') {
+        window.CapellInsights.dispose()
+        delete window.CapellInsights
+    }
 
     var configElement = document.querySelector('[data-capell-insights-tracker]')
 
@@ -35,6 +40,41 @@
     var policyResolved = false
     var initialPageViewQueued = false
     var acknowledgedConsent = null
+    var observedSharedConsent
+    var observedSharedWithdrawals = new Set()
+    var sharedWithdrawalRevision = 0
+    var consentRequestSequence = 0
+    var consentRequestPending = false
+    // Keep the write queue across inline tracker replacements. Disposing a
+    // client invalidates its acknowledgement, not an in-flight server write.
+    var consentCoordinatorKey = Symbol.for('capell.insights.consentWrites')
+    var consentWrites = window[consentCoordinatorKey]
+    if (!consentWrites) {
+        consentWrites = { tail: null }
+        window[consentCoordinatorKey] = consentWrites
+    }
+    var restoredConsentReady = config.consentRestorationRequired !== true
+    var disposed = false
+    var cleanups = []
+
+    function listen(target, name, callback, options) {
+        target.addEventListener(name, callback, options)
+        cleanups.push(function () {
+            target.removeEventListener(name, callback, options)
+        })
+    }
+
+    function dispose() {
+        cleanups.splice(0).forEach(function (cleanup) {
+            cleanup()
+        })
+        if (disposed) return
+        disposed = true
+        restoredConsentReady = false
+        consentRequestSequence += 1
+        discardQueuedEvents()
+        clearBannerHeight()
+    }
 
     function privacySignalEnabled() {
         if (!config.honorPrivacySignals) {
@@ -93,65 +133,138 @@
         }
     }
 
-    function currentConsentDecision() {
-        if (acknowledgedConsent) {
-            return acknowledgedConsent
+    function parseConsentDecision(storedConsent) {
+        if (storedConsent) {
+            try {
+                return JSON.parse(storedConsent) || {}
+            } catch (error) {
+                return {}
+            }
         }
+        return null
+    }
 
+    function sharedConsentWithdrawn(decision) {
+        return (
+            !validConsentDecision(decision) ||
+            !consentIncludesInsights(decision.categories)
+        )
+    }
+
+    function rememberSharedWithdrawal(decision, storedConsent) {
+        // Removals and malformed values have no decision identity; a later
+        // identical value may be a new withdrawal and must remain conservative.
+        if (
+            typeof decision?.decided_at === 'string' &&
+            Number.isFinite(Date.parse(decision.decided_at))
+        ) {
+            observedSharedWithdrawals.add(storedConsent)
+        }
+    }
+
+    function withdrawSharedConsent(decision, storedConsent) {
+        rememberSharedWithdrawal(decision, storedConsent)
+        sharedWithdrawalRevision += 1
+        // Keep a withdrawal latched even if another tab subsequently accepts.
+        acknowledgedConsent =
+            decision && !consentIncludesInsights(decision.categories)
+                ? decision
+                : {}
+        discardQueuedEvents()
+    }
+
+    function readConsentDecision() {
         var storedConsent = null
 
         try {
             storedConsent = window.localStorage.getItem(consentStorageKey)
         } catch (error) {
-            storedConsent = null
+            return acknowledgedConsent
         }
 
-        if (!storedConsent) {
-            return null
+        var sharedDecision = parseConsentDecision(storedConsent)
+        var sharedChanged =
+            observedSharedConsent !== undefined &&
+            storedConsent !== observedSharedConsent
+        observedSharedConsent = storedConsent
+        if (sharedConsentWithdrawn(sharedDecision)) {
+            rememberSharedWithdrawal(sharedDecision, storedConsent)
+            if (sharedChanged)
+                withdrawSharedConsent(sharedDecision, storedConsent)
         }
 
-        try {
-            var consentDecision = JSON.parse(storedConsent)
-
-            if (consentDecision.policy_version !== config.policyVersion) {
-                return null
-            }
-
-            return consentDecision
-        } catch (error) {
-            return null
+        // A local rejection remains authoritative even if its storage write
+        // failed. An unchanged shared value also preserves an acknowledged
+        // grant whose write failed; only a shared change can withdraw it.
+        if (
+            acknowledgedConsent &&
+            consentIncludesInsights(acknowledgedConsent.categories) &&
+            !validConsentDecision(acknowledgedConsent)
+        ) {
+            acknowledgedConsent = {}
+            discardQueuedEvents()
         }
+
+        return acknowledgedConsent || sharedDecision
+    }
+
+    function currentConsentDecision() {
+        var decision = readConsentDecision()
+        return validConsentDecision(decision) ? decision : null
+    }
+
+    function validConsentDecision(decision) {
+        if (
+            !decision ||
+            decision.policy_version !== config.policyVersion ||
+            typeof decision.decided_at !== 'string'
+        )
+            return false
+        var decidedAt = Date.parse(decision.decided_at)
+        var age = Date.now() - decidedAt
+        if (!Number.isFinite(decidedAt) || age < 0) return false
+        var expiresDays = config.consentExpiresDays
+        return (
+            expiresDays === null ||
+            (Number.isInteger(expiresDays) &&
+                expiresDays >= 1 &&
+                age <= expiresDays * 86400000)
+        )
     }
 
     function trackingAllowed() {
-        if (!policyResolved) {
+        if (disposed || !policyResolved || !restoredConsentReady) {
             return false
         }
 
-        var consentDecision = currentConsentDecision()
+        var consentDecision = readConsentDecision()
 
-        return consentDecision
-            ? consentIncludesInsights(consentDecision.categories)
+        // An expired or obsolete choice still needs a fresh decision, even
+        // when the current region would otherwise allow anonymous tracking.
+        var allowed = consentDecision
+            ? validConsentDecision(consentDecision) &&
+              consentIncludesInsights(consentDecision.categories)
             : !config.consentRequired
+        if (!allowed) discardQueuedEvents()
+        return allowed
     }
 
-    function applyConsentDecision(status, categories) {
+    function applyConsentDecision(status, categories, decidedAt) {
         acknowledgedConsent = {
             status: status,
             categories: categories || [],
             policy_version: config.policyVersion,
-            decided_at: new Date().toISOString(),
+            decided_at: decidedAt,
         }
     }
 
-    function storeConsentDecision(status, categories) {
-        applyConsentDecision(status, categories)
+    function storeConsentDecision(status, categories, decidedAt) {
+        applyConsentDecision(status, categories, decidedAt)
 
         try {
-            window.localStorage.setItem(
-                consentStorageKey,
-                JSON.stringify(acknowledgedConsent),
-            )
+            var storedConsent = JSON.stringify(acknowledgedConsent)
+            window.localStorage.setItem(consentStorageKey, storedConsent)
+            observedSharedConsent = storedConsent
         } catch (error) {
             // Storage may be unavailable in private browsing or strict environments.
         }
@@ -196,13 +309,16 @@
                 var contentType = response.headers.get('content-type') || ''
 
                 if (
+                    !disposed &&
                     handleResponse &&
                     response.ok &&
                     contentType.indexOf('application/json') !== -1
                 ) {
                     response
                         .json()
-                        .then(handleResponse)
+                        .then(function (response) {
+                            if (!disposed) handleResponse(response)
+                        })
                         .catch(function () {})
                 }
             })
@@ -242,35 +358,131 @@
         }
     }
 
+    function matchingConsentDecision(decision, payload) {
+        if (
+            !decision ||
+            decision.status !== payload.status ||
+            !Array.isArray(decision.categories)
+        ) {
+            return false
+        }
+
+        var expected = ['essential']
+        var optional = ['insights', 'marketing', 'preferences']
+        optional.forEach(function (category) {
+            if (
+                payload.status === 'accepted_all' ||
+                (payload.status === 'granular' &&
+                    payload.categories &&
+                    payload.categories[category] === true)
+            ) {
+                expected.push(category)
+            }
+        })
+
+        return (
+            JSON.stringify(decision.categories.slice().sort()) ===
+            JSON.stringify(expected.sort())
+        )
+    }
+
     function submitConsent(payload, afterConsent) {
+        if (disposed) return Promise.resolve(false)
+        // Include time waiting for earlier writes, transport and JSON parsing
+        // in the lifetime of this choice; acknowledgement never renews it.
+        var decidedAt = new Date().toISOString()
         var status = payload.status
+        var currentDecision = currentConsentDecision()
+        var withdrawalRevision = sharedWithdrawalRevision
+        var acceptsInsights =
+            status === 'accepted_all' ||
+            (status === 'granular' && payload.categories?.insights === true)
+        var canReuseDecision =
+            !consentRequestPending &&
+            !consentWrites.tail &&
+            matchingConsentDecision(currentDecision, payload)
+        var requestSequence = ++consentRequestSequence
         var consentJson = JSON.stringify(
             Object.assign({ policy_version: config.policyVersion }, payload),
         )
 
-        if (status === 'rejected_non_essential') {
-            storeConsentDecision(status, [])
+        if (
+            status === 'rejected_non_essential' ||
+            (status === 'granular' && payload.categories?.insights !== true)
+        ) {
+            if (!canReuseDecision) {
+                restoredConsentReady = false
+                storeConsentDecision(status, [], decidedAt)
+            }
             discardQueuedEvents()
         }
 
-        fetch(config.consentUrl, {
-            method: 'POST',
-            body: consentJson,
-            headers: { 'Content-Type': 'application/json' },
-            keepalive: true,
-        })
-            .then(function (response) {
-                if (!response.ok) {
-                    return
-                }
+        if (canReuseDecision) {
+            restoredConsentReady = true
+            trackPageView()
+            flushEvents()
+            if (afterConsent) {
+                afterConsent({
+                    visit_id: currentVisitId(),
+                    enabled_categories: currentDecision.categories,
+                })
+            }
+            return Promise.resolve(true)
+        }
 
-                response
-                    .json()
-                    .then(function (response) {
+        consentRequestPending = true
+
+        function requestStillCurrent() {
+            // Reconcile both before reading JSON and after it resolves. A
+            // notification may latch withdrawal while either stage is pending.
+            readConsentDecision()
+            return (
+                requestSequence === consentRequestSequence &&
+                (!acceptsInsights ||
+                    withdrawalRevision === sharedWithdrawalRevision)
+            )
+        }
+
+        // Persist choices in invocation order. A newer rejection takes effect
+        // locally immediately and must also be the last decision at the server.
+        var performRequest = function () {
+            if (disposed) return Promise.resolve(false)
+            return fetch(config.consentUrl, {
+                method: 'POST',
+                body: consentJson,
+                headers: { 'Content-Type': 'application/json' },
+                keepalive: true,
+            })
+                .then(function (response) {
+                    if (!response.ok || !requestStillCurrent()) {
+                        return false
+                    }
+
+                    return response.json().then(function (response) {
+                        // A later choice remains authoritative even when an earlier
+                        // request or JSON body finishes afterwards.
+                        if (
+                            !requestStillCurrent() ||
+                            !response ||
+                            typeof response.visit_id !== 'string' ||
+                            response.visit_id === '' ||
+                            !matchingConsentDecision(
+                                {
+                                    status: status,
+                                    categories: response.enabled_categories,
+                                },
+                                payload,
+                            )
+                        ) {
+                            return false
+                        }
+
+                        restoredConsentReady = true
                         storeVisitId(response.visit_id)
                         storeConsentDecision(
                             status,
                             response.enabled_categories,
+                            decidedAt,
                         )
                         trackPageView()
                         flushEvents()
@@ -278,10 +490,24 @@
                         if (afterConsent) {
                             afterConsent(response)
                         }
+
+                        return true
                     })
-                    .catch(function () {})
-            })
-            .catch(function () {})
+                })
+                .catch(function () {
+                    return false
+                })
+        }
+        var request = consentWrites.tail
+            ? consentWrites.tail.then(performRequest)
+            : performRequest()
+        consentWrites.tail = request
+        return request.finally(function () {
+            if (consentWrites.tail === request) consentWrites.tail = null
+            if (requestSequence === consentRequestSequence) {
+                consentRequestPending = false
+            }
+        })
     }
 
     function publishBannerHeight(banner) {
@@ -307,7 +533,7 @@
             !banner ||
             !policyResolved ||
             config.consentRequired ||
-            currentConsentDecision()
+            readConsentDecision()
         ) {
             return
         }
@@ -325,7 +551,9 @@
 
         if (
             currentConsentDecision() ||
-            (policyResolved && !config.consentRequired)
+            (policyResolved &&
+                !config.consentRequired &&
+                !readConsentDecision())
         ) {
             banner.hidden = true
             clearBannerHeight()
@@ -341,20 +569,24 @@
         publishBannerHeight(banner)
 
         if (typeof ResizeObserver === 'function') {
-            new ResizeObserver(function () {
-                if (!banner.hidden) {
+            var observer = new ResizeObserver(function () {
+                if (!disposed && !banner.hidden) {
                     publishBannerHeight(banner)
                 }
-            }).observe(banner)
+            })
+            observer.observe(banner)
+            cleanups.push(function () {
+                observer.disconnect()
+            })
         } else {
-            window.addEventListener('resize', function () {
-                if (!banner.hidden) {
+            listen(window, 'resize', function () {
+                if (!disposed && !banner.hidden) {
                     publishBannerHeight(banner)
                 }
             })
         }
 
-        banner.addEventListener('click', function (event) {
+        listen(banner, 'click', function (event) {
             if (!event.target || !event.target.closest) {
                 return
             }
@@ -624,8 +856,14 @@
             controller.abort()
         }, 5000)
 
+        cleanups.push(function () {
+            completed = true
+            window.clearTimeout(timeout)
+            controller.abort()
+        })
+
         function complete(policy) {
-            if (completed) {
+            if (disposed || completed) {
                 return
             }
 
@@ -666,27 +904,77 @@
             })
     }
 
-    window.CapellInsights = {
+    var api = {
+        dispose: dispose,
+        // Restoration is read-only: an earlier choice never accepts a new
+        // policy or creates another consent record without a fresh decision.
+        restoreConsent: function (payload) {
+            var restored =
+                !disposed &&
+                !consentRequestPending &&
+                !consentWrites.tail &&
+                matchingConsentDecision(currentConsentDecision(), payload)
+            restoredConsentReady = restored
+            if (!restored) discardQueuedEvents()
+            else trackPageView()
+            return Promise.resolve(restored)
+        },
         consent: function (payload) {
-            submitConsent(payload)
+            return submitConsent(payload)
         },
         track: queueEvent,
         flush: flushEvents,
     }
 
-    document.addEventListener('click', trackClick, true)
-    window.addEventListener('pagehide', flushEvents)
-    document.addEventListener('visibilitychange', function () {
+    window.CapellInsights = api
+    listen(document, 'livewire:navigating', dispose)
+    listen(window, 'storage', function (event) {
+        if (
+            (event.key === consentStorageKey || event.key === null) &&
+            event.storageArea === window.localStorage
+        ) {
+            var sharedDecision = parseConsentDecision(event.newValue)
+            if (
+                (event.key === null ||
+                    sharedConsentWithdrawn(sharedDecision)) &&
+                !observedSharedWithdrawals.has(event.newValue)
+            ) {
+                // Repeated notifications for reconciled withdrawals predate any
+                // fresh local choice. The stored value includes decided_at, so
+                // a new withdrawal remains distinct even with the same choices.
+                // The notification can precede a newer remote acceptance in
+                // the event queue; its withdrawal must not be lost on reread.
+                withdrawSharedConsent(sharedDecision, event.newValue)
+            }
+            readConsentDecision()
+            if (!trackingAllowed()) discardQueuedEvents()
+        }
+    })
+    listen(document, 'click', trackClick, true)
+    listen(window, 'pagehide', function () {
+        flushEvents()
+        dispose()
+        // A cached document resumes without executing its inline scripts again.
+        listen(
+            window,
+            'pageshow',
+            function (event) {
+                if (event.persisted) initializeTracker()
+            },
+            { once: true },
+        )
+    })
+    listen(document, 'visibilitychange', function () {
         if (document.visibilityState === 'hidden') {
             flushEvents()
         }
     })
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeConsentBanner, {
+        listen(document, 'DOMContentLoaded', initializeConsentBanner, {
             once: true,
         })
-        document.addEventListener('DOMContentLoaded', trackPageView, {
+        listen(document, 'DOMContentLoaded', trackPageView, {
             once: true,
         })
     } else {

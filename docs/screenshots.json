@@ -158,7 +158,7 @@
             "waitFor": "script[data-capell-insights-tracker]",
             "user": false,
             "required": true,
-            "notes": "Captured from the seeded public root route on the isolated Packages workbench; this is the real frontend hook output rather than the package-owned screenshot fixture.",
+            "notes": "Capture the real seeded public root. The per-entry Testbench environment enables Insights and the guarded workbench tracker hook, with consent chrome disabled. Both schemes require the actual tracker script.",
             "useCase": "A visitor loads a real public page where the Insights tracker script is active.",
             "screenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active-real.png",
             "darkScreenshotPath": "packages/insights/docs/screenshots/frontend-page-with-tracker-active-real-dark.png"
