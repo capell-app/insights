@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Actions;
 
-use Capell\Core\Enums\Database\DatabaseCapability;
-use Capell\Core\Facades\CapellDatabase;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Support\PathDigestColumn;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsFake;
@@ -34,9 +33,7 @@ final class RebuildInsightsDailyRollupsAction
         $rollupTable = (new InsightsDailyRollup)->getTable();
         $eventTable = (new InsightsEvent)->getTable();
         $connection = (new InsightsDailyRollup)->getConnection();
-        $requiresApplicationDigest = ! CapellDatabase::for($connection)
-            ->schemaDialect()
-            ->supports(DatabaseCapability::HashGeneratedColumn, $connection);
+        $requiresApplicationDigest = ! PathDigestColumn::isGenerated($connection, $rollupTable);
         $now = now();
 
         $rowCount = DB::transaction(function () use ($eventTable, $now, $requiresApplicationDigest, $resolvedEndsAt, $resolvedStartsAt, $rollupTable): int {

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Models;
 
-use Capell\Core\Enums\Database\DatabaseCapability;
-use Capell\Core\Facades\CapellDatabase;
+use Capell\Insights\Support\PathDigestColumn;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,10 +46,7 @@ class InsightsDailyRollup extends Model
     protected static function booted(): void
     {
         static::saving(function (InsightsDailyRollup $rollup): void {
-            $connection = $rollup->getConnection();
-            $schema = CapellDatabase::for($connection)->schemaDialect();
-
-            if (! $schema->supports(DatabaseCapability::HashGeneratedColumn, $connection) && $rollup->isDirty('path')) {
+            if (! PathDigestColumn::isGenerated($rollup->getConnection(), $rollup->getTable()) && $rollup->isDirty('path')) {
                 $rollup->path_digest = hash('sha256', $rollup->path);
             }
         });
