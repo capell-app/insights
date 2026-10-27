@@ -7,31 +7,26 @@
     "entries": [
         {
             "id": "insights-overview-dashboard-widgets",
-            "title": "Live Insights dashboard statistics.",
+            "title": "Insights overview figures on the Insights page.",
             "package": "insights",
             "surface": "admin",
             "targetType": "admin-surface",
-            "target": "LiveInsightsStatsFilamentWidget",
+            "target": "InsightsPage",
             "required": true,
-            "url": "/admin",
+            "url": "/admin/insights",
             "notes": "Capture the real installed Filament surface after the manifest fixture commands prepare its data and widget settings.",
-            "useCase": "An administrator reviews current visitor activity and page-view counts from real tracking data.",
+            "useCase": "An administrator reviews visitors, page views and clicks for the selected period from real tracking data.",
             "screenshotPath": "packages/insights/docs/screenshots/insights-overview-dashboard-widgets.png",
-            "waitFor": ".fi-wi-table:has-text(\"Live statistics\")",
+            "waitFor": ".fi-section:has(.fi-section-header-heading:has-text(\"What needs attention?\")):has-text(\"Page views\")",
             "scenario": "admin-index",
             "beforeWait": [
                 {
-                    "type": "scrollIntoView",
-                    "selector": ".fi-section:not(.fi-collapsed) [wire\\:snapshot*=\"live-insights-stats-filament-widget\"]",
-                    "block": "start"
-                },
-                {
                     "type": "waitFor",
-                    "selector": ".fi-wi-table:has-text(\"Live statistics\")"
+                    "selector": ".fi-section:has(.fi-section-header-heading:has-text(\"What needs attention?\")):has-text(\"Page views\")"
                 },
                 {
                     "type": "scrollIntoView",
-                    "selector": ".fi-wi-table:has-text(\"Live statistics\")",
+                    "selector": ".fi-section:has(.fi-section-header-heading:has-text(\"What needs attention?\")):has-text(\"Page views\")",
                     "block": "start"
                 }
             ]
@@ -205,6 +200,6 @@
     ],
     "fixtureCommands": [
         "capell:screenshot-admin-fixture --package=insights",
-        "capell:screenshot-dashboard-widgets --widget=insights_live_stats --widget=insights_popular_pages --widget=insights_recent_journeys"
+        "capell:screenshot-dashboard-widgets --widget=insights_overview --widget=insights_live_stats --widget=insights_popular_pages --widget=insights_recent_journeys"
     ]
 }

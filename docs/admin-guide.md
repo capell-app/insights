@@ -6,7 +6,7 @@ This guide is for owners and operators who want to understand how their site and
 
 ### Choose one audience and period
 
-Open **Monitoring > Insights**. Choose a **Site**, a **Language** (or all that
+Open **Insights & health > Insights**. Choose a **Site**, a **Language** (or all that
 site's languages), and **From** / **To** dates, then select **Update workspace**.
 The initial window is the last seven calendar days, including today. Windows
 are limited to 366 days. Changing site clears the language choice so a language
@@ -30,7 +30,7 @@ against their end date, not today's date. Allow for the displayed aggregate
 cache interval and queue delay. A quiet or empty report does not prove nobody
 visited: consent and tracking choices affect what can be recorded.
 
-**Tracking is disabled** describes the effective runtime configuration. Existing
+"Tracking is disabled" describes the effective runtime configuration. Existing
 reports remain available while collection is off. Saved settings are preserved;
 the consuming installation must apply its matching runtime configuration, as
 explained in [the operator reference](overview.admin.md).

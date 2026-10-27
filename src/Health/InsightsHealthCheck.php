@@ -63,7 +63,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         $missingTables = $this->missingTables();
 
         return new DoctorCheckResultData(
-            label: 'Insights storage tables',
+            label: 'Insights: database tables present',
             passed: $missingTables === [],
             message: $missingTables === []
                 ? 'The visits, consents, events, and daily rollups tables are present.'
@@ -71,6 +71,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             remediation: $missingTables === []
                 ? null
                 : 'Run the Capell migrations to create the insights storage tables.',
+            id: 'legacy.insights.storage.tables',
         );
     }
 
@@ -82,7 +83,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         $missingRoutes = $this->missingBeaconRoutes();
 
         return new DoctorCheckResultData(
-            label: 'Insights beacon routes',
+            label: 'Insights: tracking routes registered',
             passed: $missingRoutes === [],
             message: $missingRoutes === []
                 ? 'The events beacon and consent endpoints are registered.'
@@ -90,6 +91,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             remediation: $missingRoutes === []
                 ? null
                 : 'Ensure the insights web routes are loaded and capell-insights.route_prefix is configured.',
+            id: 'legacy.insights.beacon.routes',
         );
     }
 
@@ -101,7 +103,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         $hasSecureSecret = $this->hasSecureVisitorHashSecret();
 
         return new DoctorCheckResultData(
-            label: 'Insights visitor hash secret',
+            label: 'Insights: visitor protection secret configured',
             passed: $hasSecureSecret,
             message: $hasSecureSecret
                 ? 'A non-default secret is configured for hashing visitor identifiers.'
@@ -109,6 +111,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             remediation: $hasSecureSecret
                 ? null
                 : 'Set capell-insights.hash_salt to a private value (or rely on app.key) before production.',
+            id: 'legacy.insights.visitor.hash.secret',
         );
     }
 
@@ -120,7 +123,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         $hasRenderHook = $this->hasFrontendTrackerRenderHook();
 
         return new DoctorCheckResultData(
-            label: 'Insights frontend tracker render hook',
+            label: 'Insights: public page tracking registered',
             passed: $hasRenderHook,
             message: $hasRenderHook
                 ? 'The BodyEnd render hook emits the insights tracker payload.'
@@ -128,6 +131,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             remediation: $hasRenderHook
                 ? null
                 : 'Ensure the frontend RenderHookRegistry is bound and the Insights package is installed/enabled.',
+            id: 'legacy.insights.frontend.tracker.render.hook',
         );
     }
 
@@ -139,7 +143,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         $hasSchedule = $this->hasPurgeSchedule();
 
         return new DoctorCheckResultData(
-            label: 'Insights retention purge schedule',
+            label: 'Insights: data retention cleanup scheduled',
             passed: $hasSchedule,
             message: $hasSchedule
                 ? 'The insights retention purge command is scheduled monthly.'
@@ -147,6 +151,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             remediation: $hasSchedule
                 ? null
                 : 'Ensure the Insights admin provider boots and schedules insights:purge monthly.',
+            id: 'legacy.insights.retention.purge.schedule',
         );
     }
 
@@ -158,7 +163,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
         $hasSchedule = $this->hasRollupsSchedule();
 
         return new DoctorCheckResultData(
-            label: 'Insights daily rollups schedule',
+            label: 'Insights: daily summaries scheduled',
             passed: $hasSchedule,
             message: $hasSchedule
                 ? 'The insights daily rollups rebuild command is scheduled daily.'
@@ -166,6 +171,7 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
             remediation: $hasSchedule
                 ? null
                 : 'Ensure the Insights admin provider boots and schedules insights:rollups:rebuild daily.',
+            id: 'legacy.insights.daily.rollups.schedule',
         );
     }
 

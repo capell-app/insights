@@ -42,8 +42,6 @@ Screenshot contract: `docs/screenshots.json`.
 - Public root page with the Insights tracker active (frontend, required evidence).
 - Insights overview dashboard widgets with admin sidebar menu open (admin, supplementary evidence).
 
-Developer integration: [use a custom consent interface](docs/custom-consent.md).
-
 ## Technical Shape
 
 ### Service providers
@@ -247,11 +245,18 @@ Developer integration: [use a custom consent interface](docs/custom-consent.md).
 1. Install the package: `composer require capell-app/insights`.
 2. Open the package admin surface at `/admin` and confirm Insights is available.
 
+## Upgrading
+
+No manual steps between minor versions.
+
+Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
+
 ## Next Steps
 
 - [Package docs](docs/README.md)
 - [Overview](docs/overview.md)
 - [Admin guide](docs/admin-guide.md)
+- [Custom consent integration](docs/custom-consent.md)
 - Configuration files: [`config/capell-insights.php`](config/capell-insights.php).
 - [Troubleshooting](#troubleshooting)
 - [Screenshot contract](docs/screenshots.json)

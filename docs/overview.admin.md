@@ -5,7 +5,7 @@ Insights is Capell's first-party web analytics package. It records page views, c
 ## Your screens
 
 - **Insights**: the Monitoring page for overview statistics, live activity, popular and trending pages, recent journeys, top actions, and acquisition sources.
-- **Dashboard and Marketing Studio**: can also show the Insights reporting widgets and overview statistics.
+- **Dashboard**: can also show the Insights reporting widgets and overview statistics. The **Marketing** workspace links to Insights under **Performance**.
 - **Insights settings**: store the intended tracking, consent, retention, visitor-hashing, exclusion, and public beacon configuration. See the runtime configuration boundary below before relying on a saved change.
 
 ## What you can do
