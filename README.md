@@ -29,11 +29,11 @@ Status details:
 
 Screenshot contract: `docs/screenshots.json`.
 
-![Live Insights dashboard statistics](docs/screenshots/insights-overview-dashboard-widgets.png)
+![Insights overview figures on the Insights page](docs/screenshots/insights-overview-dashboard-widgets.png)
 
 ![Popular pages widget](docs/screenshots/popular-pages-widget.png)
 
-- Live Insights dashboard statistics (admin, required evidence).
+- Insights overview figures on the Insights page (admin, required evidence).
 - Popular pages widget (admin, required evidence).
 - Recent journeys widget (admin, required evidence).
 - Insights settings screen (admin, required evidence).
@@ -243,7 +243,7 @@ Screenshot contract: `docs/screenshots.json`.
 ## Quick Start
 
 1. Install the package: `composer require capell-app/insights`.
-2. Open the package admin surface at `/admin` and confirm Insights is available.
+2. Open the package admin surface at `/admin/insights` and confirm Insights is available.
 
 ## Upgrading
 
