@@ -25,6 +25,7 @@ use Capell\Core\Enums\Metrics\MetricSource;
 use Capell\Core\Enums\Metrics\MetricValueType;
 use Capell\Core\Enums\Metrics\MetricVisibility;
 use Capell\Core\Enums\MetricUnitEnum;
+use Capell\Core\Support\TableName;
 use Illuminate\Support\Facades\DB;
 
 final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
@@ -107,7 +108,7 @@ final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
             }
         }
 
-        $sourceWatermark = 'insights-daily-rollups:' . $day . ':' . ((string) ($row->source_watermark ?? 'empty'));
+        $sourceWatermark = 'insights-daily-rollups:' . $day . ':' . (($row->source_watermark ?? 'empty'));
 
         return new MetricCollectionResultData(
             status: MetricCollectionStatus::Complete,
@@ -150,6 +151,6 @@ final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
     {
         $tableName = config('capell-insights.tables.daily_rollups', 'insights_daily_rollups');
 
-        return is_string($tableName) && $tableName !== '' ? $tableName : 'insights_daily_rollups';
+        return TableName::resolve(is_string($tableName) && $tableName !== '' ? $tableName : 'insights_daily_rollups');
     }
 }

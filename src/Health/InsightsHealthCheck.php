@@ -6,6 +6,7 @@ namespace Capell\Insights\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Core\Support\TableName;
 use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
@@ -279,19 +280,19 @@ final class InsightsHealthCheck implements ChecksExtensionHealth
      */
     private function requiredTableNames(): array
     {
-        $tables = config('capell-insights.tables', []);
-
-        $resolve = static function (string $key, string $fallback) use ($tables): string {
-            $value = is_array($tables) ? ($tables[$key] ?? null) : null;
-
-            return is_string($value) && $value !== '' ? $value : $fallback;
-        };
-
         return [
-            $resolve('visits', 'insights_visits'),
-            $resolve('consents', 'insights_consents'),
-            $resolve('events', 'insights_events'),
-            $resolve('daily_rollups', 'insights_daily_rollups'),
+            $this->tableName('visits', 'insights_visits'),
+            $this->tableName('consents', 'insights_consents'),
+            $this->tableName('events', 'insights_events'),
+            $this->tableName('daily_rollups', 'insights_daily_rollups'),
         ];
+    }
+
+    private function tableName(string $key, string $fallback): string
+    {
+        $tables = config('capell-insights.tables', []);
+        $value = is_array($tables) ? ($tables[$key] ?? null) : null;
+
+        return TableName::resolve(is_string($value) && $value !== '' ? $value : $fallback);
     }
 }

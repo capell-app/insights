@@ -17,7 +17,7 @@ Insights is Capell's first-party web analytics package. It records page views, c
 
 ## Where to find it
 
-Go to **Insights** under **Monitoring** in the admin. The page requires the `View:InsightsPage` permission. Open the extension's **Insights** settings surface to change tracking and privacy behavior.
+Go to **Insights** under **Monitoring** in the admin. The page requires the `View:InsightsPage` permission. Open the extension's **Insights** settings surface to change tracking and privacy behaviour.
 
 Each bundled widget is also restricted to the configured admin or super-admin roles and its dashboard visibility setting. Granting `View:InsightsPage` alone does not make a hidden widget visible. The overview, popular pages, trending pages, top actions, and acquisition widgets use the active dashboard date range and site context. **Live statistics** is installation-wide, and **Recent journeys** applies the date range but not the selected site. Those two widgets can expose paths and visit identifiers from other sites, so do not enable them for site-limited operators until the consuming application adds site scoping.
 
@@ -46,6 +46,6 @@ Server-side consent expires after 180 days by default. The bundled browser decis
 - Tracking runs through Capell's public beacon and consent endpoints; no third-party analytics script is required. The frontend tracker is not injected on ignored paths.
 - Visitor identifiers are hashed by default. Configure a private hash salt for production, or the package derives one from the application key. Diagnostics reports whether a usable hash secret is available.
 - UK and Europe traffic requires Insights consent by default. Enable **Require consent for all regions** to apply that rule everywhere. Changing the policy version makes prior consent ineligible for tracking until the visitor provides consent for the new policy.
-- If Privacy Center is installed, Insights consent decisions are mirrored into its consent ledger. Privacy Center subject erasure anonymizes the associated Insights visit and consent hashes.
+- If Privacy Centre is installed, Insights consent decisions are mirrored into its consent ledger. Privacy Centre subject erasure anonymizes the associated Insights visit and consent hashes.
 - Data is retained for 365 days by default. `insights:purge` runs monthly, so expired rows can remain until the next run; an ad-hoc `--days` value must be a positive integer. `insights:rollups:rebuild` rebuilds the most recent 30 days by default and accepts inclusive `--from` and `--to` dates. Keep the scheduler running, or run the commands during maintenance when necessary.
 - Diagnostics checks the Insights tables, beacon routes, frontend tracker hook, both schedules, and the visitor hash secret.

@@ -155,11 +155,11 @@
                             >
                                 <dt class="text-sm">{{ $metric['label'] }}</dt>
                                 <dd class="text-3xl font-semibold">
-                                    {{ number_format($metric['value']) }}
+                                    {{ \Illuminate\Support\Number::format($metric['value'], precision: 0, locale: app()->getLocale()) }}
                                 </dd>
                                 @if ($metric['previous'] !== null)
                                     <dd class="text-sm">
-                                        {{ __('capell-insights::workspace.previous', ['value' => number_format($metric['previous'])]) }}
+                                        {{ __('capell-insights::workspace.previous', ['value' => \Illuminate\Support\Number::format($metric['previous'], precision: 0, locale: app()->getLocale())]) }}
                                     </dd>
                                 @endif
                             </div>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Models;
 
+use Capell\Core\Support\TableName;
 use Capell\Insights\Support\PathDigestColumn;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -39,7 +40,7 @@ class InsightsDailyRollup extends Model
     {
         $tableName = config('capell-insights.tables.daily_rollups');
 
-        return is_string($tableName) ? $tableName : 'insights_daily_rollups';
+        return TableName::resolve(is_string($tableName) ? $tableName : 'insights_daily_rollups');
     }
 
     #[Override]

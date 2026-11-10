@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -26,8 +27,8 @@ return new class extends Migration
             $table->unsignedBigInteger('unique_visits')->default(0);
             $table->timestamps();
 
-            $table->index(['day', 'type'], 'insights_rollups_day_type_index');
-            $table->index(['site_id', 'language_id', 'day'], 'insights_rollups_site_language_day_index');
+            $table->index(['day', 'type'], TableName::namedIndex($this->baseTableName('capell-insights.tables.daily_rollups', 'insights_daily_rollups'), 'insights_rollups_day_type_index'));
+            $table->index(['site_id', 'language_id', 'day'], TableName::namedIndex($this->baseTableName('capell-insights.tables.daily_rollups', 'insights_daily_rollups'), 'insights_rollups_site_language_day_index'));
         });
     }
 
@@ -36,10 +37,17 @@ return new class extends Migration
         Schema::dropIfExists($this->tableName());
     }
 
+    private function baseTableName(string $key, string $fallback): string
+    {
+        $name = config($key);
+
+        return is_string($name) && $name !== '' ? $name : $fallback;
+    }
+
     private function tableName(): string
     {
         $tableName = config('capell-insights.tables.daily_rollups', 'insights_daily_rollups');
 
-        return is_string($tableName) && $tableName !== '' ? $tableName : 'insights_daily_rollups';
+        return TableName::resolve(is_string($tableName) && $tableName !== '' ? $tableName : 'insights_daily_rollups');
     }
 };

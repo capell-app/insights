@@ -2,16 +2,18 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = config('capell-insights.tables.consents', 'insights_consents');
-        $visitsTableName = config('capell-insights.tables.visits', 'insights_visits');
+        $tableName = TableName::resolve(Config::string('capell-insights.tables.consents', 'insights_consents'));
+        $visitsTableName = TableName::resolve(Config::string('capell-insights.tables.visits', 'insights_visits'));
 
         Schema::create($tableName, function (Blueprint $table) use ($visitsTableName): void {
             $table->id();
@@ -30,6 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('capell-insights.tables.consents', 'insights_consents'));
+        Schema::dropIfExists(TableName::resolve(Config::string('capell-insights.tables.consents', 'insights_consents')));
     }
 };

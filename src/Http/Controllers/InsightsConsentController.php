@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Http\Controllers;
 
+use Capell\Insights\Actions\RequireSameOriginConsentRequestAction;
 use Capell\Insights\Actions\ResolveConsentRegionAction;
 use Capell\Insights\Actions\UpdateInsightsConsentAction;
 use Capell\Insights\Data\InsightsConsentData;
@@ -19,6 +20,8 @@ class InsightsConsentController
 {
     public function __invoke(Request $request): JsonResponse
     {
+        RequireSameOriginConsentRequestAction::run($request);
+
         $validated = $request->validate([
             'region' => ['sometimes', Rule::enum(InsightsConsentRegion::class)],
             'status' => [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Capell\Core\Data\Database\DatabaseIndexDefinition;
 use Capell\Core\Facades\CapellDatabase;
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ return new class extends Migration
         Schema::create($tableName, function (Blueprint $table) use ($visitsTableName): void {
             $table->id();
             $table->foreignId('visit_id')->nullable()->constrained($visitsTableName)->nullOnDelete();
-            $table->foreignId('site_id')->nullable()->constrained('sites')->nullOnDelete();
+            $table->foreignId('site_id')->nullable()->constrained(TableName::resolve('sites'))->nullOnDelete();
             $table->unsignedBigInteger('language_id')->nullable()->index();
             $table->string('type')->index();
             $table->string('url', 512)->index();
@@ -39,10 +40,10 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
 
-            $table->index('legacy_page_view_id', 'insights_events_legacy_page_view_index');
-            $table->index(['type', 'occurred_at'], 'insights_events_type_occurred_index');
-            $table->index(['site_id', 'type', 'occurred_at'], 'insights_events_site_type_occurred_index');
-            $table->index(['visit_id', 'sequence'], 'insights_events_visit_sequence_index');
+            $table->index('legacy_page_view_id', TableName::namedIndex($this->baseTableName('capell-insights.tables.events', 'insights_events'), 'insights_events_legacy_page_view_index'));
+            $table->index(['type', 'occurred_at'], TableName::namedIndex($this->baseTableName('capell-insights.tables.events', 'insights_events'), 'insights_events_type_occurred_index'));
+            $table->index(['site_id', 'type', 'occurred_at'], TableName::namedIndex($this->baseTableName('capell-insights.tables.events', 'insights_events'), 'insights_events_site_type_occurred_index'));
+            $table->index(['visit_id', 'sequence'], TableName::namedIndex($this->baseTableName('capell-insights.tables.events', 'insights_events'), 'insights_events_visit_sequence_index'));
         });
 
         $connection = Schema::getConnection();
@@ -63,10 +64,17 @@ return new class extends Migration
         Schema::dropIfExists($this->tableName('capell-insights.tables.events', 'insights_events'));
     }
 
+    private function baseTableName(string $key, string $fallback): string
+    {
+        $name = config($key);
+
+        return is_string($name) && $name !== '' ? $name : $fallback;
+    }
+
     private function tableName(string $key, string $fallback): string
     {
         $tableName = config($key, $fallback);
 
-        return is_string($tableName) && $tableName !== '' ? $tableName : $fallback;
+        return TableName::resolve(is_string($tableName) && $tableName !== '' ? $tableName : $fallback);
     }
 };

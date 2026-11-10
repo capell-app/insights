@@ -19,6 +19,7 @@ final class GetInsightsTrackerScriptAction
     {
         $providerPath = new ReflectionClass(InsightsServiceProvider::class)->getFileName();
         $path = dirname(is_string($providerPath) ? $providerPath : __DIR__, 3) . '/resources/js/capell-insights.js';
+        // capell-security-scan: local-stream reads the tracker script in this package's resources, located from its provider
         $contents = file_get_contents($path);
 
         throw_unless(is_string($contents), RuntimeException::class, 'Unable to read Capell Insights tracker script.');

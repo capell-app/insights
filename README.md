@@ -2,209 +2,57 @@
 
 <!-- prettier-ignore-start -->
 
-## What This Plugin Adds
-
-Insights is an **Available**, **Schema-owning** Capell package in the **Capell Marketing & Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
+## What It Does
 
 Insights records first-party page views, events, journeys, conversions, and consent state for reporting inside Capell.
 
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/insights).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/insights).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
+- **Install:** `composer require capell-app/insights`.
+
 Admins can review overview metrics, trends, journeys, and dashboard widgets. Public pages send consent-aware events through the Insights beacon.
 
-Status details:
-
-- Status: Available
-- Tier: free
-- Bundle: marketing-growth
-- Composer package: `capell-app/insights`
-- Namespace: `Capell\Insights`
-- Theme key: not applicable
-
-## Why It Matters
+## Who It Is For
 
 **For developers:** Typed Actions handle beacon validation, event storage, rollups, consent, and retention instead of spreading analytics logic across controllers and views.
 
 **For teams:** Teams can inspect site activity and conversion paths without sending visitor analytics to a third-party reporting service.
 
-## Screens And Workflow
+## Quick Start
 
-Screenshot contract: `docs/screenshots.json`.
+1. Install the package: `composer require capell-app/insights`.
+2. Open the package admin surface at `/admin/insights` and confirm Insights is available.
+
+## Configure
+
+- **Configuration files:** `config/capell-insights.php`.
+- **Admin settings:** `Capell\Insights\Settings\InsightsSettings`.
+- **Commands:** `php artisan insights:purge`, `php artisan insights:rollups:rebuild`.
+
+## Limits And Pitfalls
+
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0.72`.
+- Run migrations before opening package resources or public routes.
+- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
+- Keep the host Laravel scheduler running so package-registered schedules can execute: `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`.
+- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
+- Custom write integrations must preserve invalidation for `insights` cache tags.
+
+## Screens And Workflow
 
 ![Insights overview figures on the Insights page](docs/screenshots/insights-overview-dashboard-widgets.png)
 
 ![Popular pages widget](docs/screenshots/popular-pages-widget.png)
 
-- Insights overview figures on the Insights page (admin, required evidence).
-- Popular pages widget (admin, required evidence).
-- Recent journeys widget (admin, required evidence).
-- Insights settings screen (admin, required evidence).
-- Frontend page with tracker active (frontend, supplementary evidence).
-- Consent banner flow (frontend, supplementary evidence).
-- Public root page with the Insights tracker active (frontend, required evidence).
-- Insights overview dashboard widgets with admin sidebar menu open (admin, supplementary evidence).
-
-## Technical Shape
-
-### Service providers
-
-- `Capell\Insights\Providers\InsightsServiceProvider`
-- `Capell\Insights\Providers\AdminServiceProvider`
-
-### Config files
-
-- `packages/insights/config/capell-insights.php`
-
-### Migrations
-
-- `packages/insights/database/migrations/2026_05_10_190855_01_create_insights_visits_table.php`
-- `packages/insights/database/migrations/2026_05_10_190855_02_create_insights_consents_table.php`
-- `packages/insights/database/migrations/2026_05_10_190855_03_create_insights_events_table.php`
-- `packages/insights/database/migrations/2026_05_10_190855_05_import_legacy_page_views.php`
-- `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`
-- `packages/insights/database/migrations/2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`
-- `packages/insights/database/migrations/2026_09_25_000001_invalidate_legacy_insights_html_cache.php`
-
-### Settings migrations
-
-- `packages/insights/database/settings/2026_05_10_190856_01_create_insights_settings.php`
-- `packages/insights/database/settings/2026_06_14_000001_rename_insights_form_tracking_setting.php`
-
-### Settings classes
-
-- `InsightsSettings`
-- `InsightsSettingsMigrationProvider`
-
-### Models
-
-- `InsightsConsent`
-- `InsightsDailyRollup`
-- `InsightsEvent`
-- `InsightsVisit`
-
-### Filament classes
-
-- `InsightsPage`
-- `InsightsDashboardSettingsContributor`
-- `InsightsSettingsSchema`
-- `AcquisitionSourcesFilamentWidget`
-- `BuildsInsightsDashboardWindow`
-- `InsightsOverviewStatsFilamentWidget`
-- `LiveInsightsStatsFilamentWidget`
-- `PopularPagesFilamentWidget`
-- `RecentJourneysFilamentWidget`
-- `TopActionsFilamentWidget`
-- `TrendingPagesFilamentWidget`
-
-### Route files
-
-- `packages/insights/routes/web.php`
-
-### Actions
-
-- `AnonymizeInsightsVisitAction`
-- `BuildAcquisitionSourcesQueryAction`
-- `BuildFunnelConversionReportAction`
-- `BuildInsightsDigestAction`
-- `BuildInsightsOverviewStatsAction`
-- `BuildInsightsWorkspaceAction`
-- `BuildJourneyTimelineAction`
-- `BuildLiveInsightsStatsAction`
-- `BuildPopularPagesQueryAction`
-- `BuildRecentJourneysQueryAction`
-- `BuildTopActionsQueryAction`
-- `BuildTrendingPagesQueryAction`
-- `CreateInsightsVisitAction`
-- `ExportInsightsDigestCsvAction`
-- `GetInsightsTrackerScriptAction`
-- `ImportLegacyPageViewsAction`
-- `IngestInsightsBeaconAction`
-- `MirrorInsightsConsentToPrivacyCenterAction`
-- `PurgeInsightsDataAction`
-- `RebuildInsightsDailyRollupsAction`
-- `RecordClickAction`
-- `RecordConversionAction`
-- `RecordCustomActionAction`
-- `RecordInsightsEventAction`
-- `RecordInsightsEventsAction`
-- `RecordPageViewAction`
-- `RememberInsightsDashboardAggregateAction`
-- `ResolveConsentRegionAction`
-- `ResolveInsightsConsentPolicyAction`
-- `ResolveInsightsHashSaltAction`
-- `UpdateInsightsConsentAction`
-- `ValidateInsightsBeaconRequestAction`
-
-### Data objects
-
-- `InsightsBeaconData`
-- `InsightsConsentData`
-- `InsightsConsentPolicyData`
-- `InsightsDigestData`
-- `InsightsEventData`
-- `InsightsEventMetadataData`
-- `InsightsJourneyStepData`
-- `InsightsPageSummaryData`
-- `InsightsReportTableData`
-- `InsightsRequestContextData`
-- `InsightsVisitData`
-- `InsightsWindowData`
-- `InsightsWorkspaceData`
-
-### Jobs
-
-- `ProcessInsightsBeaconJob`
-
-### Command signatures
-
-- `insights:purge`
-- `insights:rollups:rebuild`
-
-### Scheduled commands
-
-- `insights:purge (monthly; package registered)`
-- `insights:rollups:rebuild (daily; package registered)`
-
-### Console command classes
-
-- `PurgeInsightsDataCommand`
-- `RebuildInsightsDailyRollupsCommand`
-
-### Manifest contributions
-
-- `admin-page: Capell\Insights\Manifest\InsightsAdminPageContribution`
-- `console-command: Capell\Insights\Manifest\InsightsConsoleCommandsContribution`
-- `dashboard-widget: Capell\Insights\Manifest\InsightsDashboardFilamentWidgetsContribution`
-- `health-check: Capell\Insights\Manifest\InsightsHealthContribution`
-- `migration: Capell\Insights\Manifest\InsightsMigrationsContribution`
-- `model: Capell\Insights\Manifest\InsightsModelsContribution`
-- `overview-stat: Capell\Insights\Manifest\InsightsOverviewStatsContribution`
-- `route: Capell\Insights\Manifest\InsightsRoutesContribution`
-- `scheduled-job: Capell\Insights\Manifest\InsightsDailyRollupsScheduleContribution`
-- `scheduled-job: Capell\Insights\Manifest\InsightsPurgeScheduleContribution`
-- `setting: Capell\Insights\Manifest\InsightsSettingsContribution`
-
-### Health checks
-
-- `Capell\Insights\Health\InsightsHealthCheck`
-
-### Blade views
-
-- `packages/insights/resources/views/components/consent-banner.blade.php`
-- `packages/insights/resources/views/filament/pages/insights.blade.php`
-- `packages/insights/resources/views/tracker.blade.php`
-
-### Cache tags
-
-- `insights`
-
-
-## Data Model
-
-- Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`.
-- Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
-- Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`, `2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`, `2026_09_25_000001_invalidate_legacy_insights_html_cache.php`.
-- Migration impact: run host migrations through the package install flow before opening package surfaces.
-- Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `insights:purge` (monthly; registered by the package provider).
+- Insights overview figures on the Insights page (admin).
+- Popular pages widget (admin).
+- Recent journeys widget (admin).
+- Insights settings screen (admin).
+- Frontend page with tracker active (frontend).
+- Consent banner flow (frontend).
+- Public root page with the Insights tracker active (frontend).
+- Insights overview dashboard widgets with admin sidebar menu open (admin).
 
 ## Install Impact
 
@@ -220,16 +68,6 @@ Screenshot contract: `docs/screenshots.json`.
 - Cache tags: `insights`.
 - Commands: `insights:purge`, `insights:rollups:rebuild`.
 
-## Common Pitfalls
-
-- Keep required Capell packages on compatible v4 releases: `capell-app/admin`, `capell-app/core`, `capell-app/frontend`.
-- Run migrations before opening package resources or public routes.
-- Review package configuration before production-like verification: `config/capell-insights.php`, `Capell\Insights\Settings\InsightsSettings`.
-- Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
-- Keep the host Laravel scheduler running so package-registered schedules can execute: `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`.
-- Keep public Blade and cached HTML free of authoring markers, model IDs, permissions, signed editor URLs, and lazy database queries.
-- Custom write integrations must preserve invalidation for `insights` cache tags.
-
 ## Troubleshooting
 
 | Symptom | Likely cause | Check | Fix |
@@ -239,11 +77,6 @@ Screenshot contract: `docs/screenshots.json`.
 | Route returns unexpected output | Route cache, middleware, or signed URL setup does not match the package route file | Check the route files listed in `Technical Shape` | Clear route cache and verify middleware before exposing public routes |
 | Background work does not run | Queue worker or declared schedule is not active | Check the jobs and scheduled commands listed in `Technical Shape` | Start the queue worker or host scheduler, then run the focused command or package test |
 | Public output leaks unexpected state | Render data, cache variation, or authoring boundary has regressed | Check public Blade, cache tags, and public-output safety tests | Move data loading out of Blade and rerun the package public-output tests |
-
-## Quick Start
-
-1. Install the package: `composer require capell-app/insights`.
-2. Open the package admin surface at `/admin/insights` and confirm Insights is available.
 
 ## Upgrading
 
@@ -259,11 +92,11 @@ Read [CHANGELOG.md](CHANGELOG.md) before upgrading.
 - [Custom consent integration](docs/custom-consent.md)
 - Configuration files: [`config/capell-insights.php`](config/capell-insights.php).
 - [Troubleshooting](#troubleshooting)
-- [Screenshot contract](docs/screenshots.json)
+- [Developer reference](docs/reference.md)
 - [Marketplace assets](docs/assets/marketplace/)
 - [Capell content language plan](../../docs/CONTENT_LANGUAGE_PLAN.md)
 - [Capell documentation design system](../../docs/DESIGN_SYSTEM.md)
 - [Capell and package ERD notes](../../docs/erd/capell-and-package-erds.md)
-- Related packages: [Privacy Center](../privacy-center/README.md).
+- Related packages: [Privacy Centre](../privacy-center/README.md).
 
 <!-- prettier-ignore-end -->

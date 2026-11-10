@@ -1,0 +1,51 @@
+{
+    "create_insights_consents_table": {
+        "names": [
+            "2026_04_20_000002_create_insights_consents_table",
+            "2026_05_10_190855_02_create_insights_consents_table"
+        ],
+        "sha256": [
+            "6d6eb4cd1b0243903fd03b7fd0c5fcc84565d098a65ce926b44a65879459ad1a",
+            "d819ccfd5f93974bd3da4c9fda07483728b0a950ee146c01ed64ca0bf22c58b1"
+        ]
+    },
+    "create_insights_daily_rollups_table": {
+        "names": [
+            "2026_06_06_000001_create_insights_daily_rollups_table"
+        ],
+        "sha256": [
+            "09efe4528f6bba7915fb78e7c40a9a9105cb26fa3c09f9cc074b4a47c58cb3d1",
+            "24b6c755e66ba8dfd66529b2db51855aabed0581e3bb2c34f54da9fbe35da95c",
+            "3007ed429014f8d98c45f889d6cd1682d857c2dc0d048e777b23da94140d97e4",
+            "454555bf84f4d3cf9bf0e5fc7991820711bd03d97b4d5322c92c926529074b91",
+            "5a0c410bd060bdd2d53db25c6098e5eb6ac7b347f3b9d546a9def2fcee6cf67f",
+            "8326e16b44d28d3cee5597f8527679649c2bbc963cf1132539ebbf4ddd258fe5"
+        ]
+    },
+    "create_insights_events_table": {
+        "names": [
+            "2026_04_20_000003_create_insights_events_table",
+            "2026_05_10_190855_03_create_insights_events_table"
+        ],
+        "sha256": [
+            "2450e6a051732edcc36abf334f28ef983d4400883044482ec2d9086539c08fd3",
+            "9faa6beebf14cdf54b02ffa078d361446980a7f527fb1a7f2dcb7f6f6de9d6ce",
+            "a331e48a628beb557cbd183cc9120865e0d347f57264390da000fa300bb97b5f",
+            "a7afd339624cdca485a15165ca34a2e6bc23e35b1adfd5866551d2d59d843808",
+            "b31980be68215a42fffbf95d48bf8161bba8bb5e26cb6cb851b775c87e9a74fd",
+            "d6b36cd342475586b1c5ea633438b2daf6e2e1d59db5ad1d5bb15714bf56a5ca"
+        ]
+    },
+    "create_insights_visits_table": {
+        "names": [
+            "2026_04_20_000001_create_insights_visits_table",
+            "2026_05_10_190855_01_create_insights_visits_table"
+        ],
+        "sha256": [
+            "8303ab6d541bc46df9b085c701de3433c40f976a7d260728c2ae5081ae3877ac",
+            "934675961c118c5d4a4cff9cb72cc8f4556573a1516f66a04bd2976ca8213829",
+            "b6226ce9f388a6aa53f66555606baa349f17c1c6ff00bffdd85cf05aad49c98b",
+            "fa0dd8b51c86fe1c8aaad45dac9441301cbf509d28fbe397d7fa6c2119dedbec"
+        ]
+    }
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Models;
 
+use Capell\Core\Support\TableName;
 use Capell\Insights\Database\Factories\InsightsVisitFactory;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
@@ -44,7 +45,7 @@ class InsightsVisit extends Model
     {
         $tableName = config('capell-insights.tables.visits');
 
-        return is_string($tableName) ? $tableName : 'insights_visits';
+        return TableName::resolve(is_string($tableName) ? $tableName : 'insights_visits');
     }
 
     /**

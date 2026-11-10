@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Models;
 
+use Capell\Core\Support\TableName;
 use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Database\Factories\InsightsConsentFactory;
 use Capell\Insights\Enums\InsightsConsentRegion;
@@ -38,7 +39,7 @@ class InsightsConsent extends Model
     {
         $tableName = config('capell-insights.tables.consents');
 
-        return is_string($tableName) ? $tableName : 'insights_consents';
+        return TableName::resolve(is_string($tableName) ? $tableName : 'insights_consents');
     }
 
     /**

@@ -10,7 +10,8 @@ use Capell\Insights\Http\Controllers\InsightsConsentController;
 use Capell\Insights\Http\Controllers\InsightsConsentPolicyController;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
@@ -32,12 +33,12 @@ Route::prefix($routePrefix)
                 AddQueuedCookiesToResponse::class,
                 sprintf('throttle:%d,1', $throttle),
             ])
-            ->withoutMiddleware([VerifyCsrfToken::class])
+            ->withoutMiddleware([PreventRequestForgery::class, ValidateCsrfToken::class])
             ->name('capell-insights.events');
 
         Route::post('consent', InsightsConsentController::class)
             ->middleware(['web', 'throttle:60,1'])
-            ->withoutMiddleware([VerifyCsrfToken::class])
+            ->withoutMiddleware([PreventRequestForgery::class, ValidateCsrfToken::class])
             ->name('capell-insights.consent');
     });
 

@@ -2,20 +2,22 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Support\TableName;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $tableName = config('capell-insights.tables.visits', 'insights_visits');
+        $tableName = TableName::resolve(Config::string('capell-insights.tables.visits', 'insights_visits'));
 
         Schema::create($tableName, function (Blueprint $table): void {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('site_id')->nullable()->constrained('sites')->nullOnDelete();
+            $table->foreignId('site_id')->nullable()->constrained(TableName::resolve('sites'))->nullOnDelete();
             $table->unsignedBigInteger('language_id')->nullable()->index();
             $table->string('consent_region');
             $table->string('consent_status');
@@ -31,12 +33,12 @@ return new class extends Migration
             $table->dateTime('last_seen_at')->nullable()->index();
             $table->timestamps();
 
-            $table->index('legacy_session_id', 'insights_visits_legacy_session_index');
+            $table->index('legacy_session_id', TableName::namedIndex(Config::string('capell-insights.tables.visits', 'insights_visits'), 'insights_visits_legacy_session_index'));
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists(config('capell-insights.tables.visits', 'insights_visits'));
+        Schema::dropIfExists(TableName::resolve(Config::string('capell-insights.tables.visits', 'insights_visits')));
     }
 };

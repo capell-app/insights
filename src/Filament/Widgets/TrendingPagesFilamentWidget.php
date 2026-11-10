@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Number;
 use Override;
 
 final class TrendingPagesFilamentWidget extends BaseWidget implements CapellFilamentWidgetContract
@@ -52,7 +53,7 @@ final class TrendingPagesFilamentWidget extends BaseWidget implements CapellFila
                     ->numeric(),
                 TextColumn::make('change_percentage')
                     ->label(__('capell-insights::widgets.change_percentage'))
-                    ->formatStateUsing(fn (mixed $state): string => number_format((float) $state, 1) . '%'),
+                    ->formatStateUsing(fn (mixed $state): string => (string) Number::format((float) $state, precision: 1, locale: app()->getLocale()) . '%'),
             ]);
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Models;
 
+use Capell\Core\Support\TableName;
 use Capell\Insights\Data\InsightsEventMetadataData;
 use Capell\Insights\Database\Factories\InsightsEventFactory;
 use Capell\Insights\Enums\InsightsEventType;
@@ -52,7 +53,7 @@ class InsightsEvent extends Model
     {
         $tableName = config('capell-insights.tables.events');
 
-        return is_string($tableName) ? $tableName : 'insights_events';
+        return TableName::resolve(is_string($tableName) ? $tableName : 'insights_events');
     }
 
     /**

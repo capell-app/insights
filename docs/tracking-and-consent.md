@@ -9,7 +9,7 @@ Insights records first-party activity through public policy, consent and event e
 3. Consent changes post to `POST /capell/insights/consent`.
 4. Controllers turn request payloads into `InsightsBeaconData`, `InsightsConsentData`, and `InsightsEventData`; consent jurisdiction is resolved server-side rather than trusted from the browser.
 5. Actions write `InsightsVisit`, `InsightsConsent`, and `InsightsEvent` rows.
-6. When Privacy Center is installed, `MirrorInsightsConsentToPrivacyCenterAction` mirrors the submitted cookie-category decisions into `privacy_consent_records` using Privacy Center's public record action. If Privacy Center is not installed, the mirror returns without side effects.
+6. When Privacy Centre is installed, `MirrorInsightsConsentToPrivacyCenterAction` mirrors the submitted cookie-category decisions into `privacy_consent_records` using Privacy Centre's public record action. If Privacy Centre is not installed, the mirror returns without side effects.
 7. When `honor_privacy_signals` is enabled, the browser tracker exits before registering listeners if Global Privacy Control or Do-Not-Track is active, and the beacon endpoint drops requests carrying `Sec-GPC: 1`, `DNT: 1`, or `X-Do-Not-Track: 1`.
 8. Server-side event recording only treats stored analytics consent as current when the saved `policy_version` matches config and `decided_at` is within `consent_expires_days`.
 

@@ -9,6 +9,7 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\Install\RegisterProviderCommandsInCurrentProcessAction;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\TableName;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
 use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
@@ -26,6 +27,7 @@ use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Config;
 use Override;
 use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
@@ -196,9 +198,9 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
 
     private function registerProtectedTables(): self
     {
-        CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.visits', 'insights_visits'));
-        CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.consents', 'insights_consents'));
-        CapellCore::registerProtectedTable(fn (): string => config('capell-insights.tables.events', 'insights_events'));
+        CapellCore::registerProtectedTable(fn (): string => TableName::resolve(Config::string('capell-insights.tables.visits', 'insights_visits')));
+        CapellCore::registerProtectedTable(fn (): string => TableName::resolve(Config::string('capell-insights.tables.consents', 'insights_consents')));
+        CapellCore::registerProtectedTable(fn (): string => TableName::resolve(Config::string('capell-insights.tables.events', 'insights_events')));
         CapellCore::registerProtectedTable(fn (): string => $this->configString('capell-insights.tables.daily_rollups', 'insights_daily_rollups'));
 
         return $this;
@@ -208,6 +210,6 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
     {
         $value = config($key, $fallback);
 
-        return is_string($value) && $value !== '' ? $value : $fallback;
+        return TableName::resolve(is_string($value) && $value !== '' ? $value : $fallback);
     }
 }

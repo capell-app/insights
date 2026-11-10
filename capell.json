@@ -24,7 +24,9 @@
         "conflicts": []
     },
     "providers": {
-        "metadata": [],
+        "metadata": [
+            "Capell\\Insights\\Providers\\MigrationMetadataServiceProvider"
+        ],
         "install": [],
         "runtime": ["Capell\\Insights\\Providers\\InsightsServiceProvider"],
         "admin": ["Capell\\Insights\\Providers\\AdminServiceProvider"],
@@ -170,27 +172,33 @@
         "riskTier": "sensitive",
         "publicSurface": {
             "routeNames": [
-                "capell-insights.consent",
-                "capell-insights.events",
-                "capell-insights.consent-policy"
+                "GET /capell/insights/consent-policy (capell-insights.consent-policy)",
+                "GET /screenshot-fixtures/insights/{screen}",
+                "POST /capell/insights/consent (capell-insights.consent)",
+                "POST /capell/insights/events (capell-insights.events)"
             ],
             "auth": "public",
             "csrfExemptRoutes": [
-                "capell-insights.consent",
-                "capell-insights.events"
+                "POST /capell/insights/consent (capell-insights.consent)",
+                "POST /capell/insights/events (capell-insights.events)"
             ],
             "signedRoutes": [],
             "tokenizedRoutes": [],
             "webhookRoutes": [],
             "throttledRoutes": [
-                "capell-insights.consent",
-                "capell-insights.events",
-                "capell-insights.consent-policy"
+                "GET /capell/insights/consent-policy (capell-insights.consent-policy)",
+                "POST /capell/insights/consent (capell-insights.consent)",
+                "POST /capell/insights/events (capell-insights.events)"
             ]
         },
         "sensitiveData": {
             "encryptedFields": [],
-            "hashedTokenFields": [],
+            "hashedTokenFields": [
+                "insights_consents.ip_hash",
+                "insights_consents.user_agent_hash",
+                "insights_visits.ip_hash",
+                "insights_visits.user_agent_hash"
+            ],
             "redactedOutputClasses": [],
             "plaintextJustifications": []
         },
@@ -248,7 +256,23 @@
     },
     "marketplace": {
         "summary": "Cookie-light, GDPR-aware web analytics built into your Capell admin: page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
-        "description": "Insights gives Capell sites first-party traffic analytics that respect privacy by default: it records page views, clicks, and visitor journeys server-side, hashes visitor identifiers, and gates UK/EU tracking behind consent. Dashboards for popular pages, trending pages, top actions, and recent journeys live right inside the admin Marketing Studio, without Google Analytics, a tangle of cookies or a tag manager. Retention windows and an automatic purge keep data lean and compliant. When Privacy Center is installed, consent decisions are mirrored into your central consent ledger automatically.",
+        "description": "Insights gives Capell sites first-party traffic analytics that respect privacy by default: it records page views, clicks, and visitor journeys server-side, hashes visitor identifiers, and gates UK/EU tracking behind consent. Dashboards for popular pages, trending pages, top actions, and recent journeys live right inside the admin Marketing Studio, without Google Analytics, a tangle of cookies or a tag manager. Retention windows and an automatic purge keep data lean and compliant. When Privacy Centre is installed, consent decisions are mirrored into your central consent ledger automatically.",
+        "problem": "Our site team needs to understand visitor journeys without sending analytics to another service.",
+        "outcome": "The site has its own record of visitor activity and conversion paths.",
+        "faq": [
+            {
+                "question": "What visitor activity is recorded?",
+                "answer": "Insights records first-party page views, events, journeys, conversions and consent state."
+            },
+            {
+                "question": "Where can teams inspect journeys?",
+                "answer": "Admins can review journeys and trends in Capell reporting and dashboard widgets."
+            },
+            {
+                "question": "How is consent handled?",
+                "answer": "Public pages send consent-aware events through the Insights beacon."
+            }
+        ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",

@@ -18,6 +18,9 @@ beforeEach(function (): void {
     $geoip->shouldReceive('config')->with('cache', 'none')->andReturn('none');
     $geoip->shouldNotReceive('getService');
     app()->instance('geoip', $geoip);
+
+    // The consent banner posts from the visitor's own page, which a browser marks as same-origin.
+    $this->withHeader('Sec-Fetch-Site', 'same-origin');
 });
 
 it('rejects granular consent without accepted terms', function (): void {
@@ -322,3 +325,46 @@ it('queues the insights visit cookie for one year', function (): void {
 
     CarbonImmutable::setTestNow();
 });
+
+it('records no consent for a request a browser marks as coming from another site', function (string $header, string $value): void {
+    $this->withoutHeaders(['Sec-Fetch-Site', 'Origin']);
+    $this->withHeader($header, $value);
+
+    $this->postJson(route('capell-insights.consent'), ['status' => InsightsConsentStatus::AcceptedAll->value])
+        ->assertForbidden()
+        ->assertCookieMissing('capell_insights_visit');
+
+    expect(InsightsConsent::query()->count())->toBe(0)
+        ->and(InsightsVisit::query()->count())->toBe(0);
+})->with([
+    'cross-site fetch metadata' => ['Sec-Fetch-Site', 'cross-site'],
+    'same-site fetch metadata' => ['Sec-Fetch-Site', 'same-site'],
+    'foreign origin' => ['Origin', 'https://hostile.example'],
+    'opaque origin from a privacy-stripped form post' => ['Origin', 'null'],
+    'foreign referer' => ['Referer', 'https://hostile.example/win-a-prize'],
+]);
+
+it('records no consent for a request that does not say where it came from', function (): void {
+    $this->withoutHeaders(['Sec-Fetch-Site', 'Origin']);
+
+    $this->postJson(route('capell-insights.consent'), ['status' => InsightsConsentStatus::AcceptedAll->value])
+        ->assertForbidden();
+
+    expect(InsightsConsent::query()->count())->toBe(0)
+        ->and(InsightsVisit::query()->count())->toBe(0);
+});
+
+it('records consent for a request from this site', function (string $header, string $value): void {
+    $this->withoutHeaders(['Sec-Fetch-Site', 'Origin']);
+    $this->withHeader($header, $value);
+
+    $this->postJson(route('capell-insights.consent'), ['status' => InsightsConsentStatus::AcceptedAll->value])
+        ->assertOk()
+        ->assertCookie('capell_insights_visit');
+
+    expect(InsightsConsent::query()->count())->toBe(1);
+})->with([
+    'fetch metadata' => ['Sec-Fetch-Site', 'same-origin'],
+    'origin' => ['Origin', 'http://localhost'],
+    'referer' => ['Referer', 'http://localhost/pricing'],
+]);
