@@ -4,11 +4,11 @@
     "scenarios": {
         "default": {
             "source": {
-                "ref": "c92ce184be4d91c372f35ca125ea25f6c1308599",
-                "commit": "c92ce184be4d91c372f35ca125ea25f6c1308599",
+                "ref": "HEAD",
+                "commit": "ae9516d1e3470a4f78a12d1084665ac789d1a601",
                 "providers": {
                     "Providers/AdminServiceProvider.php": "33c523c82a5966ae43d42d30b044b40606e13663f51d1407eade03fc1cbb84a9",
-                    "Providers/InsightsServiceProvider.php": "b3c7be9cca8c0c18327035755babb3a9ce9cacc218bc3e91265ef4d54579abcf",
+                    "Providers/InsightsServiceProvider.php": "57f216004049b1e4e16e851f3e72c3b44b6f6aecc5007e5619e8b0d68e9053a6",
                     "Providers/MigrationMetadataServiceProvider.php": "d09f01bcfa10033394dd773fddcc95c49f5cbd03b93ea3dc651536d4837ab226"
                 },
                 "configure": null
@@ -59,7 +59,6 @@
                         "default_consent_region": null,
                         "edge_country_server_parameter": "CAPELL_EDGE_COUNTRY",
                         "enabled": true,
-                        "hash_rotation_days": 30,
                         "hash_salt": "<secret>",
                         "hash_visitor_data": true,
                         "honor_privacy_signals": true,
@@ -100,10 +99,13 @@
                         "screenshot_fixtures_enabled": false,
                         "session_timeout_minutes": 30,
                         "signed_beacon_ttl_minutes": 60,
+                        "site_timezones": [],
                         "tables.consents": "insights_consents",
                         "tables.daily_rollups": "insights_daily_rollups",
+                        "tables.daily_visitors": "insights_daily_visitors",
                         "tables.events": "insights_events",
                         "tables.visits": "insights_visits",
+                        "timezone": null,
                         "track_clicks": true,
                         "track_forms": false,
                         "track_page_views": true,
@@ -121,7 +123,6 @@
                     "capell-insights.default_consent_region",
                     "capell-insights.edge_country_server_parameter",
                     "capell-insights.enabled",
-                    "capell-insights.hash_rotation_days",
                     "capell-insights.hash_salt",
                     "capell-insights.hash_visitor_data",
                     "capell-insights.honor_privacy_signals",
@@ -167,11 +168,14 @@
                     "capell-insights.screenshot_fixtures_enabled",
                     "capell-insights.session_timeout_minutes",
                     "capell-insights.signed_beacon_ttl_minutes",
+                    "capell-insights.site_timezones",
                     "capell-insights.tables",
                     "capell-insights.tables.consents",
                     "capell-insights.tables.daily_rollups",
+                    "capell-insights.tables.daily_visitors",
                     "capell-insights.tables.events",
                     "capell-insights.tables.visits",
+                    "capell-insights.timezone",
                     "capell-insights.track_clicks",
                     "capell-insights.track_forms",
                     "capell-insights.track_page_views",
@@ -857,6 +861,56 @@
                                             "status": "active"
                                         }
                                     ],
+                                    "capell-app/insights:traffic:traffic.unique_visitors": [
+                                        "Capell\\Core\\Data\\Metrics\\MetricDefinitionData",
+                                        {
+                                            "descriptions": {
+                                                "en": "Visitors counted once per site and local day, however many pages they viewed. Summed over several days this is visitor-days."
+                                            },
+                                            "governance": [
+                                                "Capell\\Core\\Data\\Metrics\\MetricGovernanceData",
+                                                {
+                                                    "authoritativeSourceKey": "insights.daily-rollups",
+                                                    "sensitivity": "internal",
+                                                    "source": "database",
+                                                    "visibility": "site_admin"
+                                                }
+                                            ],
+                                            "identity": [
+                                                "Capell\\Core\\Data\\Metrics\\MetricIdentityData",
+                                                {
+                                                    "collectorKey": "traffic",
+                                                    "metricKey": "traffic.unique_visitors",
+                                                    "ownerPackage": "capell-app/insights"
+                                                }
+                                            ],
+                                            "labels": {
+                                                "en": "Unique visitors"
+                                            },
+                                            "replacedBy": null,
+                                            "replaces": null,
+                                            "representation": [
+                                                "Capell\\Core\\Data\\Metrics\\MetricRepresentationData",
+                                                {
+                                                    "currency": null,
+                                                    "scale": null,
+                                                    "unit": "count",
+                                                    "valueType": "integer"
+                                                }
+                                            ],
+                                            "scopeType": "global",
+                                            "semantics": [
+                                                "Capell\\Core\\Data\\Metrics\\MetricSemanticsData",
+                                                {
+                                                    "aggregation": "sum",
+                                                    "backfillPolicy": "supported",
+                                                    "gapPolicy": "missing",
+                                                    "semantic": "counter"
+                                                }
+                                            ],
+                                            "status": "active"
+                                        }
+                                    ],
                                     "capell-app/insights:traffic:traffic.unique_visits": [
                                         "Capell\\Core\\Data\\Metrics\\MetricDefinitionData",
                                         {
@@ -910,6 +964,7 @@
                                 },
                                 "hashes": {
                                     "capell-app/insights:traffic:traffic.page_views": "664c1dc42c1b0ef91db553caa979d1a05df22961bbdde02076c4a489d3171d61",
+                                    "capell-app/insights:traffic:traffic.unique_visitors": "b58ccd67e727d13e69f67d1df00c74ac1ca2270ea6329e3a91044bb85b5cd270",
                                     "capell-app/insights:traffic:traffic.unique_visits": "5d82871f044c6f3a20ba5acd515a810f11821c6e34dad1698caa433cc6f998e0"
                                 }
                             }
@@ -1034,11 +1089,23 @@
                 "tagged-consumers": {
                     "capell.dashboard.settings_contributor": [
                         "Capell\\Insights\\Filament\\Settings\\Contributors\\InsightsDashboardSettingsContributor"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\Insights\\Support\\Privacy\\InsightsPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\Insights\\Support\\Privacy\\InsightsPrivacyContributor"
                     ]
                 },
                 "tags": {
                     "capell.dashboard.settings_contributor": [
                         "Capell\\Insights\\Filament\\Settings\\Contributors\\InsightsDashboardSettingsContributor"
+                    ],
+                    "capell.privacy.subject-eraser": [
+                        "Capell\\Insights\\Support\\Privacy\\InsightsPrivacyContributor"
+                    ],
+                    "capell.privacy.subject-exporter": [
+                        "Capell\\Insights\\Support\\Privacy\\InsightsPrivacyContributor"
                     ]
                 },
                 "views": {
@@ -1070,7 +1137,6 @@
                         "default_consent_region": null,
                         "edge_country_server_parameter": "CAPELL_EDGE_COUNTRY",
                         "enabled": true,
-                        "hash_rotation_days": 30,
                         "hash_salt": "<secret>",
                         "hash_visitor_data": true,
                         "honor_privacy_signals": true,
@@ -1111,10 +1177,13 @@
                         "screenshot_fixtures_enabled": false,
                         "session_timeout_minutes": 30,
                         "signed_beacon_ttl_minutes": 60,
+                        "site_timezones": [],
                         "tables.consents": "insights_consents",
                         "tables.daily_rollups": "insights_daily_rollups",
+                        "tables.daily_visitors": "insights_daily_visitors",
                         "tables.events": "insights_events",
                         "tables.visits": "insights_visits",
+                        "timezone": null,
                         "track_clicks": true,
                         "track_forms": false,
                         "track_page_views": true,
@@ -1132,7 +1201,6 @@
                     "capell-insights.default_consent_region",
                     "capell-insights.edge_country_server_parameter",
                     "capell-insights.enabled",
-                    "capell-insights.hash_rotation_days",
                     "capell-insights.hash_salt",
                     "capell-insights.hash_visitor_data",
                     "capell-insights.honor_privacy_signals",
@@ -1178,11 +1246,14 @@
                     "capell-insights.screenshot_fixtures_enabled",
                     "capell-insights.session_timeout_minutes",
                     "capell-insights.signed_beacon_ttl_minutes",
+                    "capell-insights.site_timezones",
                     "capell-insights.tables",
                     "capell-insights.tables.consents",
                     "capell-insights.tables.daily_rollups",
+                    "capell-insights.tables.daily_visitors",
                     "capell-insights.tables.events",
                     "capell-insights.tables.visits",
+                    "capell-insights.timezone",
                     "capell-insights.track_clicks",
                     "capell-insights.track_forms",
                     "capell-insights.track_page_views",

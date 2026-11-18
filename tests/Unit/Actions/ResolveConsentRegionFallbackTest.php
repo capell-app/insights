@@ -202,3 +202,26 @@ it('rejects ambiguous edge provenance even when an environment value is empty or
         putenv($previous === false ? $parameter : $parameter . '=' . $previous);
     }
 })->with(['empty environment' => '', 'conflicting environment' => 'DE']);
+
+it('never asks GeoIP to locate internal client addresses that PHP treats as public', function (string $address): void {
+    config()->set('geoip.service', 'returning');
+    app()->instance('request', Request::create('/capell/insights/consent-policy', server: ['REMOTE_ADDR' => $address]));
+
+    $geoip = new GeoIP([
+        'cache' => 'none',
+        'cache_tags' => [],
+        'log_failures' => false,
+        'default_location' => [],
+        'service' => 'returning',
+        'services' => ['returning' => ['class' => ReturningGeoIpService::class, 'result' => 'success']],
+    ], resolve(CacheManager::class));
+    app()->instance('geoip', $geoip);
+    $service = $geoip->getService();
+    $this->assertInstanceOf(ReturningGeoIpService::class, $service);
+
+    expect(resolve(ConsentRegionResolver::class)->resolve())->toBe(InsightsConsentRegion::Unknown)
+        ->and($service->lookups)->toBe(0);
+})->with([
+    'carrier-grade NAT' => '100.64.0.10',
+    'benchmarking range' => '198.18.0.10',
+]);

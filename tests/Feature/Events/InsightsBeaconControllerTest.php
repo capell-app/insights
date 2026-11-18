@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Capell\Insights\Actions\RecordInsightsEventsAction;
 use Capell\Insights\Data\InsightsConsentData;
 use Capell\Insights\Data\InsightsEventMetadataData;
 use Capell\Insights\Enums\InsightsConsentRegion;
@@ -22,7 +23,7 @@ it('does not store a uk or europe event without insights consent', function (): 
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(0);
@@ -58,7 +59,7 @@ it('does not store events after uk or europe insights consent is revoked', funct
         'decided_at' => now()->toImmutable(),
     ]);
 
-    $this->postJson(route('capell-insights.events'), [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), [
         'visit_id' => $visit->uuid,
         'events' => [
             pageViewEvent(),
@@ -75,7 +76,7 @@ it('stores a page view after insights consent is granted', function (): void {
         'consent_status' => InsightsConsentStatus::AcceptedAll,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     $event = InsightsEvent::query()->firstOrFail();
@@ -95,7 +96,7 @@ it('rejects beacon posts from invalid origins', function (): void {
 
     $this
         ->withHeader('Origin', 'https://evil.example')
-        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertForbidden();
 
     expect(InsightsEvent::query()->count())->toBe(0);
@@ -111,7 +112,7 @@ it('allows configured beacon origins when referer contains a path', function ():
 
     $this
         ->withHeader('Referer', 'https://trusted.example/page')
-        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(1);
@@ -126,7 +127,7 @@ it('can require signed beacon urls for event posts', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertForbidden();
 
     $this
@@ -154,7 +155,7 @@ it('honors browser privacy signals before validating or recording events', funct
 
     $this
         ->withHeader($header, '1')
-        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(0);
@@ -174,7 +175,7 @@ it('can opt out of privacy-signal beacon suppression', function (): void {
 
     $this
         ->withHeader('Sec-GPC', '1')
-        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(1);
@@ -186,7 +187,7 @@ it('stores a mixed event batch with one visit lookup and sequential events', fun
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), [
         'visit_id' => $visit->uuid,
         'events' => [
             pageViewEvent(['url' => 'https://example.test/first']),
@@ -210,7 +211,7 @@ it('stores an outside-region page view with default settings', function (): void
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe(1);
@@ -250,7 +251,7 @@ it('stores click location fields', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), clickPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), clickPayload($visit))
         ->assertNoContent();
 
     $event = InsightsEvent::query()->firstOrFail();
@@ -276,7 +277,7 @@ it('skips events on ignored paths', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit, [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit, [
         'url' => 'https://example.test/admin/pages',
     ]))->assertNoContent();
 
@@ -289,7 +290,7 @@ it('skips admin livewire beacon and asset paths', function (string $url): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit, [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit, [
         'url' => $url,
     ]))->assertNoContent();
 
@@ -307,7 +308,7 @@ it('returns unprocessable for invalid event type', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit, [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit, [
         'type' => 'not-real',
     ]))->assertUnprocessable();
 
@@ -320,7 +321,7 @@ it('returns unprocessable for overlong urls before persistence', function (): vo
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit, [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit, [
         'url' => 'https://example.test/' . str_repeat('a', 512),
     ]))->assertUnprocessable();
 
@@ -333,7 +334,7 @@ it('returns unprocessable for arbitrary nested metadata', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), clickPayload($visit, [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), clickPayload($visit, [
         'metadata' => [
             'nearest_landmark' => 'main',
             'attributes' => [
@@ -351,7 +352,7 @@ it('returns no content for successful beacon posts', function (): void {
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertStatus(204)
         ->assertNoContent();
 });
@@ -382,7 +383,7 @@ it('queues event batches for established visits', function (): void {
             'Referer' => 'https://example.test/private?token=referer-secret',
             'User-Agent' => 'customer-browser-secret',
         ])
-        ->postJson(route('capell-insights.events'), pageViewPayload($visit, [
+        ->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit, [
             'url' => 'https://user:event-secret@example.test/private?token=query-secret#fragment-secret',
         ]))
         ->assertNoContent();
@@ -429,7 +430,7 @@ it('rotates expired visits synchronously before queueing later batches', functio
         'last_seen_at' => now()->subHour()->toImmutable(),
     ]);
 
-    $response = $this->postJson(route('capell-insights.events'), pageViewPayload($visit));
+    $response = $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit));
 
     $response
         ->assertOk()
@@ -454,7 +455,7 @@ it('can sample event ingestion before persistence or queue dispatch', function (
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertNoContent();
 
     Queue::assertNothingPushed();
@@ -481,7 +482,7 @@ it('preserves consent evidence when a visit rolls over', function (InsightsConse
         'terms_accepted_at' => now()->subDays($decisionAgeDays + 1)->toImmutable(),
     ]);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($visit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($visit))
         ->assertSuccessful();
 
     $nextVisit = InsightsVisit::query()->whereKeyNot($visit->getKey())->sole();
@@ -501,7 +502,7 @@ it('preserves consent evidence when a visit rolls over', function (InsightsConse
         ->and($preservedConsent->ip_hash)->toBe($consent->ip_hash)
         ->and($preservedConsent->user_agent_hash)->toBe($consent->user_agent_hash);
 
-    $this->postJson(route('capell-insights.events'), pageViewPayload($nextVisit))
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $nextVisit->uuid)->postJson(route('capell-insights.events'), pageViewPayload($nextVisit))
         ->assertNoContent();
 
     expect(InsightsEvent::query()->count())->toBe($expectedEvents * 2);
@@ -524,7 +525,7 @@ it('clamps client event timestamps to the configured ingestion window', function
         'consent_status' => InsightsConsentStatus::Pending,
     ]);
 
-    $this->postJson(route('capell-insights.events'), [
+    $this->withCredentials()->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)->postJson(route('capell-insights.events'), [
         'visit_id' => $visit->uuid,
         'events' => [
             pageViewEvent(['occurred_at' => $now->subDay()->toIso8601String()]),
@@ -539,6 +540,21 @@ it('clamps client event timestamps to the configured ingestion window', function
     expect($firstOccurredAt?->equalTo($now->subHour()))->toBeTrue()
         ->and($secondOccurredAt?->equalTo($now->addMinutes(5)))->toBeTrue();
 });
+
+it('does not store an event when Core refuses analytics for a visitor outside the consent regions', function (string $header): void {
+    $visit = InsightsVisit::factory()->create([
+        'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
+        'consent_status' => InsightsConsentStatus::Pending,
+    ]);
+
+    $this->withHeaders([$header => '1'])
+        ->withCredentials()
+        ->withCookie(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid)
+        ->postJson(route('capell-insights.events'), pageViewPayload($visit))
+        ->assertNoContent();
+
+    expect(InsightsEvent::query()->count())->toBe(0);
+})->with(['Sec-GPC', 'DNT']);
 
 /**
  * @param  array<string, mixed>  $eventOverrides

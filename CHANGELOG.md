@@ -4,6 +4,7 @@ All notable changes to `capell-app/insights` will be documented in this file.
 
 ## Unreleased
 
+- Insights now takes its consent decision from Core's consent contracts: with Privacy Centre's `window.CapellPrivacy` on the page it shows no banner and tracks only after `allows('analytics')`; without it the fallback banner and the events endpoint follow Core's `ConsentDecisionProvider`, including Global Privacy Control and Do Not Track.
 - Added daily aggregate rollups and a rebuild command for long-range popular/trending page dashboards.
 - Added default Do-Not-Track and Global Privacy Control honoring in the tracker and beacon endpoint.
 - Added server-side conversion recording and funnel summary Actions for companion package integrations.

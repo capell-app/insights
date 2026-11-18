@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Facades\CapellCore;
 use Capell\Insights\Actions\ResolveInsightsHashSaltAction;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Torann\GeoIP\GeoIP;
 
 beforeEach(function (): void {
@@ -368,3 +370,35 @@ it('records consent for a request from this site', function (string $header, str
     'origin' => ['Origin', 'http://localhost'],
     'referer' => ['Referer', 'http://localhost/pricing'],
 ]);
+
+function installPrivacyCentreRecords(): void
+{
+    CapellCore::forcePackageInstalled('capell-app/privacy-center');
+
+    (require __DIR__ . '/../../../../privacy-center/database/migrations/2026_05_31_000001_create_privacy_consent_policies_table.php')->up();
+    (require __DIR__ . '/../../../../privacy-center/database/migrations/2026_05_31_000002_create_privacy_consent_records_table.php')->up();
+}
+
+it('does not mirror a decision that Privacy Centre made back into Privacy Centre', function (): void {
+    installPrivacyCentreRecords();
+
+    $this->postJson(route('capell-insights.consent'), [
+        'status' => InsightsConsentStatus::Granular->value,
+        'terms_accepted' => true,
+        'source' => 'privacy-center',
+        'categories' => ['insights' => true, 'marketing' => false, 'preferences' => false],
+    ])->assertOk()->assertJsonPath('enabled_categories', ['essential', 'insights']);
+
+    expect(DB::table('privacy_consent_records')->count())->toBe(0);
+});
+
+it('still mirrors a decision made on the Insights fallback banner', function (): void {
+    installPrivacyCentreRecords();
+
+    $this->postJson(route('capell-insights.consent'), [
+        'status' => InsightsConsentStatus::AcceptedAll->value,
+        'terms_accepted' => true,
+    ])->assertOk();
+
+    expect(DB::table('privacy_consent_records')->where('category', 'analytics')->value('decision'))->toBe('granted');
+});

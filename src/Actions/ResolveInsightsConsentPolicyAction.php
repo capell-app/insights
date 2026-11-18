@@ -19,6 +19,7 @@ final class ResolveInsightsConsentPolicyAction
         return new InsightsConsentPolicyData(
             consentRequired: config('capell-insights.require_consent_for_all_regions', false) === true
                 || ResolveConsentRegionAction::run() !== InsightsConsentRegion::OutsideUkOrEurope,
+            analyticsDecision: ResolveInsightsAnalyticsDecisionAction::run()->value,
         );
     }
 }

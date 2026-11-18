@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Capell\Admin\Enums\DashboardEnum;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Admin\Facades\CapellAdmin;
 use Capell\Admin\Support\Extensions\ExtensionManagementSurfaceRegistry;
 use Capell\Core\Facades\CapellCore;
@@ -38,7 +39,7 @@ it('registers insights routes', function (): void {
 });
 
 it('places insights first in monitoring navigation', function (): void {
-    expect(InsightsPage::getNavigationGroup())->toBe((string) __('capell-admin::navigation.group_monitoring'))
+    expect(InsightsPage::getNavigationGroup())->toBe(NavigationGroupEnum::Reports)
         ->and(InsightsPage::getNavigationSort())->toBe(1);
 });
 

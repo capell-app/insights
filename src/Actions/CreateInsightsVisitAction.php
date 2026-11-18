@@ -9,54 +9,75 @@ use Capell\Core\Models\Site;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsVisit;
+use Capell\Insights\Support\InsightsUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
- * @method static InsightsVisit run(Request $request, InsightsConsentRegion $region)
+ * @method static InsightsVisit run(Request $request, InsightsConsentRegion $region, ?string $landingUrl = null, ?string $referrerUrl = null)
  */
 final class CreateInsightsVisitAction
 {
     use AsFake;
     use AsObject;
 
-    public function handle(Request $request, InsightsConsentRegion $region): InsightsVisit
+    /**
+     * The landing URL is the page the visitor opened (the beacon's own Referer when not given);
+     * the referrer is the page that sent them, as reported by the browser.
+     */
+    public function handle(Request $request, InsightsConsentRegion $region, ?string $landingUrl = null, ?string $referrerUrl = null): InsightsVisit
     {
-        $referer = $request->headers->get('referer');
+        $siteId = $this->modelKey($request->attributes->get('site'), Site::class);
+        $landing = $landingUrl ?? $request->headers->get('referer') ?? $request->fullUrl();
+        $utm = InsightsUrl::utmParameters($landing);
 
         return InsightsVisit::query()->create([
             'uuid' => (string) Str::uuid(),
-            'site_id' => $this->modelKey($request->attributes->get('site'), Site::class),
+            'site_id' => $siteId,
             'language_id' => $this->modelKey($request->attributes->get('language'), Language::class),
             'consent_region' => $region,
             'consent_status' => InsightsConsentStatus::Pending,
-            'landing_url' => $referer ?? $request->fullUrl(),
-            'referrer_url' => $referer,
-            'utm_source' => $this->stringInput($request, 'utm_source'),
-            'utm_medium' => $this->stringInput($request, 'utm_medium'),
-            'utm_campaign' => $this->stringInput($request, 'utm_campaign'),
-            'ip_hash' => $this->hashVisitorValue($request->ip(), $this->modelKey($request->attributes->get('site'), Site::class)),
-            'user_agent_hash' => $this->hashVisitorValue($request->userAgent(), $this->modelKey($request->attributes->get('site'), Site::class)),
+            'landing_url' => InsightsUrl::originAndPath($landing) ?? '',
+            'referrer_url' => $this->externalReferrer($referrerUrl, $landing),
+            'utm_source' => $utm['utm_source'],
+            'utm_medium' => $utm['utm_medium'],
+            'utm_campaign' => $utm['utm_campaign'],
+            'ip_hash' => HashInsightsVisitorValueAction::run($request->ip(), $siteId),
+            'user_agent_hash' => HashInsightsVisitorValueAction::run($request->userAgent(), $siteId),
+            'visitor_hash' => $this->visitorHash($request, $siteId),
+            'sample_weight' => ResolveInsightsSampleRateAction::weight(),
             'started_at' => now()->toImmutable(),
             'last_seen_at' => now()->toImmutable(),
         ]);
     }
 
-    private function hashVisitorValue(?string $value, ?int $siteId): ?string
+    /**
+     * One daily-salted identity per address and browser, so several visits from the same
+     * browser on the same day count as one unique visitor.
+     */
+    private function visitorHash(Request $request, ?int $siteId): ?string
     {
-        if (config('capell-insights.hash_visitor_data', true) !== true) {
+        $ip = $request->ip();
+        $userAgent = $request->userAgent();
+
+        if ($ip === null || $ip === '' || $userAgent === null || $userAgent === '') {
             return null;
         }
 
-        if ($value === null || trim($value) === '') {
+        return HashInsightsVisitorValueAction::run($ip . "\n" . $userAgent, $siteId);
+    }
+
+    private function externalReferrer(?string $referrerUrl, string $landingUrl): ?string
+    {
+        $referrerHost = InsightsUrl::host($referrerUrl);
+
+        if ($referrerHost === null || $referrerHost === InsightsUrl::host($landingUrl)) {
             return null;
         }
 
-        $salt = $this->hashSalt($siteId);
-
-        return $salt === null ? null : hash_hmac('sha256', $value, $salt);
+        return InsightsUrl::originAndPath($referrerUrl);
     }
 
     /**
@@ -71,21 +92,5 @@ final class CreateInsightsVisitAction
         $key = $model->getKey();
 
         return is_numeric($key) ? (int) $key : null;
-    }
-
-    private function stringInput(Request $request, string $key): ?string
-    {
-        $value = $request->input($key);
-
-        if (! is_string($value) || trim($value) === '') {
-            return null;
-        }
-
-        return $value;
-    }
-
-    private function hashSalt(?int $siteId): ?string
-    {
-        return ResolveInsightsHashSaltAction::run($siteId);
     }
 }

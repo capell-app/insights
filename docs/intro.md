@@ -1,0 +1,5 @@
+Your own site counts page views, clicks and the links that brought people in, and keeps them in its own database, with no outside analytics company involved. A site owner or marketing lead can then see which pages get read and which campaign link worked. Counting needs background jobs running on your server.
+
+Visitors in the UK, the European Economic Area and Switzerland are asked first. A banner offers Accept all, Reject non-essential or Manage choices, and no page views or clicks are recorded for someone who says no. By default, the same goes for visitors whose country can't be worked out. Browsers that send a Do Not Track or Global Privacy Control signal are never counted. So your totals run lower than your real visitor numbers.
+
+The Insights page in the admin lets you pick a site, a language and a date range, and compare it with the period before. It shows popular and trending pages, where visitors came from and how many visitors took each action you name. Records older than a year are deleted for you, and you can change that.

@@ -25,8 +25,13 @@ use Capell\Core\Enums\Metrics\MetricSource;
 use Capell\Core\Enums\Metrics\MetricValueType;
 use Capell\Core\Enums\Metrics\MetricVisibility;
 use Capell\Core\Enums\MetricUnitEnum;
-use Capell\Core\Support\TableName;
+use Capell\Core\Models\Site;
+use Capell\Insights\Actions\RebuildInsightsDailyRollupsAction;
+use Capell\Insights\Actions\ResolveInsightsSiteTimezoneAction;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
 {
@@ -48,52 +53,63 @@ final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
                 __('capell-insights::metrics.unique_visits'),
                 __('capell-insights::metrics.unique_visits_description'),
             ),
+            $this->definition(
+                'traffic.unique_visitors',
+                __('capell-insights::metrics.unique_visitors'),
+                __('capell-insights::metrics.unique_visitors_description'),
+            ),
         ];
     }
 
     /**
+     * Reads the site-level daily visitor rows, which are built per site in that site's timezone.
+     * A scope is supported when it starts at local midnight in the timezone its rows were built in.
+     *
      * @param  list<MetricScopeData>  $scopes
      */
     public function collect(string $day, array $scopes): MetricCollectionResultData
     {
-        $globalScopes = array_values(array_filter(
-            $scopes,
-            static fn (MetricScopeData $scope): bool => $scope->type === MetricScopeType::Global
-                && $scope->timezone === 'UTC'
-                && $scope->dayStartsAt === '00:00:00',
-        ));
+        $keys = array_map(static fn (MetricScopeData $scope): string => $scope->key(), $scopes);
+        $siteIds = [];
 
-        if ($globalScopes === []
-            || count($globalScopes) !== count($scopes)
-            || count(array_unique(array_map(static fn (MetricScopeData $scope): string => $scope->key(), $globalScopes))) !== count($globalScopes)) {
-            return new MetricCollectionResultData(
-                status: MetricCollectionStatus::Unsupported,
-                day: $day,
-                coveredScopes: [],
-                samples: [],
-                sourceWatermark: null,
-                sourceChecksum: null,
-                reason: 'Insights traffic supports unique global UTC midnight scopes only.',
-            );
+        foreach ($scopes as $scope) {
+            $siteId = $this->supportedSiteId($scope);
+
+            if ($siteId === false) {
+                return $this->unsupported($day);
+            }
+
+            $siteIds[$scope->key()] = $siteId;
         }
 
-        $row = DB::table($this->tableName())
-            ->whereDate('day', $day)
-            ->selectRaw('COALESCE(SUM(page_views), 0) AS page_views')
-            ->selectRaw('COALESCE(SUM(unique_visits), 0) AS unique_visits')
-            ->selectRaw('MAX(updated_at) AS source_watermark')
-            ->first();
+        if ($scopes === [] || count(array_unique($keys)) !== count($keys)) {
+            return $this->unsupported($day);
+        }
 
-        $values = [
-            'traffic.page_views' => (int) ($row->page_views ?? 0),
-            'traffic.unique_visits' => (int) ($row->unique_visits ?? 0),
-        ];
         $definitions = collect($this->definitions())->keyBy(
             static fn (MetricDefinitionData $definition): string => $definition->identity->metricKey,
         );
         $samples = [];
+        $checksum = [];
+        $watermarks = [];
 
-        foreach ($globalScopes as $scope) {
+        foreach ($scopes as $scope) {
+            $siteId = $siteIds[$scope->key()];
+            $rows = DB::table(RebuildInsightsDailyRollupsAction::dailyVisitorsTable())
+                ->whereDate('day', $day)
+                ->when($siteId !== null, static fn (Builder $query): Builder => $query->where('site_id', $siteId))
+                ->get(['timezone', 'unique_visitors', 'visits', 'page_views', 'updated_at']);
+
+            if ($rows->contains(static fn (object $row): bool => $row->timezone !== $scope->timezone)) {
+                return $this->unsupported($day);
+            }
+
+            $values = [
+                'traffic.page_views' => $this->total($rows, 'page_views'),
+                'traffic.unique_visits' => $this->total($rows, 'visits'),
+                'traffic.unique_visitors' => $this->total($rows, 'unique_visitors'),
+            ];
+
             foreach ($values as $metric => $value) {
                 /** @var MetricDefinitionData $definition */
                 $definition = $definitions->get($metric);
@@ -106,21 +122,72 @@ final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
                     value: MetricValueData::integer($value),
                 );
             }
+
+            $checksum[] = [$scope->key(), $values];
+            $latest = $rows->max('updated_at');
+            $watermarks[] = is_string($latest) ? $latest : 'empty';
         }
 
-        $sourceWatermark = 'insights-daily-rollups:' . $day . ':' . (($row->source_watermark ?? 'empty'));
+        $sourceWatermark = 'insights-daily-visitors:' . $day . ':' . max($watermarks);
 
         return new MetricCollectionResultData(
             status: MetricCollectionStatus::Complete,
             day: $day,
-            coveredScopes: $globalScopes,
+            coveredScopes: $scopes,
             samples: $samples,
             sourceWatermark: $sourceWatermark,
             sourceChecksum: hash('sha256', json_encode([
-                'values' => $values,
+                'values' => $checksum,
                 'source_watermark' => $sourceWatermark,
             ], JSON_THROW_ON_ERROR)),
             reason: null,
+        );
+    }
+
+    /**
+     * The site id a scope reads (null for every site), or false when the scope cannot be served.
+     */
+    private function supportedSiteId(MetricScopeData $scope): int|false|null
+    {
+        if ($scope->dayStartsAt !== '00:00:00') {
+            return false;
+        }
+
+        if ($scope->type === MetricScopeType::Global) {
+            return null;
+        }
+
+        if ($scope->type !== MetricScopeType::Site) {
+            return false;
+        }
+
+        $siteId = Site::query()->where('uuid', $scope->siteUuid)->value('id');
+
+        if (! is_numeric($siteId)) {
+            return false;
+        }
+
+        return ResolveInsightsSiteTimezoneAction::run((int) $siteId) === $scope->timezone ? (int) $siteId : false;
+    }
+
+    /**
+     * @param  Collection<int, stdClass>  $rows
+     */
+    private function total(Collection $rows, string $column): int
+    {
+        return (int) $rows->sum(static fn (stdClass $row): int => is_numeric($row->{$column} ?? null) ? (int) $row->{$column} : 0);
+    }
+
+    private function unsupported(string $day): MetricCollectionResultData
+    {
+        return new MetricCollectionResultData(
+            status: MetricCollectionStatus::Unsupported,
+            day: $day,
+            coveredScopes: [],
+            samples: [],
+            sourceWatermark: null,
+            sourceChecksum: null,
+            reason: 'Insights traffic supports unique global or site scopes that start at midnight in the timezone Insights reports that site in.',
         );
     }
 
@@ -145,12 +212,5 @@ final class InsightsTrafficMetricsCollector implements CollectsDailyMetrics
             labels: ['en' => $label],
             descriptions: ['en' => $description],
         );
-    }
-
-    private function tableName(): string
-    {
-        $tableName = config('capell-insights.tables.daily_rollups', 'insights_daily_rollups');
-
-        return TableName::resolve(is_string($tableName) && $tableName !== '' ? $tableName : 'insights_daily_rollups');
     }
 }

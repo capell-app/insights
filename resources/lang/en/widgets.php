@@ -34,6 +34,8 @@ return [
     'top_actions' => 'Top actions',
     'trending_pages' => 'Trending pages',
     'unique_visits' => 'Unique visits',
+    'unique_visitors' => 'Unique visitors',
+    'visitor_days' => 'Visitor-days',
     'value' => 'Value',
     'visit' => 'Visit',
     'visits' => 'Visits',

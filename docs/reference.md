@@ -6,7 +6,7 @@ Developer reference for `capell-app/insights`. Start with the [README](../README
 
 ## Package Details
 
-Insights is an **Available**, **Schema-owning** Capell package in the **Capell Marketing & Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
+Insights is an **Available** Capell package in the **Capell Marketing & Growth** product group. It ships as `capell-app/insights` and extends these surfaces: admin, frontend.
 
 - Status: Available
 - Tier: free
@@ -36,6 +36,10 @@ Insights is an **Available**, **Schema-owning** Capell package in the **Capell M
 - `packages/insights/database/migrations/2026_06_06_000001_create_insights_daily_rollups_table.php`
 - `packages/insights/database/migrations/2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`
 - `packages/insights/database/migrations/2026_09_25_000001_invalidate_legacy_insights_html_cache.php`
+- `packages/insights/database/migrations/2026_11_12_000001_add_dedupe_key_to_insights_events_table.php`
+- `packages/insights/database/migrations/2026_11_12_000002_strip_query_strings_from_insights_visit_urls.php`
+- `packages/insights/database/migrations/2026_11_12_000003_add_visitor_hash_and_sample_weight_to_insights_visits_table.php`
+- `packages/insights/database/migrations/2026_11_12_000004_create_insights_daily_visitors_table.php`
 
 ### Settings migrations
 
@@ -79,6 +83,7 @@ Insights is an **Available**, **Schema-owning** Capell package in the **Capell M
 - `BuildFunnelConversionReportAction`
 - `BuildInsightsDigestAction`
 - `BuildInsightsOverviewStatsAction`
+- `BuildInsightsVisitPrivacyExportAction`
 - `BuildInsightsWorkspaceAction`
 - `BuildJourneyTimelineAction`
 - `BuildLiveInsightsStatsAction`
@@ -89,6 +94,7 @@ Insights is an **Available**, **Schema-owning** Capell package in the **Capell M
 - `CreateInsightsVisitAction`
 - `ExportInsightsDigestCsvAction`
 - `GetInsightsTrackerScriptAction`
+- `HashInsightsVisitorValueAction`
 - `ImportLegacyPageViewsAction`
 - `IngestInsightsBeaconAction`
 - `MirrorInsightsConsentToPrivacyCenterAction`
@@ -103,8 +109,11 @@ Insights is an **Available**, **Schema-owning** Capell package in the **Capell M
 - `RememberInsightsDashboardAggregateAction`
 - `RequireSameOriginConsentRequestAction`
 - `ResolveConsentRegionAction`
+- `ResolveInsightsAnalyticsDecisionAction`
 - `ResolveInsightsConsentPolicyAction`
 - `ResolveInsightsHashSaltAction`
+- `ResolveInsightsSampleRateAction`
+- `ResolveInsightsSiteTimezoneAction`
 - `UpdateInsightsConsentAction`
 - `ValidateInsightsBeaconRequestAction`
 
@@ -174,10 +183,10 @@ Insights is an **Available**, **Schema-owning** Capell package in the **Capell M
 
 ## Data Model
 
-- Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`.
+- Required tables: `insights_visits`, `insights_consents`, `insights_events`, `insights_daily_rollups`, `insights_daily_visitors`.
 - Models: `InsightsConsent`, `InsightsDailyRollup`, `InsightsEvent`, `InsightsVisit`.
 - Core record references in migrations: `sites via site_id`, `languages via language_id`.
-- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`, `2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`, `2026_09_25_000001_invalidate_legacy_insights_html_cache.php`.
+- Migration files: `2026_05_10_190855_01_create_insights_visits_table.php`, `2026_05_10_190855_02_create_insights_consents_table.php`, `2026_05_10_190855_03_create_insights_events_table.php`, `2026_05_10_190855_05_import_legacy_page_views.php`, `2026_06_06_000001_create_insights_daily_rollups_table.php`, `2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table.php`, `2026_09_25_000001_invalidate_legacy_insights_html_cache.php`, `2026_11_12_000001_add_dedupe_key_to_insights_events_table.php`, `2026_11_12_000002_strip_query_strings_from_insights_visit_urls.php`, `2026_11_12_000003_add_visitor_hash_and_sample_weight_to_insights_visits_table.php`, `2026_11_12_000004_create_insights_daily_visitors_table.php`.
 - Migration impact: run host migrations through the package install flow before opening package surfaces.
 - Deletion/retention behaviour: migrations declare null-on-delete relationships; retention is scheduled through `insights:purge` (monthly; registered by the package provider).
 

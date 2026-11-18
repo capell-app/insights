@@ -18,6 +18,9 @@ use Override;
  * @property string $uuid
  * @property string|null $ip_hash
  * @property string|null $user_agent_hash
+ * @property string|null $visitor_hash
+ * @property string|null $legacy_session_id
+ * @property numeric-string $sample_weight
  * @property int|null $site_id
  * @property int|null $language_id
  * @property string|null $landing_url

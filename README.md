@@ -2,27 +2,25 @@
 
 <!-- prettier-ignore-start -->
 
-## What It Does
+Your own site counts page views, clicks and the links that brought people in, and keeps them in its own database, with no outside analytics company involved. A site owner or marketing lead can then see which pages get read and which campaign link worked. Counting needs background jobs running on your server.
 
-Insights records first-party page views, events, journeys, conversions, and consent state for reporting inside Capell.
+Visitors in the UK, the European Economic Area and Switzerland are asked first. A banner offers Accept all, Reject non-essential or Manage choices, and no page views or clicks are recorded for someone who says no. By default, the same goes for visitors whose country can't be worked out. Browsers that send a Do Not Track or Global Privacy Control signal are never counted. So your totals run lower than your real visitor numbers.
+
+The Insights page in the admin lets you pick a site, a language and a date range, and compare it with the period before. It shows popular and trending pages, where visitors came from and how many visitors took each action you name. Records older than a year are deleted for you, and you can change that.
 
 - **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/insights).
 - **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/insights).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
 - **Install:** `composer require capell-app/insights`.
-
-Admins can review overview metrics, trends, journeys, and dashboard widgets. Public pages send consent-aware events through the Insights beacon.
-
-## Who It Is For
-
-**For developers:** Typed Actions handle beacon validation, event storage, rollups, consent, and retention instead of spreading analytics logic across controllers and views.
-
-**For teams:** Teams can inspect site activity and conversion paths without sending visitor analytics to a third-party reporting service.
 
 ## Quick Start
 
 1. Install the package: `composer require capell-app/insights`.
 2. Open the package admin surface at `/admin/insights` and confirm Insights is available.
+
+## For Developers
+
+Typed Actions handle beacon validation, event storage, rollups, consent, and retention instead of spreading analytics logic across controllers and views.
 
 ## Configure
 
@@ -32,7 +30,7 @@ Admins can review overview metrics, trends, journeys, and dashboard widgets. Pub
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.75`, `capell-app/frontend ^1.0.72`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0.72`.
 - Run migrations before opening package resources or public routes.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`.

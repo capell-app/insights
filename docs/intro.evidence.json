@@ -1,0 +1,99 @@
+[
+    {
+        "claim": "Your own site counts page views, clicks and the links that brought people in, and keeps them in its own database, with no outside analytics company involved.",
+        "evidence": [
+            "database/migrations/2026_05_10_190855_01_create_insights_visits_table.php",
+            "database/migrations/2026_05_10_190855_03_create_insights_events_table.php",
+            "src/Actions/CreateInsightsVisitAction.php",
+            "src/Http/Controllers/InsightsBeaconController.php",
+            "resources/js/capell-insights.js"
+        ]
+    },
+    {
+        "claim": "A site owner or marketing lead can then see which pages get read and which campaign link worked.",
+        "evidence": [
+            "src/Actions/BuildPopularPagesQueryAction.php",
+            "src/Actions/BuildAcquisitionSourcesQueryAction.php",
+            "src/Filament/Pages/InsightsPage.php"
+        ]
+    },
+    {
+        "claim": "Counting needs background jobs running on your server.",
+        "evidence": [
+            "src/Actions/IngestInsightsBeaconAction.php",
+            "src/Jobs/ProcessInsightsBeaconJob.php",
+            "config/capell-insights.php",
+            "src/Providers/InsightsServiceProvider.php",
+            "src/Actions/BuildInsightsOverviewStatsAction.php"
+        ]
+    },
+    {
+        "claim": "Visitors in the UK, the European Economic Area and Switzerland are asked first.",
+        "evidence": [
+            "src/Support/Consent/ConsentRegionResolver.php",
+            "src/Actions/ResolveInsightsConsentPolicyAction.php",
+            "src/Actions/RecordInsightsEventsAction.php"
+        ]
+    },
+    {
+        "claim": "A banner offers Accept all, Reject non-essential or Manage choices, and no page views or clicks are recorded for someone who says no.",
+        "evidence": [
+            "resources/lang/en/consent.php",
+            "resources/views/components/consent-banner.blade.php",
+            "src/Actions/RecordInsightsEventsAction.php",
+            "src/Actions/UpdateInsightsConsentAction.php"
+        ]
+    },
+    {
+        "claim": "By default, the same goes for visitors whose country can't be worked out.",
+        "evidence": [
+            "src/Support/Consent/ConsentRegionResolver.php",
+            "src/Settings/InsightsSettings.php",
+            "src/Filament/Settings/InsightsSettingsSchema.php",
+            "src/Actions/RecordInsightsEventsAction.php"
+        ]
+    },
+    {
+        "claim": "Browsers that send a Do Not Track or Global Privacy Control signal are never counted.",
+        "evidence": [
+            "src/Actions/ValidateInsightsBeaconRequestAction.php",
+            "src/Http/Controllers/InsightsBeaconController.php",
+            "config/capell-insights.php"
+        ]
+    },
+    {
+        "claim": "So your totals run lower than your real visitor numbers.",
+        "evidence": [
+            "src/Actions/RecordInsightsEventsAction.php",
+            "src/Actions/ValidateInsightsBeaconRequestAction.php"
+        ]
+    },
+    {
+        "claim": "The Insights page in the admin lets you pick a site, a language and a date range, and compare it with the period before.",
+        "evidence": [
+            "src/Filament/Pages/InsightsPage.php",
+            "resources/views/filament/pages/insights.blade.php",
+            "src/Actions/BuildInsightsWorkspaceAction.php"
+        ]
+    },
+    {
+        "claim": "It shows popular and trending pages, where visitors came from and how many visitors took each action you name.",
+        "evidence": [
+            "src/Actions/BuildInsightsWorkspaceAction.php",
+            "src/Actions/BuildPopularPagesQueryAction.php",
+            "src/Actions/BuildTrendingPagesQueryAction.php",
+            "src/Actions/BuildAcquisitionSourcesQueryAction.php",
+            "src/Actions/BuildFunnelConversionReportAction.php",
+            "resources/lang/en/workspace.php"
+        ]
+    },
+    {
+        "claim": "Records older than a year are deleted for you, and you can change that.",
+        "evidence": [
+            "src/Actions/PurgeInsightsDataAction.php",
+            "src/Settings/InsightsSettings.php",
+            "src/Filament/Settings/InsightsSettingsSchema.php",
+            "src/Providers/InsightsServiceProvider.php"
+        ]
+    }
+]

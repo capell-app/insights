@@ -8,10 +8,12 @@ use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -52,8 +54,10 @@ final class BuildInsightsOverviewStatsAction
             ],
             [
                 'id' => 'unique-visits',
-                'label' => (string) __('capell-insights::widgets.unique_visits'),
-                'value' => $this->countUniqueVisits($window),
+                'label' => (string) ($this->spansSeveralDays($window)
+                    ? __('capell-insights::widgets.visitor_days')
+                    : __('capell-insights::widgets.unique_visitors')),
+                'value' => $this->countVisitorDays($window),
             ],
             [
                 'id' => 'clicks',
@@ -89,20 +93,26 @@ final class BuildInsightsOverviewStatsAction
         ?CarbonImmutable $excludedStartsAt = null,
         ?CarbonImmutable $excludedEndsAt = null,
     ): int {
-        return InsightsEvent::query()
-            ->where('type', $type)
-            ->whereBetween('occurred_at', [$window->startsAt, $window->endsAt])
-            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
-            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
+        $events = (new InsightsEvent)->getTable();
+        $visits = (new InsightsVisit)->getTable();
+
+        $weightedCount = InsightsEvent::query()
+            ->leftJoin($visits . ' as insights_weighted_visits', 'insights_weighted_visits.id', '=', $events . '.visit_id')
+            ->where($events . '.type', $type)
+            ->whereBetween($events . '.occurred_at', [$window->startsAt, $window->endsAt])
+            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where($events . '.site_id', $window->siteId))
+            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where($events . '.language_id', $window->languageId))
             ->when(
                 $excludedStartsAt instanceof CarbonImmutable && $excludedEndsAt instanceof CarbonImmutable,
                 fn (Builder $builder): Builder => $builder->where(
                     fn (Builder $boundaryBuilder): Builder => $boundaryBuilder
-                        ->where('occurred_at', '<', $excludedStartsAt)
-                        ->orWhere('occurred_at', '>', $excludedEndsAt),
+                        ->where($events . '.occurred_at', '<', $excludedStartsAt)
+                        ->orWhere($events . '.occurred_at', '>', $excludedEndsAt),
                 ),
             )
-            ->count();
+            ->sum(DB::raw('COALESCE(insights_weighted_visits.sample_weight, 1)'));
+
+        return (int) round((float) $weightedCount);
     }
 
     /** @return array{CarbonImmutable, CarbonImmutable}|null */
@@ -147,14 +157,32 @@ final class BuildInsightsOverviewStatsAction
             : [$rollupStartsAt, $rollupEndsAt];
     }
 
-    private function countUniqueVisits(InsightsWindowData $window): int
+    /**
+     * Visitor hashes are salted per site and local day, so counting distinct hashes over a
+     * window counts each visitor once per day they visited: visitor-days, scaled by sample weight.
+     */
+    private function countVisitorDays(InsightsWindowData $window): int
     {
-        return InsightsEvent::query()
-            ->whereBetween('occurred_at', [$window->startsAt, $window->endsAt])
-            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
-            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
-            ->whereNotNull('visit_id')
-            ->distinct('visit_id')
-            ->count('visit_id');
+        $events = (new InsightsEvent)->getTable();
+        $visits = (new InsightsVisit)->getTable();
+
+        $visitors = InsightsEvent::query()
+            ->join($visits . ' as insights_weighted_visits', 'insights_weighted_visits.id', '=', $events . '.visit_id')
+            ->whereBetween($events . '.occurred_at', [$window->startsAt, $window->endsAt])
+            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where($events . '.site_id', $window->siteId))
+            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where($events . '.language_id', $window->languageId))
+            ->selectRaw('COALESCE(insights_weighted_visits.visitor_hash, insights_weighted_visits.uuid) as visitor_key')
+            ->selectRaw('MAX(COALESCE(insights_weighted_visits.sample_weight, 1)) as weight')
+            ->groupByRaw('COALESCE(insights_weighted_visits.visitor_hash, insights_weighted_visits.uuid)')
+            ->toBase();
+
+        $total = DB::query()->fromSub($visitors, 'visitors')->sum('weight');
+
+        return (int) round((float) $total);
+    }
+
+    private function spansSeveralDays(InsightsWindowData $window): bool
+    {
+        return $window->startsAt->toDateString() !== $window->endsAt->toDateString();
     }
 }

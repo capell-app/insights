@@ -6,7 +6,7 @@ This guide is for owners and operators who want to understand how their site and
 
 ### Choose one audience and period
 
-Open **Insights & health > Insights**. Choose a **Site**, a **Language** (or all that
+Open **Reports > Insights**. Choose a **Site**, a **Language** (or all that
 site's languages), and **From** / **To** dates, then select **Update workspace**.
 The initial window is the last seven calendar days, including today. Windows
 are limited to 366 days. Changing site clears the language choice so a language
@@ -64,7 +64,7 @@ statistics widgets remain available on the main admin dashboard.
 4. Under **Advanced > Developer: endpoint, hashing and exclusions**, use **Ignored paths** to leave certain pages out of measurement, and **Ignored selectors** to leave out specific page elements from click tracking.
 5. Save the settings.
 
-![A site owner configures tracking, consent, retention, and beacon behavior.](screenshots/insights-settings-screen.png)
+![A site owner configures tracking, consent, retention, and beacon behaviour.](screenshots/insights-settings-screen.png)
 
 ### How to set consent and privacy options
 

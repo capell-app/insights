@@ -40,16 +40,28 @@ it('falls back to the legacy salt only when no usable application key exists', f
     'placeholder base64 app key' => 'base64:',
 ]);
 
-it('rotates hashes by site and configured period', function (): void {
+it('rotates the salt per site at each local midnight', function (): void {
     config()->set('capell-insights.hash_salt', 'private-insights-salt');
-    config()->set('capell-insights.hash_rotation_days', 30);
 
-    $first = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-01'));
-    $samePeriod = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-15'));
-    $otherSite = ResolveInsightsHashSaltAction::run(2, CarbonImmutable::parse('2026-07-15'));
-    $nextPeriod = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-08-01'));
+    $morning = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-01 00:00:01', 'UTC'));
+    $evening = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-01 23:59:59', 'UTC'));
+    $otherSite = ResolveInsightsHashSaltAction::run(2, CarbonImmutable::parse('2026-07-01 12:00:00', 'UTC'));
+    $nextDay = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-02 00:00:01', 'UTC'));
 
-    expect($first)->toBe($samePeriod)
-        ->and($first)->not->toBe($otherSite)
-        ->and($first)->not->toBe($nextPeriod);
+    expect($morning)->toBe($evening)
+        ->and($morning)->not->toBe($otherSite)
+        ->and($morning)->not->toBe($nextDay);
+});
+
+it('starts the salt day at midnight in the site timezone', function (): void {
+    config()->set('capell-insights.hash_salt', 'private-insights-salt');
+    config()->set('capell-insights.site_timezones', [1 => 'America/New_York']);
+
+    // 02:00 UTC on 2 July is still 1 July in New York, so it shares the 1 July salt.
+    $lateLocalEvening = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-02 02:00:00', 'UTC'));
+    $localAfternoon = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-01 18:00:00', 'UTC'));
+    $localNextMorning = ResolveInsightsHashSaltAction::run(1, CarbonImmutable::parse('2026-07-02 05:00:00', 'UTC'));
+
+    expect($lateLocalEvening)->toBe($localAfternoon)
+        ->and($lateLocalEvening)->not->toBe($localNextMorning);
 });

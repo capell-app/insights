@@ -11,6 +11,7 @@ use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
@@ -50,7 +51,11 @@ final class PurgeInsightsDataAction
             $resolvedBatchSize,
         );
 
-        $deletedRecords = $deletedEvents + $deletedConsents + $deletedVisits + $deletedRollups;
+        $deletedDailyVisitors = DB::table(RebuildInsightsDailyRollupsAction::dailyVisitorsTable())
+            ->where('day', '<', $cutoff->toDateString())
+            ->delete();
+
+        $deletedRecords = $deletedEvents + $deletedConsents + $deletedVisits + $deletedRollups + $deletedDailyVisitors;
 
         if ($deletedRecords > 0) {
             RememberInsightsDashboardAggregateAction::flush();

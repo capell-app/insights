@@ -31,6 +31,8 @@ final class IngestInsightsBeaconAction
             return null;
         }
 
+        $data = $data->withVisitUuid($this->callerBoundVisitUuid($data->visitUuid, $request));
+
         if ($this->canQueue($data)) {
             ProcessInsightsBeaconJob::dispatch(
                 $data->forQueue(),
@@ -46,6 +48,8 @@ final class IngestInsightsBeaconAction
             request: $request,
             consentRegion: $data->visitUuid === null ? ResolveConsentRegionAction::run() : null,
             clampOccurredAt: true,
+            beaconId: $data->beaconId,
+            referrerUrl: $data->referrerUrl,
         );
 
         $recordedEvent = $recordedEvents->first();
@@ -58,6 +62,41 @@ final class IngestInsightsBeaconAction
         }
 
         return $visit->uuid;
+    }
+
+    /**
+     * A posted visit id is only honoured for the browser that owns it: the visit cookie when
+     * present, otherwise the same hashed address and browser. Anything else starts a new visit.
+     */
+    private function callerBoundVisitUuid(?string $visitUuid, Request $request): ?string
+    {
+        if ($visitUuid === null || trim($visitUuid) === '') {
+            return null;
+        }
+
+        $cookieVisitUuid = $request->cookie(RecordInsightsEventsAction::VISIT_COOKIE);
+
+        if (is_string($cookieVisitUuid) && $cookieVisitUuid !== '') {
+            return hash_equals($cookieVisitUuid, $visitUuid) ? $visitUuid : null;
+        }
+
+        $visit = InsightsVisit::query()
+            ->where('uuid', $visitUuid)
+            ->first(['id', 'site_id', 'ip_hash', 'user_agent_hash']);
+
+        if (! $visit instanceof InsightsVisit) {
+            return null;
+        }
+
+        $siteId = $visit->site_id === null ? null : (int) $visit->site_id;
+        $ipHash = HashInsightsVisitorValueAction::run($request->ip(), $siteId);
+        $userAgentHash = HashInsightsVisitorValueAction::run($request->userAgent(), $siteId);
+
+        if (! is_string($visit->ip_hash) || ! is_string($visit->user_agent_hash) || $ipHash === null || $userAgentHash === null) {
+            return null;
+        }
+
+        return hash_equals($visit->ip_hash, $ipHash) && hash_equals($visit->user_agent_hash, $userAgentHash) ? $visitUuid : null;
     }
 
     private function canQueue(InsightsBeaconData $data): bool
@@ -82,8 +121,7 @@ final class IngestInsightsBeaconAction
 
     private function shouldSample(InsightsBeaconData $data, Request $request): bool
     {
-        $configuredRate = config('capell-insights.ingest.sample_rate', 1.0);
-        $sampleRate = is_numeric($configuredRate) ? max(0.0, min(1.0, (float) $configuredRate)) : 1.0;
+        $sampleRate = ResolveInsightsSampleRateAction::run();
 
         if ($sampleRate <= 0.0) {
             return false;

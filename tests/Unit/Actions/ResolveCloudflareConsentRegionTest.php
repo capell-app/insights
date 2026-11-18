@@ -8,6 +8,9 @@ use Capell\Insights\Support\Consent\ConsentRegionResolver;
 use Illuminate\Http\Request;
 use Torann\GeoIP\GeoIP;
 
+// GeoIP only looks up public visitors, so GeoIP cases cannot use a documentation-range address.
+const INSIGHTS_PUBLIC_VISITOR = '81.2.69.142';
+
 beforeEach(function (): void {
     config()->set('capell-insights.default_consent_region');
     config()->set('geoip.service', 'configured');
@@ -34,7 +37,7 @@ it('fails closed on a GeoIP exception even with a permissive default', function 
     $geoip->shouldReceive('config')->with('cache', 'none')->andReturn('none');
     $geoip->shouldReceive('getService->locate')->once()->andThrow(new RuntimeException('Geography unavailable'));
     app()->instance('geoip', $geoip);
-    app()->instance('request', Request::create('/capell/insights/consent-policy', server: ['REMOTE_ADDR' => '203.0.113.55']));
+    app()->instance('request', Request::create('/capell/insights/consent-policy', server: ['REMOTE_ADDR' => INSIGHTS_PUBLIC_VISITOR]));
 
     expect(ResolveConsentRegionAction::run())->toBe(InsightsConsentRegion::Unknown);
 });
@@ -110,7 +113,7 @@ it('ignores absent or invalid edge geography and tries GeoIP before the default'
     config()->set('capell-insights.default_consent_region', InsightsConsentRegion::UkOrEurope->value);
     $geoip = Mockery::mock(GeoIP::class);
     $geoip->shouldReceive('config')->with('cache', 'none')->andReturn('none');
-    $geoip->shouldReceive('getService->locate')->once()->with('203.0.113.55')->andReturn(['iso_code' => 'US']);
+    $geoip->shouldReceive('getService->locate')->once()->with(INSIGHTS_PUBLIC_VISITOR)->andReturn(['iso_code' => 'US']);
     app()->instance('geoip', $geoip);
     app()->instance('request', insightsEdgeCountryRequest($country));
 
@@ -154,7 +157,7 @@ it('rejects unrecognised geography from location providers too', function (): vo
         ->and($resolver->resolveFromLocation(['iso_code' => 'UK']))->toBe(InsightsConsentRegion::Unknown);
 });
 
-function insightsEdgeCountryRequest(mixed $country, string $visitor = '203.0.113.55'): Request
+function insightsEdgeCountryRequest(mixed $country, string $visitor = INSIGHTS_PUBLIC_VISITOR): Request
 {
     $request = Request::create('/capell/insights/consent-policy', server: ['REMOTE_ADDR' => $visitor]);
 

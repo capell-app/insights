@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Support\Consent;
 
+use Capell\Core\Support\Http\PublicAddressPolicy;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Settings\InsightsSettings;
 use Illuminate\Http\Request;
@@ -34,7 +35,7 @@ final class ConsentRegionResolver
                 $geoip = resolve('geoip');
                 $ip = request()->ip();
 
-                if (! $geoip instanceof GeoIP || $ip === null || ! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                if (! $geoip instanceof GeoIP || $ip === null || ! resolve(PublicAddressPolicy::class)->isPublicAddress($ip)) {
                     return InsightsConsentRegion::Unknown;
                 }
 

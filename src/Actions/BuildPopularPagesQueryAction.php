@@ -8,6 +8,7 @@ use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Enums\InsightsEventType;
 use Capell\Insights\Models\InsightsDailyRollup;
 use Capell\Insights\Models\InsightsEvent;
+use Capell\Insights\Models\InsightsVisit;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -49,18 +50,23 @@ final class BuildPopularPagesQueryAction
 
         $clicksByPath = $this->clicksByPath($window);
 
+        $events = (new InsightsEvent)->getTable();
+        $visits = (new InsightsVisit)->getTable();
+
+        // Sampled visits stand for 1/sample_rate real visits, so counts are scaled by weight.
         $query = InsightsEvent::query()
+            ->leftJoin($visits . ' as insights_weighted_visits', 'insights_weighted_visits.id', '=', $events . '.visit_id')
             ->select([
-                'path',
+                $events . '.path',
                 DB::raw('MIN(url) as url'),
-                DB::raw('COUNT(*) as page_views'),
-                DB::raw('COUNT(DISTINCT visit_id) as unique_visits'),
+                DB::raw('ROUND(SUM(COALESCE(insights_weighted_visits.sample_weight, 1))) as page_views'),
+                DB::raw('ROUND(COUNT(DISTINCT insights_weighted_visits.id) * AVG(COALESCE(insights_weighted_visits.sample_weight, 1))) as unique_visits'),
             ])
-            ->where('type', InsightsEventType::PageView)
-            ->whereBetween('occurred_at', [$window->startsAt, $window->endsAt])
-            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
-            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
-            ->groupBy('path')
+            ->where($events . '.type', InsightsEventType::PageView)
+            ->whereBetween($events . '.occurred_at', [$window->startsAt, $window->endsAt])
+            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where($events . '.site_id', $window->siteId))
+            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where($events . '.language_id', $window->languageId))
+            ->groupBy($events . '.path')
             ->orderByDesc('page_views')
             ->orderBy('path');
 
@@ -73,8 +79,8 @@ final class BuildPopularPagesQueryAction
             ->map(fn (InsightsEvent $event): array => [
                 'path' => (string) $event->path,
                 'url' => (string) $event->url,
-                'page_views' => $event->page_views,
-                'unique_visits' => $event->unique_visits,
+                'page_views' => (int) $event->page_views,
+                'unique_visits' => (int) $event->unique_visits,
                 'clicks' => $clicksByPath[$event->path] ?? 0,
             ])
             ->values();
@@ -122,18 +128,22 @@ final class BuildPopularPagesQueryAction
      */
     private function clicksByPath(InsightsWindowData $window): array
     {
+        $events = (new InsightsEvent)->getTable();
+        $visits = (new InsightsVisit)->getTable();
+
         return InsightsEvent::query()
+            ->leftJoin($visits . ' as insights_weighted_visits', 'insights_weighted_visits.id', '=', $events . '.visit_id')
             ->select([
-                'path',
-                DB::raw('COUNT(*) as clicks'),
+                $events . '.path',
+                DB::raw('SUM(COALESCE(insights_weighted_visits.sample_weight, 1)) as clicks'),
             ])
-            ->where('type', InsightsEventType::Click)
-            ->whereBetween('occurred_at', [$window->startsAt, $window->endsAt])
-            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where('site_id', $window->siteId))
-            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where('language_id', $window->languageId))
-            ->groupBy('path')
+            ->where($events . '.type', InsightsEventType::Click)
+            ->whereBetween($events . '.occurred_at', [$window->startsAt, $window->endsAt])
+            ->when($window->siteId !== null, fn (Builder $builder): Builder => $builder->where($events . '.site_id', $window->siteId))
+            ->when($window->languageId !== null, fn (Builder $builder): Builder => $builder->where($events . '.language_id', $window->languageId))
+            ->groupBy($events . '.path')
             ->pluck('clicks', 'path')
-            ->mapWithKeys(fn (mixed $clicks, string $path): array => [$path => (int) $clicks])
+            ->mapWithKeys(fn (mixed $clicks, string $path): array => [$path => is_numeric($clicks) ? (int) round((float) $clicks) : 0])
             ->all();
     }
 

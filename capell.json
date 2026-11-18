@@ -6,7 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
-    "description": "Cookie-light, GDPR-aware web analytics built into your Capell admin: page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
+    "description": "Counts page views, clicks and campaign visits on your own site, asks UK, EEA and Swiss visitors for consent, and shows the results in the admin.",
     "product": {
         "group": "Capell Marketing & Growth",
         "tier": "free",
@@ -57,10 +57,9 @@
             "type": "overview-stat",
             "class": "Capell\\Insights\\Manifest\\InsightsOverviewStatsContribution",
             "keys": [
-                "insights_overview",
-                "insights_overview.page-views",
-                "insights_overview.unique-visits",
-                "insights_overview.clicks"
+                "overview-stat:insights_overview.page-views",
+                "overview-stat:insights_overview.unique-visits",
+                "overview-stat:insights_overview.clicks"
             ]
         },
         {
@@ -127,7 +126,8 @@
                 "insights_visits",
                 "insights_consents",
                 "insights_events",
-                "insights_daily_rollups"
+                "insights_daily_rollups",
+                "insights_daily_visitors"
             ],
             "migrationFiles": [
                 "2026_05_10_190855_01_create_insights_visits_table",
@@ -136,7 +136,11 @@
                 "2026_05_10_190855_05_import_legacy_page_views",
                 "2026_06_06_000001_create_insights_daily_rollups_table",
                 "2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table",
-                "2026_09_25_000001_invalidate_legacy_insights_html_cache"
+                "2026_09_25_000001_invalidate_legacy_insights_html_cache",
+                "2026_11_12_000001_add_dedupe_key_to_insights_events_table",
+                "2026_11_12_000002_strip_query_strings_from_insights_visit_urls",
+                "2026_11_12_000003_add_visitor_hash_and_sample_weight_to_insights_visits_table",
+                "2026_11_12_000004_create_insights_daily_visitors_table"
             ]
         }
     ],
@@ -147,7 +151,8 @@
             "insights_visits",
             "insights_consents",
             "insights_events",
-            "insights_daily_rollups"
+            "insights_daily_rollups",
+            "insights_daily_visitors"
         ]
     },
     "commands": {
@@ -197,7 +202,8 @@
                 "insights_consents.ip_hash",
                 "insights_consents.user_agent_hash",
                 "insights_visits.ip_hash",
-                "insights_visits.user_agent_hash"
+                "insights_visits.user_agent_hash",
+                "insights_visits.visitor_hash"
             ],
             "redactedOutputClasses": [],
             "plaintextJustifications": []
@@ -255,49 +261,53 @@
         "privateDocsRequested": true
     },
     "marketplace": {
-        "summary": "Cookie-light, GDPR-aware web analytics built into your Capell admin: page views, clicks, visitor journeys, and consent, with no third-party scripts and no data leaving your server.",
-        "description": "Insights gives Capell sites first-party traffic analytics that respect privacy by default: it records page views, clicks, and visitor journeys server-side, hashes visitor identifiers, and gates UK/EU tracking behind consent. Dashboards for popular pages, trending pages, top actions, and recent journeys live right inside the admin Marketing Studio, without Google Analytics, a tangle of cookies or a tag manager. Retention windows and an automatic purge keep data lean and compliant. When Privacy Centre is installed, consent decisions are mirrored into your central consent ledger automatically.",
-        "problem": "Our site team needs to understand visitor journeys without sending analytics to another service.",
-        "outcome": "The site has its own record of visitor activity and conversion paths.",
+        "summary": "Your own page view and click counts, with a consent banner for UK, EEA and Swiss visitors, and reports in the admin.",
+        "description": "Insights keeps visit statistics inside your Capell site. It records page views and clicks for each site and language, notes which campaign link or other site sent a visitor, and shows seven dashboard cards plus a full report page. Staff can compare any period of up to a year with the one before. Visitors in the UK, the EEA and Switzerland see a consent banner first, and tracking waits for their answer. A first-party cookie remembers the visit and any consent answer for up to a year. Works with Privacy Centre when you have it. Needs background jobs running on your server.",
+        "problem": "You can't tell which pages get read without adding another analytics service.",
+        "outcome": "Popular pages, trending pages and visit sources in your admin, counted by your own site.",
         "faq": [
             {
-                "question": "What visitor activity is recorded?",
-                "answer": "Insights records first-party page views, events, journeys, conversions and consent state."
+                "question": "Does my visitor data go to an outside analytics company?",
+                "answer": "No. Page views, clicks and consent choices are stored in your own site's database, and nothing is sent to an outside analytics service."
             },
             {
-                "question": "Where can teams inspect journeys?",
-                "answer": "Admins can review journeys and trends in Capell reporting and dashboard widgets."
+                "question": "Why are my totals lower than the number of people who visit?",
+                "answer": "Visitors who say no to counting are left out, and so are browsers that send a Do Not Track or Global Privacy Control signal. Known bots and crawlers are skipped too, so treat the totals as a floor."
             },
             {
-                "question": "How is consent handled?",
-                "answer": "Public pages send consent-aware events through the Insights beacon."
+                "question": "Can I use my own cookie banner instead of the built-in one?",
+                "answer": "Yes. You can switch the built-in banner off and pass your visitors' choices to Insights through its browser script, which your developer sets up. Switching the banner off does not give Insights permission to count anyone."
+            },
+            {
+                "question": "How long are the records kept?",
+                "answer": "Records older than a year are deleted automatically by default, and you can change that period. The clean-up relies on background jobs, which your developer or host keeps running."
             }
         ],
         "screenshots": [
             {
                 "path": "docs/assets/marketplace/extension-card.jpg",
-                "alt": "Insights extension preview image",
-                "caption": "Insights extension preview"
+                "alt": "Marketplace card titled Insights with a settings panel and a public page beside the words Collect, Consent and Learn.",
+                "caption": "The Marketplace card for Insights, which counts page views, clicks and consent choices."
             },
             {
                 "path": "docs/screenshots/insights-settings-screen.png",
-                "alt": "Insights settings screen",
-                "caption": "Insights settings screen."
+                "alt": "Insights settings panel with Enable insights switched on and Require consent for all regions switched off.",
+                "caption": "Turn counting on, or ask every visitor for consent whatever country they are in."
             },
             {
                 "path": "docs/screenshots/frontend-page-with-tracker-active.png",
-                "alt": "Styled public page with the Insights tracker script active",
-                "caption": "Route-backed public page proving the Insights tracker renders through the frontend BodyEnd hook."
+                "alt": "Full public home page of an example consultancy with feature cards, a search box, article cards and a footer.",
+                "caption": "Counting runs behind a page like this one and adds nothing visitors can see."
             },
             {
                 "path": "docs/screenshots/consent-banner-flow.png",
-                "alt": "Styled public page with the Insights consent banner visible",
-                "caption": "Packaged consent banner rendered on a route-backed public page."
+                "alt": "Example consultancy home page with a privacy banner offering Accept all, Reject non-essential and Manage choices.",
+                "caption": "A visitor in a region that asks first sees this banner before anything is counted."
             },
             {
                 "path": "docs/screenshots/frontend-page-with-tracker-active-real.png",
-                "alt": "Seeded public root page with the Insights tracker active",
-                "caption": "Authentic route-backed public tracker output.",
+                "alt": "The same example home page with a logo, a dark-mode button and a search icon in the header.",
+                "caption": "A second view of an example public page, where counting leaves no visible mark.",
                 "required": true
             }
         ],
@@ -309,6 +319,18 @@
             "metricCollectors": [
                 "Capell\\Insights\\Metrics\\InsightsTrafficMetricsCollector"
             ]
-        }
+        },
+        "contributions": [
+            {
+                "type": "admin-action-extender",
+                "key": "marketing-action:insights.performance",
+                "providerBucket": "admin"
+            },
+            {
+                "type": "render-hook",
+                "key": "insights-tracker",
+                "providerBucket": "runtime"
+            }
+        ]
     }
 }

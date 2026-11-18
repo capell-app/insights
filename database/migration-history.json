@@ -22,6 +22,14 @@
             "8326e16b44d28d3cee5597f8527679649c2bbc963cf1132539ebbf4ddd258fe5"
         ]
     },
+    "create_insights_daily_visitors_table": {
+        "names": [
+            "2026_11_12_000004_create_insights_daily_visitors_table"
+        ],
+        "sha256": [
+            "7cc8a28eb130f8657d775455fe69187542cd43ff1bdc43e230a18e84f3866b44"
+        ]
+    },
     "create_insights_events_table": {
         "names": [
             "2026_04_20_000003_create_insights_events_table",

@@ -30,7 +30,10 @@ return [
     'session_timeout_minutes' => 30,
     'hash_visitor_data' => true,
     'hash_salt' => null,
-    'hash_rotation_days' => 30,
+    // Visitor hashes use a per-site salt that changes every local day, so a visitor can be counted
+    // once per day but never followed across days. Day boundaries follow the site's timezone.
+    'timezone' => env('CAPELL_INSIGHTS_TIMEZONE'),
+    'site_timezones' => [],
     'ignored_ips' => [],
     'ignored_user_agents' => [
         '*bot*',
@@ -71,5 +74,6 @@ return [
         'consents' => 'insights_consents',
         'events' => 'insights_events',
         'daily_rollups' => 'insights_daily_rollups',
+        'daily_visitors' => 'insights_daily_visitors',
     ],
 ];

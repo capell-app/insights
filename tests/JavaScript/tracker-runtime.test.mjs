@@ -87,6 +87,33 @@ test('the first batch reads the response and later batches can use a beacon', as
     assert.equal(payload.events[0].event_name, 'after-visit')
 })
 
+test('a new visit batch carries the browser referrer and every batch a beacon id', async () => {
+    const beacons = []
+    let next = 0
+    const page = browser({
+        referrer: 'https://search.example.org/results',
+        randomUUID: () => `beacon-${++next}`,
+        sendBeacon: (url, body) => {
+            beacons.push({ url, body })
+            return true
+        },
+    })
+    page.resolve({ consent_required: false })
+    await settle()
+    page.api.flush()
+    await settle()
+    const first = JSON.parse(
+        page.requests.find((request) => request.url.endsWith('/events')).body,
+    )
+    assert.equal(first.referrer, 'https://search.example.org/results')
+    assert.equal(first.beacon_id, 'beacon-1')
+    page.api.track({ type: 'click', event_name: 'later' })
+    page.api.flush()
+    const later = JSON.parse(await beacons.at(-1).body.text())
+    assert.equal(later.referrer, undefined)
+    assert.equal(later.beacon_id, 'beacon-2')
+})
+
 const trackedButton = ({ ignored = false } = {}) => {
     const attributes = {
         'data-capell-insights': 'buy',

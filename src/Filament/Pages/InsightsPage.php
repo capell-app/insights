@@ -6,6 +6,7 @@ namespace Capell\Insights\Filament\Pages;
 
 use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Capell\Admin\Enums\NavigationGroupEnum;
 use Capell\Admin\Support\SiteScope;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
@@ -55,9 +56,9 @@ final class InsightsPage extends Page
     }
 
     #[Override]
-    public static function getNavigationGroup(): string
+    public static function getNavigationGroup(): NavigationGroupEnum
     {
-        return __('capell-admin::navigation.group_monitoring');
+        return NavigationGroupEnum::Reports;
     }
 
     #[Override]

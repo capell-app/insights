@@ -14,10 +14,12 @@ final class InsightsBeaconData extends Data
     public function __construct(
         public ?string $visitUuid,
         public array $events = [],
+        public ?string $beaconId = null,
+        public ?string $referrerUrl = null,
     ) {}
 
     /**
-     * @param  array{visit_id?: mixed, events?: list<array<string, mixed>>}  $validated
+     * @param  array{visit_id?: mixed, beacon_id?: mixed, referrer?: mixed, events?: list<array<string, mixed>>}  $validated
      */
     public static function fromValidated(array $validated): self
     {
@@ -42,6 +44,18 @@ final class InsightsBeaconData extends Data
         return new self(
             visitUuid: $visitUuid,
             events: $events,
+            beaconId: isset($validated['beacon_id']) && is_string($validated['beacon_id']) ? $validated['beacon_id'] : null,
+            referrerUrl: isset($validated['referrer']) && is_string($validated['referrer']) ? $validated['referrer'] : null,
+        );
+    }
+
+    public function withVisitUuid(?string $visitUuid): self
+    {
+        return new self(
+            visitUuid: $visitUuid,
+            events: $this->events,
+            beaconId: $this->beaconId,
+            referrerUrl: $this->referrerUrl,
         );
     }
 
@@ -56,6 +70,7 @@ final class InsightsBeaconData extends Data
                 ],
                 $this->events,
             ),
+            beaconId: $this->beaconId,
         );
     }
 }

@@ -54,6 +54,10 @@
         window[consentCoordinatorKey] = consentWrites
     }
     var restoredConsentReady = config.consentRestorationRequired !== true
+    // Core's consent decision for analytics, as reported by the server policy
+    // (global privacy control, Do Not Track and the configured defaults).
+    var providerDecision = null
+    var lastSyncedPrivacyAllowance
     var disposed = false
     var cleanups = []
 
@@ -232,8 +236,31 @@
         )
     }
 
+    // Privacy Centre's runtime is the single consent surface when it is on the
+    // page. Insights then neither shows a banner nor tracks before it allows
+    // analytics.
+    function sharedPrivacy() {
+        var privacy = window.CapellPrivacy
+
+        return privacy && typeof privacy.allows === 'function' ? privacy : null
+    }
+
+    function analyticsRefusedByProvider() {
+        return providerDecision === 'denied'
+    }
+
     function trackingAllowed() {
         if (disposed || !policyResolved || !restoredConsentReady) {
+            return false
+        }
+
+        var privacy = sharedPrivacy()
+
+        if (
+            analyticsRefusedByProvider() ||
+            (privacy && privacy.allows('analytics') !== true)
+        ) {
+            discardQueuedEvents()
             return false
         }
 
@@ -526,8 +553,59 @@
         )
     }
 
+    function syncPrivacyConsent() {
+        var privacy = sharedPrivacy()
+
+        if (!privacy || disposed) {
+            return
+        }
+
+        var allowed = privacy.allows('analytics')
+
+        if (allowed === null || allowed === undefined) {
+            return
+        }
+
+        var current = currentConsentDecision()
+        var recorded = !!current && consentIncludesInsights(current.categories)
+
+        if (allowed === true && !recorded) {
+            if (lastSyncedPrivacyAllowance === true) return
+            lastSyncedPrivacyAllowance = true
+            submitConsent({
+                status: 'granular',
+                terms_accepted: true,
+                source: 'privacy-center',
+                categories: {
+                    insights: true,
+                    marketing: false,
+                    preferences: false,
+                },
+            })
+        } else if (allowed === false) {
+            discardQueuedEvents()
+            if (recorded && lastSyncedPrivacyAllowance !== false) {
+                lastSyncedPrivacyAllowance = false
+                submitConsent({
+                    status: 'rejected_non_essential',
+                    terms_accepted: true,
+                    source: 'privacy-center',
+                })
+            }
+        }
+
+        if (allowed === true) lastSyncedPrivacyAllowance = true
+        if (allowed === false) lastSyncedPrivacyAllowance = false
+    }
+
     function reconcileConsentBanner() {
         var banner = document.querySelector(consentBannerSelector)
+
+        if (banner && (sharedPrivacy() || analyticsRefusedByProvider())) {
+            banner.hidden = true
+            clearBannerHeight()
+            return
+        }
 
         if (
             !banner ||
@@ -546,6 +624,13 @@
         var banner = document.querySelector(consentBannerSelector)
 
         if (!banner) {
+            return
+        }
+
+        if (sharedPrivacy() || analyticsRefusedByProvider()) {
+            banner.hidden = true
+            clearBannerHeight()
+
             return
         }
 
@@ -623,6 +708,18 @@
         })
     }
 
+    // Lets the server ignore a batch it has already recorded.
+    function newBeaconId() {
+        try {
+            return window.crypto &&
+                typeof window.crypto.randomUUID === 'function'
+                ? window.crypto.randomUUID()
+                : null
+        } catch (error) {
+            return null
+        }
+    }
+
     function flushEvents() {
         if (flushTimer) {
             window.clearTimeout(flushTimer)
@@ -642,12 +739,23 @@
 
         var visitId = currentVisitId()
 
+        var payload = {
+            visit_id: visitId,
+            events: events,
+        }
+        var beaconId = newBeaconId()
+
+        if (beaconId) {
+            payload.beacon_id = beaconId
+        }
+
+        if (!visitId && document.referrer) {
+            payload.referrer = document.referrer
+        }
+
         sendJson(
             config.eventsUrl,
-            {
-                visit_id: visitId,
-                events: events,
-            },
+            payload,
             function (response) {
                 storeVisitId(response.visit_id)
             },
@@ -871,6 +979,10 @@
             window.clearTimeout(timeout)
             config.consentRequired =
                 !policy || policy.consent_required !== false
+            providerDecision =
+                policy && typeof policy.analytics_decision === 'string'
+                    ? policy.analytics_decision
+                    : null
             policyResolved = true
             reconcileConsentBanner()
             trackPageView()
@@ -950,6 +1062,14 @@
             if (!trackingAllowed()) discardQueuedEvents()
         }
     })
+    listen(document, 'capell:privacy-consent-changed', function () {
+        // A changed choice re-evaluates both the stored decision and any
+        // queued events; the page view waits for an allowing choice.
+        lastSyncedPrivacyAllowance = undefined
+        syncPrivacyConsent()
+        if (!trackingAllowed()) discardQueuedEvents()
+        else trackPageView()
+    })
     listen(document, 'click', trackClick, true)
     listen(window, 'pagehide', function () {
         flushEvents()
@@ -983,4 +1103,5 @@
     }
 
     resolveConsentPolicy()
+    syncPrivacyConsent()
 })()

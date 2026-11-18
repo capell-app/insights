@@ -33,7 +33,7 @@ final class ResolveInsightsHashSaltAction
 
         return hash_hmac(
             'sha256',
-            sprintf('%s:site:%s:period:%d', self::APP_KEY_DERIVATION_CONTEXT, $siteId ?? 'unknown', $this->rotationPeriod($at)),
+            sprintf('%s:site:%s:day:%s', self::APP_KEY_DERIVATION_CONTEXT, $siteId ?? 'unknown', $this->localDay($siteId, $at)),
             $rootSalt,
         );
     }
@@ -72,12 +72,14 @@ final class ResolveInsightsHashSaltAction
         return $applicationKey;
     }
 
-    private function rotationPeriod(?CarbonImmutable $at): int
+    /**
+     * The salt changes at each midnight in the site's timezone and is derived, never stored,
+     * so yesterday's visitor hashes cannot be recomputed or linked to today's.
+     */
+    private function localDay(?int $siteId, ?CarbonImmutable $at): string
     {
-        $rotationDays = config('capell-insights.hash_rotation_days', 30);
-        $resolvedRotationDays = is_numeric($rotationDays) && (int) $rotationDays > 0 ? (int) $rotationDays : 30;
-        $date = $at ?? now()->toImmutable();
-
-        return ($date->year * 1_000) + intdiv($date->dayOfYear, $resolvedRotationDays);
+        return ($at ?? now()->toImmutable())
+            ->setTimezone(ResolveInsightsSiteTimezoneAction::run($siteId))
+            ->toDateString();
     }
 }

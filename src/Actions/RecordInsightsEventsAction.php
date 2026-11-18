@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Capell\Insights\Actions;
 
+use Capell\Core\Enums\ConsentDecision;
 use Capell\Core\Models\Site;
+use Capell\Frontend\Support\Http\CrawlerDetector;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Enums\InsightsConsentRegion;
 use Capell\Insights\Enums\InsightsConsentStatus;
@@ -21,18 +23,20 @@ use Lorisleiva\Actions\Concerns\AsFake;
 use Lorisleiva\Actions\Concerns\AsObject;
 
 /**
- * @method static Collection<int, InsightsEvent> run(?string $visitUuid, iterable<int, array{data: InsightsEventData, occurred_at: string|null}> $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true)
+ * @method static Collection<int, InsightsEvent> run(?string $visitUuid, iterable<int, array{data: InsightsEventData, occurred_at: string|null}> $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true, ?string $beaconId = null, ?string $referrerUrl = null)
  */
 final class RecordInsightsEventsAction
 {
     use AsFake;
     use AsObject;
 
+    public const string VISIT_COOKIE = 'capell_insights_visit';
+
     /**
      * @param  iterable<int, array{data: InsightsEventData, occurred_at: string|null}>  $events
      * @return Collection<int, InsightsEvent>
      */
-    public function handle(?string $visitUuid, iterable $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true): Collection
+    public function handle(?string $visitUuid, iterable $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true, ?string $beaconId = null, ?string $referrerUrl = null): Collection
     {
         if (config('capell-insights.enabled', true) !== true) {
             return collect();
@@ -42,14 +46,18 @@ final class RecordInsightsEventsAction
             return collect();
         }
 
-        return DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion, $clampOccurredAt, $startNewSession): Collection {
+        if ($request instanceof Request && ResolveInsightsAnalyticsDecisionAction::run($request) === ConsentDecision::Denied) {
+            return collect();
+        }
+
+        return DB::transaction(function () use ($visitUuid, $events, $request, $consentRegion, $clampOccurredAt, $startNewSession, $beaconId, $referrerUrl): Collection {
             $recordableEvents = $this->recordableEvents($events);
 
             if ($recordableEvents === []) {
                 return collect();
             }
 
-            $visit = $this->resolveVisit($visitUuid, $request, $consentRegion, $startNewSession);
+            $visit = $this->resolveVisit($visitUuid, $request, $consentRegion, $startNewSession, $recordableEvents[0]['data']->url, $referrerUrl);
 
             if (! $visit instanceof InsightsVisit || ! $this->canRecordForVisit($visit)) {
                 return collect();
@@ -60,10 +68,11 @@ final class RecordInsightsEventsAction
             $sequence = is_numeric($maxSequence) ? ((int) $maxSequence) + 1 : 1;
             $eventRows = [];
 
-            foreach ($recordableEvents as $event) {
+            foreach ($recordableEvents as $index => $event) {
                 $eventData = $event['data'];
 
                 $eventRows[] = [
+                    'dedupe_key' => $beaconId === null ? null : hash('sha256', sprintf('%s|%s|%d', $visit->uuid, $beaconId, $index)),
                     'visit_id' => $visit->getKey(),
                     'site_id' => $visit->site_id,
                     'language_id' => $visit->language_id,
@@ -89,11 +98,26 @@ final class RecordInsightsEventsAction
                 $sequence++;
             }
 
-            DB::table((new InsightsEvent)->getTable())->insert($eventRows);
+            $table = DB::table((new InsightsEvent)->getTable());
+
+            if ($beaconId === null) {
+                $table->insert($eventRows);
+            } elseif ($table->insertOrIgnore($eventRows) === 0) {
+                // The same beacon was already recorded (a resend or a retried job).
+                return collect();
+            }
 
             $visit->forceFill([
                 'last_seen_at' => $now,
             ])->save();
+
+            if ($beaconId !== null) {
+                return $visit->events()
+                    ->whereIn('dedupe_key', array_column($eventRows, 'dedupe_key'))
+                    ->orderBy('sequence')
+                    ->get()
+                    ->values();
+            }
 
             return $visit->events()
                 ->where('sequence', '>=', $eventRows[0]['sequence'])
@@ -110,10 +134,32 @@ final class RecordInsightsEventsAction
             return true;
         }
 
+        if ($this->isAutomatedRequest($request)) {
+            return true;
+        }
+
         return $this->isIgnoredUserAgent($request->userAgent());
     }
 
-    private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion, bool $startNewSession): ?InsightsVisit
+    /**
+     * Known crawlers, preview fetchers and speculative (prefetch/prerender) loads are not visitors.
+     */
+    private function isAutomatedRequest(Request $request): bool
+    {
+        foreach (['Sec-Purpose', 'Purpose', 'X-Purpose'] as $header) {
+            $value = strtolower((string) $request->headers->get($header));
+
+            if (str_contains($value, 'prefetch') || str_contains($value, 'prerender')) {
+                return true;
+            }
+        }
+
+        $userAgent = $request->userAgent();
+
+        return $userAgent !== null && trim($userAgent) !== '' && resolve(CrawlerDetector::class)->isCrawler($userAgent);
+    }
+
+    private function resolveVisit(?string $visitUuid, ?Request $request, ?InsightsConsentRegion $consentRegion, bool $startNewSession, ?string $landingUrl = null, ?string $referrerUrl = null): ?InsightsVisit
     {
         if ($visitUuid !== null && trim($visitUuid) !== '') {
             $visit = InsightsVisit::query()
@@ -126,7 +172,7 @@ final class RecordInsightsEventsAction
             }
 
             if ($startNewSession && $visit instanceof InsightsVisit && $request instanceof Request && $this->hasExpiredSession($visit)) {
-                return $this->startNextSessionVisit($visit, $request);
+                return $this->startNextSessionVisit($visit, $request, $landingUrl, $referrerUrl);
             }
 
             return $visit;
@@ -136,9 +182,9 @@ final class RecordInsightsEventsAction
             return null;
         }
 
-        $visit = CreateInsightsVisitAction::run($request, $consentRegion);
+        $visit = CreateInsightsVisitAction::run($request, $consentRegion, $landingUrl, $referrerUrl);
 
-        Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
+        Cookie::queue(self::VISIT_COOKIE, $visit->uuid, 60 * 24 * 365);
 
         return $visit;
     }
@@ -159,9 +205,9 @@ final class RecordInsightsEventsAction
         return $visit->last_seen_at->addMinutes($timeoutMinutes)->isPast();
     }
 
-    private function startNextSessionVisit(InsightsVisit $previousVisit, Request $request): InsightsVisit
+    private function startNextSessionVisit(InsightsVisit $previousVisit, Request $request, ?string $landingUrl, ?string $referrerUrl): InsightsVisit
     {
-        $visit = CreateInsightsVisitAction::run($request, $previousVisit->consent_region);
+        $visit = CreateInsightsVisitAction::run($request, $previousVisit->consent_region, $landingUrl, $referrerUrl);
         $consent = $this->latestConsent($previousVisit);
 
         if ($consent instanceof InsightsConsent) {
@@ -173,7 +219,7 @@ final class RecordInsightsEventsAction
             'consent_status' => $consent->status ?? $previousVisit->consent_status,
         ])->save();
 
-        Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
+        Cookie::queue(self::VISIT_COOKIE, $visit->uuid, 60 * 24 * 365);
 
         return $visit;
     }

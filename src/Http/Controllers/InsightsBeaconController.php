@@ -16,6 +16,8 @@ use Illuminate\Validation\Rule;
 
 class InsightsBeaconController
 {
+    private const int MAX_CONVERSION_VALUE = 100_000_000;
+
     public function __invoke(Request $request): JsonResponse|HttpResponse
     {
         if (ValidateInsightsBeaconRequestAction::run($request) === false) {
@@ -43,6 +45,8 @@ class InsightsBeaconController
     {
         return [
             'visit_id' => ['nullable', 'string', 'max:80'],
+            'beacon_id' => ['nullable', 'uuid'],
+            'referrer' => ['nullable', 'string', 'max:2048'],
             'events' => ['required', 'array', 'max:25'],
             'events.*.type' => ['required', Rule::enum(InsightsEventType::class)],
             'events.*.url' => ['required', 'url', 'max:512', $this->pathMaxRule()],
@@ -52,14 +56,14 @@ class InsightsBeaconController
             'events.*.label' => ['nullable', 'string', 'max:255'],
             'events.*.location' => ['nullable', 'string', 'max:255'],
             'events.*.target_selector' => ['nullable', 'string', 'max:500'],
-            'events.*.viewport_x' => ['nullable', 'integer'],
-            'events.*.viewport_y' => ['nullable', 'integer'],
-            'events.*.document_x' => ['nullable', 'integer'],
-            'events.*.document_y' => ['nullable', 'integer'],
+            'events.*.viewport_x' => ['nullable', 'integer', 'between:-100000,1000000'],
+            'events.*.viewport_y' => ['nullable', 'integer', 'between:-100000,1000000'],
+            'events.*.document_x' => ['nullable', 'integer', 'between:-100000,1000000'],
+            'events.*.document_y' => ['nullable', 'integer', 'between:-100000,1000000'],
             'events.*.metadata' => ['nullable', 'array:nearest_landmark,source_package,conversion_value,conversion_currency'],
             'events.*.metadata.nearest_landmark' => ['nullable', 'string', 'max:255'],
             'events.*.metadata.source_package' => ['nullable', 'string', 'max:120'],
-            'events.*.metadata.conversion_value' => ['nullable', 'numeric'],
+            'events.*.metadata.conversion_value' => ['nullable', 'numeric', 'between:0,' . self::MAX_CONVERSION_VALUE],
             'events.*.metadata.conversion_currency' => ['nullable', 'string', 'size:3'],
         ];
     }

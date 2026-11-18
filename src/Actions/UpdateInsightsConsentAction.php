@@ -53,11 +53,15 @@ final class UpdateInsightsConsentAction
             'last_seen_at' => now()->toImmutable(),
         ])->save();
 
-        Cookie::queue('capell_insights_visit', $visit->uuid, 60 * 24 * 365);
+        Cookie::queue(RecordInsightsEventsAction::VISIT_COOKIE, $visit->uuid, 60 * 24 * 365);
 
         $consent->load('visit');
 
-        MirrorInsightsConsentToPrivacyCenterAction::run($consent);
+        // A decision Privacy Centre made is already recorded there; mirroring it back
+        // would overwrite its other categories with this form's defaults.
+        if ($request->input('source') !== 'privacy-center') {
+            MirrorInsightsConsentToPrivacyCenterAction::run($consent);
+        }
 
         RememberInsightsDashboardAggregateAction::flush();
 
@@ -66,7 +70,7 @@ final class UpdateInsightsConsentAction
 
     private function resolveVisit(Request $request, InsightsConsentRegion $region): InsightsVisit
     {
-        $visitUuid = $request->cookie('capell_insights_visit');
+        $visitUuid = $request->cookie(RecordInsightsEventsAction::VISIT_COOKIE);
 
         if (is_string($visitUuid) && $visitUuid !== '') {
             $visit = InsightsVisit::query()

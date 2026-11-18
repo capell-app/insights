@@ -19,6 +19,9 @@ export function browser({
     initialTime = Date.now(),
     cookie = '',
     sendBeacon = null,
+    referrer = '',
+    randomUUID = null,
+    capellPrivacy = null,
 } = {}) {
     const requests = []
     const timers = new Map()
@@ -83,6 +86,7 @@ export function browser({
     const document = {
         title: 'Public page',
         cookie,
+        referrer,
         readyState: 'complete',
         body: { matches: () => false, closest: () => null },
         documentElement: {
@@ -110,6 +114,8 @@ export function browser({
             removeListener(documentListeners, name, callback),
     }
     const window = {
+        ...(capellPrivacy ? { CapellPrivacy: capellPrivacy } : {}),
+        ...(randomUUID ? { crypto: { randomUUID } } : {}),
         location: {
             origin: 'https://example.test',
             href: 'https://example.test/page',
@@ -280,6 +286,8 @@ export function browser({
             dispatch(bannerListeners, 'click', { target: button })
             return button
         },
+        dispatchPrivacyChanged: () =>
+            dispatch(documentListeners, 'capell:privacy-consent-changed', {}),
         hideDocument: () => {
             visibilityState = 'hidden'
             dispatch(documentListeners, 'visibilitychange')

@@ -201,10 +201,9 @@ it('declares the shipped admin page, widgets, models, routes, and overview stats
         TopActionsFilamentWidget::class,
         AcquisitionSourcesFilamentWidget::class,
     ])->and(insightsContribution($manifest, 'overview-stat')['keys'] ?? null)->toBe([
-        'insights_overview',
-        'insights_overview.page-views',
-        'insights_overview.unique-visits',
-        'insights_overview.clicks',
+        'overview-stat:insights_overview.page-views',
+        'overview-stat:insights_overview.unique-visits',
+        'overview-stat:insights_overview.clicks',
     ])->and(insightsContribution($manifest, 'model')['modelClasses'] ?? null)->toBe([
         InsightsVisit::class,
         InsightsConsent::class,

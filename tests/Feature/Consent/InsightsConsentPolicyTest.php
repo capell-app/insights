@@ -22,7 +22,7 @@ it('resolves the existing regional policy through a stateless private GET', func
 
     $response = $this->getJson('/capell/insights/consent-policy');
 
-    $response->assertOk()->assertExactJson(['consent_required' => $required]);
+    $response->assertOk()->assertJsonPath('consent_required', $required)->assertJsonStructure(['consent_required', 'analytics_decision']);
     expect($response->headers->get('Cache-Control'))->toContain('private', 'no-store')
         ->and($response->headers->getCookies())->toBe([]);
 
@@ -52,7 +52,7 @@ it('requires consent on a GeoIP exception despite a permissive default', functio
 
     $response = $this->getJson('/capell/insights/consent-policy');
 
-    $response->assertOk()->assertExactJson(['consent_required' => true]);
+    $response->assertOk()->assertJsonPath('consent_required', true);
     expect($response->headers->get('Cache-Control'))->toContain('private', 'no-store')
         ->and(resolve(PublicResponseCachePolicy::class)->isCacheable($response->baseResponse))->toBeFalse()
         ->and($response->headers->getCookies())->toBe([]);
@@ -66,9 +66,21 @@ it('keeps successive edge country policies private and outside shared HTML cachi
         $response = $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.55', 'CAPELL_EDGE_COUNTRY' => $country])
             ->getJson('/capell/insights/consent-policy');
 
-        $response->assertOk()->assertExactJson(['consent_required' => $required]);
+        $response->assertOk()->assertJsonPath('consent_required', $required);
         expect($response->headers->get('Cache-Control'))->toContain('private', 'no-store')
             ->and(resolve(PublicResponseCachePolicy::class)->isCacheable($response->baseResponse))->toBeFalse()
             ->and($response->headers->getCookies())->toBe([]);
     }
 });
+
+it('reports Core\'s analytics decision, refusing under Global Privacy Control and Do Not Track', function (string $header): void {
+    config()->set('capell-insights.default_consent_region', 'outside_uk_or_europe');
+
+    $this->withHeaders([$header => '1'])->getJson('/capell/insights/consent-policy')
+        ->assertOk()
+        ->assertJsonPath('analytics_decision', 'denied');
+
+    $this->flushHeaders();
+
+    expect($this->getJson('/capell/insights/consent-policy')->json('analytics_decision'))->not->toBe('denied');
+})->with(['Sec-GPC', 'DNT']);

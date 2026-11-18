@@ -162,6 +162,10 @@ it('registers the canonical migration filenames', function (): void {
         '2026_06_06_000001_create_insights_daily_rollups_table',
         '2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table',
         '2026_09_25_000001_invalidate_legacy_insights_html_cache',
+        '2026_11_12_000001_add_dedupe_key_to_insights_events_table',
+        '2026_11_12_000002_strip_query_strings_from_insights_visit_urls',
+        '2026_11_12_000003_add_visitor_hash_and_sample_weight_to_insights_visits_table',
+        '2026_11_12_000004_create_insights_daily_visitors_table',
     ]);
 
     foreach ($package->migrationFileNames as $migrationFileName) {

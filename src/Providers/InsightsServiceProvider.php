@@ -9,10 +9,10 @@ use Capell\Admin\Facades\CapellAdmin;
 use Capell\Core\Actions\Install\RegisterProviderCommandsInCurrentProcessAction;
 use Capell\Core\Facades\CapellCore;
 use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
+use Capell\Core\Support\Privacy\PrivacySubjectRegistry;
 use Capell\Core\Support\TableName;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
-use Capell\Insights\Actions\AnonymizeInsightsVisitAction;
 use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
 use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
@@ -23,9 +23,9 @@ use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
+use Capell\Insights\Support\Privacy\InsightsPrivacyContributor;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
 use Override;
@@ -54,6 +54,10 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
                 '2026_06_06_000001_create_insights_daily_rollups_table',
                 '2026_07_22_000001_add_path_digest_to_insights_daily_rollups_table',
                 '2026_09_25_000001_invalidate_legacy_insights_html_cache',
+                '2026_11_12_000001_add_dedupe_key_to_insights_events_table',
+                '2026_11_12_000002_strip_query_strings_from_insights_visit_urls',
+                '2026_11_12_000003_add_visitor_hash_and_sample_weight_to_insights_visits_table',
+                '2026_11_12_000004_create_insights_daily_visitors_table',
             ]);
     }
 
@@ -100,7 +104,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
 
         $this->registerModels()
             ->registerSettings()
-            ->registerPrivacyCenterEraser()
+            ->registerPrivacyContributors()
             ->registerProtectedTables();
         $this->surface()->metricCollector(InsightsTrafficMetricsCollector::class);
         if ($this->app->runningInConsole()) {
@@ -169,29 +173,10 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
         return $this;
     }
 
-    private function registerPrivacyCenterEraser(): self
+    private function registerPrivacyContributors(): self
     {
-        $registryClass = implode('\\', ['Capell', 'PrivacyCenter', 'Support', 'PrivacySubjectEraserRegistry']);
-
-        if (! class_exists($registryClass) || ! $this->app->bound($registryClass)) {
-            return $this;
-        }
-
-        $registry = $this->app->make($registryClass);
-
-        if (! is_object($registry) || ! method_exists($registry, 'register')) {
-            return $this;
-        }
-
-        $registry->register('insights', static function (Model $subject): int {
-            if (! $subject instanceof InsightsVisit) {
-                return 0;
-            }
-
-            AnonymizeInsightsVisitAction::run($subject);
-
-            return 1;
-        });
+        $this->app->tag([InsightsPrivacyContributor::class], PrivacySubjectRegistry::EXPORTER_TAG);
+        $this->app->tag([InsightsPrivacyContributor::class], PrivacySubjectRegistry::ERASER_TAG);
 
         return $this;
     }

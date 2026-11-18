@@ -49,6 +49,7 @@ final class AnonymizeInsightsVisitAction
                 'utm_campaign' => null,
                 'ip_hash' => null,
                 'user_agent_hash' => null,
+                'visitor_hash' => null,
                 'legacy_session_id' => null,
             ])->save();
 

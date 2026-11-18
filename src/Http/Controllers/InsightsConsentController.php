@@ -33,6 +33,7 @@ class InsightsConsentController
                 ]),
             ],
             'terms_accepted' => ['boolean'],
+            'source' => ['sometimes', Rule::in(['privacy-center'])],
             'categories.insights' => ['boolean'],
             'categories.marketing' => ['boolean'],
             'categories.preferences' => ['boolean'],
