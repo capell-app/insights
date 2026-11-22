@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Capell\Frontend\Data\RenderHookContext;
+use Capell\Core\Data\Rendering\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Http\Controllers\InsightsBeaconController;

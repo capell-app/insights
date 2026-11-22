@@ -16,8 +16,6 @@ final class InsightsSettings extends Settings implements SettingsContract
 
     public bool $track_clicks = true;
 
-    public bool $track_forms = false;
-
     public bool $automatic_click_tracking = true;
 
     public bool $require_consent_for_all_regions = false;
@@ -30,15 +28,11 @@ final class InsightsSettings extends Settings implements SettingsContract
 
     public bool $hash_visitor_data = true;
 
-    public ?string $hash_salt = null;
-
     /** @var list<string> */
     public array $ignored_paths = ['/admin*', '/livewire*', '/capell/insights*', '/_debugbar*', '/_clockwork*', '/storage*'];
 
     /** @var list<string> */
     public array $ignored_selectors = ['[data-capell-insights-ignore]', '[wire\\:click]'];
-
-    public string $route_prefix = 'capell/insights';
 
     public static function group(): string
     {

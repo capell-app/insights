@@ -4,6 +4,8 @@ All notable changes to `capell-app/insights` will be documented in this file.
 
 ## Unreleased
 
+- The Insights settings now control tracking. Enablement, the tracking toggles, consent for all regions, the policy version, visitor hashing, ignored paths and ignored selectors are read from saved settings, and saving clears cached public pages. An upgrade migration copies the current `capell-insights` config into the settings, so existing behaviour does not change. The route prefix, hash salt and unused **Track forms** controls are removed from the admin; the prefix and salt stay in deployment config.
+- Added a **Download digest CSV** action to the Insights page, using the current site, period and funnel filters.
 - Insights now takes its consent decision from Core's consent contracts: with Privacy Centre's `window.CapellPrivacy` on the page it shows no banner and tracks only after `allows('analytics')`; without it the fallback banner and the events endpoint follow Core's `ConsentDecisionProvider`, including Global Privacy Control and Do Not Track.
 - Added daily aggregate rollups and a rebuild command for long-range popular/trending page dashboards.
 - Added default Do-Not-Track and Global Privacy Control honoring in the tracker and beacon endpoint.

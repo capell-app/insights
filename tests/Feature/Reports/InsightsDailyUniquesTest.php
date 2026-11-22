@@ -19,11 +19,12 @@ use Capell\Insights\Models\InsightsVisit;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function (): void {
     config()->set('capell-insights.hash_salt', 'daily-uniques-test-salt');
-    config()->set('capell-insights.hash_visitor_data', true);
+    $this->saveInsightsSettings(['hash_visitor_data' => true]);
 });
 
 /**
@@ -190,4 +191,23 @@ it('rejects metric scopes that do not start at local midnight or name an unknown
         ->toBe(MetricCollectionStatus::Unsupported)
         ->and($collector->collect('2026-07-01', [])->status)
         ->toBe(MetricCollectionStatus::Unsupported);
+});
+
+it('rebuilds rollups through the scheduled command when the app resolves now() as immutable', function (): void {
+    // The production app calls Date::use(CarbonImmutable::class), so now() is immutable there.
+    Date::use(CarbonImmutable::class);
+
+    try {
+        $day = CarbonImmutable::parse('2026-07-01 09:00:00', 'UTC');
+        recordInsightsVisitorVisit('203.0.113.10', 'Browser A', $day, ['/', '/pricing']);
+
+        $this->artisan('insights:rollups:rebuild', ['--from' => '2026-07-01', '--to' => '2026-07-01'])
+            ->expectsOutputToContain('Rebuilt 2 insights daily rollups.')
+            ->assertSuccessful();
+
+        expect(InsightsDailyRollup::query()->whereDate('day', '2026-07-01')->count())->toBe(2)
+            ->and(dailyVisitorRow('2026-07-01'))->not->toBeNull();
+    } finally {
+        Date::use(Carbon::class);
+    }
 });

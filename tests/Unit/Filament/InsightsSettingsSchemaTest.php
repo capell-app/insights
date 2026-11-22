@@ -31,22 +31,20 @@ it('builds insights settings with consent retention and privacy controls', funct
             'enabled',
             'track_page_views',
             'track_clicks',
-            'track_forms',
             'automatic_click_tracking',
             'require_consent_for_all_regions',
             'default_consent_region',
             'policy_version',
             'retention_days',
             'hash_visitor_data',
-            'hash_salt',
             'ignored_paths',
             'ignored_selectors',
-            'route_prefix',
         )
+        ->and($componentNames)->not->toContain('track_forms', 'hash_salt', 'route_prefix')
         ->and($defaultConsentRegion)->toBeInstanceOf(Select::class)
         ->and($defaultConsentRegion->getOptions())->not->toBeEmpty()
-        ->and(collect($components)->whereInstanceOf(Toggle::class))->toHaveCount(7)
-        ->and(collect($components)->whereInstanceOf(TextInput::class))->toHaveCount(4)
+        ->and(collect($components)->whereInstanceOf(Toggle::class))->toHaveCount(6)
+        ->and(collect($components)->whereInstanceOf(TextInput::class))->toHaveCount(2)
         ->and(collect($components)->whereInstanceOf(Textarea::class))->toHaveCount(2);
 });
 
@@ -81,13 +79,11 @@ it('adds translated helper text to insights settings', function (): void {
 
     $expectedHelpers = [
         'default_consent_region' => 'Fallback consent region saved in Insights settings for use when automatic region detection is unavailable. Leave blank to use capell-insights.default_consent_region; if that config value is also unset, the fallback region is unknown.',
-        'policy_version' => 'Consent policy version saved in Insights settings. Consent records and policy checks currently read capell-insights.policy_version; update that config value for changes to take effect.',
+        'policy_version' => 'Change this when your consent policy changes. Visitors who agreed to an earlier version are asked again before anything is recorded.',
         'retention_days' => __('capell-insights::settings.retention_days_helper'),
-        'hash_visitor_data' => 'Visitor hashing choice saved in Insights settings. Visit and consent storage currently read capell-insights.hash_visitor_data; update that config value for changes to take effect.',
-        'hash_salt' => __('capell-insights::settings.hash_salt_helper'),
+        'hash_visitor_data' => 'Store visitor identifiers only as one-way hashes. When this is off, no visitor identifier is stored at all. The change affects only visits and consents recorded after you save.',
         'ignored_paths' => __('capell-insights::settings.ignored_paths_helper'),
         'ignored_selectors' => __('capell-insights::settings.ignored_selectors_helper'),
-        'route_prefix' => __('capell-insights::settings.route_prefix_helper'),
     ];
 
     foreach ($expectedHelpers as $field => $expectedHelper) {
@@ -195,7 +191,7 @@ it('leads with enabled and recommended consent before collapsed advanced groups'
         ->and($children[2]->isCollapsed())->toBeTrue();
     $groups = $children[2]->getDefaultChildComponents();
     Assert::assertIsArray($groups);
-    foreach (['Collection', 'Consent and retention', 'Developer: endpoint, hashing and exclusions'] as $index => $heading) {
+    foreach (['Collection', 'Consent and retention', 'Developer: hashing and exclusions'] as $index => $heading) {
         Assert::assertInstanceOf(Section::class, $groups[$index]);
         expect($groups[$index]->getHeading())->toBe($heading);
     }

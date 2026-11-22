@@ -9,7 +9,6 @@ use Capell\Core\Models\Site;
 use Capell\Frontend\Support\Http\CrawlerDetector;
 use Capell\Insights\Data\InsightsEventData;
 use Capell\Insights\Enums\InsightsConsentRegion;
-use Capell\Insights\Enums\InsightsConsentStatus;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
@@ -38,7 +37,7 @@ final class RecordInsightsEventsAction
      */
     public function handle(?string $visitUuid, iterable $events, ?Request $request = null, ?InsightsConsentRegion $consentRegion = null, bool $clampOccurredAt = false, bool $startNewSession = true, ?string $beaconId = null, ?string $referrerUrl = null): Collection
     {
-        if (config('capell-insights.enabled', true) !== true) {
+        if (! ResolveInsightsRuntimeSettingsAction::run()->enabled) {
             return collect();
         }
 
@@ -59,7 +58,7 @@ final class RecordInsightsEventsAction
 
             $visit = $this->resolveVisit($visitUuid, $request, $consentRegion, $startNewSession, $recordableEvents[0]['data']->url, $referrerUrl);
 
-            if (! $visit instanceof InsightsVisit || ! $this->canRecordForVisit($visit)) {
+            if (! $visit instanceof InsightsVisit || ! CanRecordForInsightsVisitAction::run($visit)) {
                 return collect();
             }
 
@@ -178,7 +177,7 @@ final class RecordInsightsEventsAction
             return $visit;
         }
 
-        if (! $request instanceof Request || ! $this->hasTrustedSite($request) || ! $consentRegion instanceof InsightsConsentRegion || ! $this->canRecordForRegion($consentRegion)) {
+        if (! $request instanceof Request || ! $this->hasTrustedSite($request) || ! $consentRegion instanceof InsightsConsentRegion || ! CanRecordForInsightsVisitAction::make()->canRecordForRegion($consentRegion)) {
             return null;
         }
 
@@ -208,7 +207,7 @@ final class RecordInsightsEventsAction
     private function startNextSessionVisit(InsightsVisit $previousVisit, Request $request, ?string $landingUrl, ?string $referrerUrl): InsightsVisit
     {
         $visit = CreateInsightsVisitAction::run($request, $previousVisit->consent_region, $landingUrl, $referrerUrl);
-        $consent = $this->latestConsent($previousVisit);
+        $consent = CanRecordForInsightsVisitAction::make()->latestConsent($previousVisit);
 
         if ($consent instanceof InsightsConsent) {
             // A new session preserves the original decision, including its expiry and policy.
@@ -249,13 +248,7 @@ final class RecordInsightsEventsAction
             return true;
         }
 
-        $ignoredPaths = config('capell-insights.ignored_paths', []);
-
-        if (! is_array($ignoredPaths)) {
-            return false;
-        }
-
-        return array_any($ignoredPaths, static fn (mixed $ignoredPath): bool => is_string($ignoredPath) && Str::is($ignoredPath, $path));
+        return array_any(ResolveInsightsRuntimeSettingsAction::run()->ignoredPaths, static fn (mixed $ignoredPath): bool => is_string($ignoredPath) && Str::is($ignoredPath, $path));
     }
 
     private function isIgnoredIp(?string $ipAddress): bool
@@ -291,74 +284,6 @@ final class RecordInsightsEventsAction
     private function isAssetPath(string $path): bool
     {
         return preg_match('/\.(?:css|js|map|json|xml|txt|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|eot|pdf|zip)$/i', $path) === 1;
-    }
-
-    private function canRecordForVisit(InsightsVisit $visit): bool
-    {
-        if ($this->canRecordForRegion($visit->consent_region)) {
-            return true;
-        }
-
-        if ($visit->consent_region === InsightsConsentRegion::UkOrEurope
-            || $visit->consent_region === InsightsConsentRegion::Unknown
-            || config('capell-insights.require_consent_for_all_regions', false) === true) {
-            return $this->hasInsightsConsent($visit);
-        }
-
-        return true;
-    }
-
-    private function canRecordForRegion(InsightsConsentRegion $region): bool
-    {
-        return config('capell-insights.require_consent_for_all_regions', false) !== true
-            && $region === InsightsConsentRegion::OutsideUkOrEurope;
-    }
-
-    private function hasInsightsConsent(InsightsVisit $visit): bool
-    {
-        $latestConsent = $this->latestConsent($visit);
-
-        if ($latestConsent instanceof InsightsConsent) {
-            return $latestConsent->categories->insights
-                && $this->consentMatchesCurrentPolicy($latestConsent)
-                && ! $this->consentHasExpired($latestConsent);
-        }
-
-        return $visit->consent_status === InsightsConsentStatus::AcceptedAll;
-    }
-
-    private function latestConsent(InsightsVisit $visit): ?InsightsConsent
-    {
-        return $visit->consents()
-            ->latest('decided_at')
-            ->first();
-    }
-
-    private function consentMatchesCurrentPolicy(InsightsConsent $consent): bool
-    {
-        $policyVersion = config('capell-insights.policy_version', '1.0');
-        $currentPolicyVersion = is_string($policyVersion) && $policyVersion !== '' ? $policyVersion : '1.0';
-
-        return hash_equals($currentPolicyVersion, $consent->policy_version);
-    }
-
-    private function consentHasExpired(InsightsConsent $consent): bool
-    {
-        $expiresDays = config('capell-insights.consent_expires_days', 180);
-
-        if ($expiresDays === null || $expiresDays === false) {
-            return false;
-        }
-
-        if (! is_numeric($expiresDays) || (int) $expiresDays < 1) {
-            return false;
-        }
-
-        if (! $consent->decided_at instanceof CarbonImmutable) {
-            return true;
-        }
-
-        return $consent->decided_at->addDays((int) $expiresDays)->isPast();
     }
 
     private function occurredAt(?string $occurredAt, bool $clamp): CarbonImmutable

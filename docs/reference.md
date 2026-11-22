@@ -45,6 +45,7 @@ Insights is an **Available** Capell package in the **Capell Marketing & Growth**
 
 - `packages/insights/database/settings/2026_05_10_190856_01_create_insights_settings.php`
 - `packages/insights/database/settings/2026_06_14_000001_rename_insights_form_tracking_setting.php`
+- `packages/insights/database/settings/2026_11_18_000001_make_insights_settings_authoritative.php`
 
 ### Settings classes
 
@@ -76,6 +77,10 @@ Insights is an **Available** Capell package in the **Capell Marketing & Growth**
 
 - `packages/insights/routes/web.php`
 
+### Listeners
+
+- `InvalidatePublicPagesAfterInsightsSettingsSaved`
+
 ### Actions
 
 - `AnonymizeInsightsVisitAction`
@@ -91,6 +96,7 @@ Insights is an **Available** Capell package in the **Capell Marketing & Growth**
 - `BuildRecentJourneysQueryAction`
 - `BuildTopActionsQueryAction`
 - `BuildTrendingPagesQueryAction`
+- `CanRecordForInsightsVisitAction`
 - `CreateInsightsVisitAction`
 - `ExportInsightsDigestCsvAction`
 - `GetInsightsTrackerScriptAction`
@@ -112,6 +118,7 @@ Insights is an **Available** Capell package in the **Capell Marketing & Growth**
 - `ResolveInsightsAnalyticsDecisionAction`
 - `ResolveInsightsConsentPolicyAction`
 - `ResolveInsightsHashSaltAction`
+- `ResolveInsightsRuntimeSettingsAction`
 - `ResolveInsightsSampleRateAction`
 - `ResolveInsightsSiteTimezoneAction`
 - `UpdateInsightsConsentAction`
@@ -129,6 +136,7 @@ Insights is an **Available** Capell package in the **Capell Marketing & Growth**
 - `InsightsPageSummaryData`
 - `InsightsReportTableData`
 - `InsightsRequestContextData`
+- `InsightsRuntimeSettingsData`
 - `InsightsVisitData`
 - `InsightsWindowData`
 - `InsightsWorkspaceData`

@@ -16,21 +16,22 @@ it('loads insights settings defaults', function (): void {
         'insights.enabled',
         'insights.track_page_views',
         'insights.track_clicks',
-        'insights.track_forms',
         'insights.automatic_click_tracking',
         'insights.require_consent_for_all_regions',
         'insights.default_consent_region',
         'insights.policy_version',
         'insights.retention_days',
         'insights.hash_visitor_data',
-        'insights.hash_salt',
         'insights.ignored_paths',
         'insights.ignored_selectors',
-        'insights.route_prefix',
     ];
 
     foreach ($expectedKeys as $expectedKey) {
         expect($settingsMigrator->exists($expectedKey))->toBeTrue();
+    }
+
+    foreach (['insights.track_forms', 'insights.hash_salt', 'insights.route_prefix'] as $removedKey) {
+        expect($settingsMigrator->exists($removedKey))->toBeFalse();
     }
 
     expect(resolve(InsightsSettings::class)->retention_days)->toBe(365);
@@ -63,21 +64,18 @@ it('round trips every advanced control through the collapsed settings form', fun
     $settings->enabled = false;
     $settings->track_page_views = false;
     $settings->track_clicks = false;
-    $settings->track_forms = true;
     $settings->automatic_click_tracking = false;
     $settings->require_consent_for_all_regions = true;
     $settings->default_consent_region = 'uk_or_europe';
     $settings->retention_days = 42;
     $settings->policy_version = '2.0';
     $settings->hash_visitor_data = true;
-    $settings->hash_salt = 'private-test-salt';
     $settings->ignored_paths = ['/private*', '/account*'];
     $settings->ignored_selectors = ['[data-private]'];
-    $settings->route_prefix = 'measure';
     $settings->save();
 
     $component = Livewire::test(InsightsSettingsForm::class)
-        ->assertSeeInOrder(['Enable insights', 'Require consent for all regions', 'Advanced', 'Collection', 'Consent and retention', 'Developer: endpoint'])
+        ->assertSeeInOrder(['Enable insights', 'Require consent for all regions', 'Advanced', 'Collection', 'Consent and retention', 'Developer: hashing and exclusions'])
         ->assertSee('Recommended: require consent in every region')
         ->call('submit')
         ->assertHasNoErrors();

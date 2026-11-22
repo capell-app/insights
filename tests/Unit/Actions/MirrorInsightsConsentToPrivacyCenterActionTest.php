@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 it('does nothing when privacy center is not installed', function (): void {
-    CapellCore::forcePackageInstalled('capell-app/privacy-center', false);
+    CapellCore::partialMock()->shouldReceive('isPackageAvailable')->with('capell-app/privacy-center')->andReturnFalse();
 
     $visit = InsightsVisit::factory()->create();
     $consent = InsightsConsent::factory()->create([

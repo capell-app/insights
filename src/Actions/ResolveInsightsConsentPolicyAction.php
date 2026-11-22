@@ -17,7 +17,7 @@ final class ResolveInsightsConsentPolicyAction
     public function handle(): InsightsConsentPolicyData
     {
         return new InsightsConsentPolicyData(
-            consentRequired: config('capell-insights.require_consent_for_all_regions', false) === true
+            consentRequired: ResolveInsightsRuntimeSettingsAction::run()->requireConsentForAllRegions
                 || ResolveConsentRegionAction::run() !== InsightsConsentRegion::OutsideUkOrEurope,
             analyticsDecision: ResolveInsightsAnalyticsDecisionAction::run()->value,
         );

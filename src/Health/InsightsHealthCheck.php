@@ -6,8 +6,8 @@ namespace Capell\Insights\Health;
 
 use Capell\Core\Contracts\Extensions\ChecksExtensionHealth;
 use Capell\Core\Data\Diagnostics\DoctorCheckResultData;
+use Capell\Core\Data\Rendering\RenderHookContext;
 use Capell\Core\Support\TableName;
-use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
 use Capell\Insights\Actions\ResolveInsightsHashSaltAction;

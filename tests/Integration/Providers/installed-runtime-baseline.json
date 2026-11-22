@@ -5,10 +5,10 @@
         "default": {
             "source": {
                 "ref": "HEAD",
-                "commit": "ae9516d1e3470a4f78a12d1084665ac789d1a601",
+                "commit": "6191a1c9756a59a9efc540eed44d79e12df37c3d",
                 "providers": {
                     "Providers/AdminServiceProvider.php": "33c523c82a5966ae43d42d30b044b40606e13663f51d1407eade03fc1cbb84a9",
-                    "Providers/InsightsServiceProvider.php": "57f216004049b1e4e16e851f3e72c3b44b6f6aecc5007e5619e8b0d68e9053a6",
+                    "Providers/InsightsServiceProvider.php": "5b1ee318266adb41ab5f074cbae5523cb6f975959ea08c63ec4fc942d68cb20c",
                     "Providers/MigrationMetadataServiceProvider.php": "d09f01bcfa10033394dd773fddcc95c49f5cbd03b93ea3dc651536d4837ab226"
                 },
                 "configure": null
@@ -225,12 +225,35 @@
                     ]
                 ],
                 "listeners": {
+                    "Capell\\Frontend\\Events\\FrontendRenderPreparing": [
+                        [
+                            "<package>/src/Providers/InsightsServiceProvider.php",
+                            "static Capell\\Insights\\Providers\\InsightsServiceProvider(Capell\\Frontend\\Events\\FrontendRenderPreparing $event):void source=2f85f11ebf88023e84bd612e01de9c53",
+                            []
+                        ]
+                    ],
+                    "Spatie\\LaravelSettings\\Events\\SettingsSaved": [
+                        "Capell\\Insights\\Listeners\\InvalidatePublicPagesAfterInsightsSettingsSaved"
+                    ],
                     "eloquent.saving: Capell\\Insights\\Models\\InsightsDailyRollup": [
                         [
                             "<package>/src/Models/InsightsDailyRollup.php",
                             "Capell\\Insights\\Models\\InsightsDailyRollup(Capell\\Insights\\Models\\InsightsDailyRollup $rollup):void source=071008d5d55f14f5a07fdbed28af7983",
                             []
                         ]
+                    ]
+                },
+                "listeners-positions": {
+                    "Spatie\\LaravelSettings\\Events\\SettingsSaved": [
+                        {
+                            "after": null,
+                            "before": [
+                                "<vendor>/spatie/laravel-settings/src/SettingsEventSubscriber.php",
+                                "Spatie\\LaravelSettings\\SettingsEventSubscriber(Spatie\\LaravelSettings\\Events\\SettingsSaved $event): bound=Spatie\\LaravelSettings\\SettingsEventSubscriber",
+                                []
+                            ],
+                            "entry": "Capell\\Insights\\Listeners\\InvalidatePublicPagesAfterInsightsSettingsSaved"
+                        }
                     ]
                 },
                 "manifest-health": [

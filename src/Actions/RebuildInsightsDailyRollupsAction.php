@@ -11,6 +11,7 @@ use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 use Capell\Insights\Support\PathDigestColumn;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -151,7 +152,7 @@ final class RebuildInsightsDailyRollupsAction
      * @param  array{Carbon, Carbon}  $bounds
      * @return array<int, array<string, mixed>>
      */
-    private function pathRows(string $day, ?int $siteId, array $bounds, Carbon $now, bool $requiresApplicationDigest): array
+    private function pathRows(string $day, ?int $siteId, array $bounds, CarbonInterface $now, bool $requiresApplicationDigest): array
     {
         $weight = 'COALESCE(visits.sample_weight, 1)';
 
@@ -201,7 +202,7 @@ final class RebuildInsightsDailyRollupsAction
      *
      * @param  array{Carbon, Carbon}  $bounds
      */
-    private function storeDailyVisitors(string $day, ?int $siteId, string $timezone, array $bounds, Carbon $now): void
+    private function storeDailyVisitors(string $day, ?int $siteId, string $timezone, array $bounds, CarbonInterface $now): void
     {
         $visitors = DB::query()
             ->fromSub(

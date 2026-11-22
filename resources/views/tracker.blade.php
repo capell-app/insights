@@ -1,4 +1,5 @@
 @php
+    /** @var \Capell\Insights\Data\InsightsRuntimeSettingsData $runtimeSettings */
     use Capell\Insights\Actions\GetInsightsTrackerScriptAction;
 
     $eventsUrl = route('capell-insights.events', [], false);
@@ -12,12 +13,12 @@
         'consentPolicyUrl' => route('capell-insights.consent-policy', [], false),
         'consentRequired' => true,
         'consentRestorationRequired' => config('capell-insights.consent_restoration_required', false) === true,
-        'trackPageViews' => config('capell-insights.track_page_views', true) === true,
-        'trackClicks' => config('capell-insights.track_clicks', true) === true,
-        'automaticClickTracking' => config('capell-insights.automatic_click_tracking', true) === true,
+        'trackPageViews' => $runtimeSettings->trackPageViews,
+        'trackClicks' => $runtimeSettings->trackClicks,
+        'automaticClickTracking' => $runtimeSettings->automaticClickTracking,
         'honorPrivacySignals' => config('capell-insights.honor_privacy_signals', true) === true,
-        'ignoredSelectors' => config('capell-insights.ignored_selectors', []),
-        'policyVersion' => config('capell-insights.policy_version', '1.0'),
+        'ignoredSelectors' => $runtimeSettings->ignoredSelectors,
+        'policyVersion' => $runtimeSettings->policyVersion,
         'consentExpiresDays' => $consentExpiresDays,
     ];
 

@@ -466,7 +466,7 @@ it('preserves consent evidence when a visit rolls over', function (InsightsConse
     $this->travelTo(CarbonImmutable::parse('2026-09-26 12:00:00'));
     config()->set('capell-insights.session_timeout_minutes', 30);
     config()->set('capell-insights.consent_expires_days', 30);
-    config()->set('capell-insights.policy_version', '2026-09');
+    $this->saveInsightsSettings(['policy_version' => '2026-09']);
 
     $visit = InsightsVisit::factory()->create([
         'consent_region' => InsightsConsentRegion::UkOrEurope,

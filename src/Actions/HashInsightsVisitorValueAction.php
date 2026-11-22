@@ -17,7 +17,7 @@ final class HashInsightsVisitorValueAction
 
     public function handle(?string $value, ?int $siteId): ?string
     {
-        if (config('capell-insights.hash_visitor_data', true) !== true) {
+        if (! ResolveInsightsRuntimeSettingsAction::run()->hashVisitorData) {
             return null;
         }
 

@@ -6,14 +6,14 @@ Insights is Capell's first-party web analytics package. It records page views, c
 
 - **Insights**: the Monitoring page for overview statistics, live activity, popular and trending pages, recent journeys, top actions, and acquisition sources.
 - **Dashboard**: can also show the Insights reporting widgets and overview statistics. The **Marketing** workspace links to Insights under **Performance**.
-- **Insights settings**: store the intended tracking, consent, retention, visitor-hashing, exclusion, and public beacon configuration. See the runtime configuration boundary below before relying on a saved change.
+- **Insights settings**: control tracking, consent, retention, visitor hashing and exclusions. Saved changes take effect on the next page load.
 
 ## What you can do
 
 - Review traffic, content performance, visitor journeys, actions, and acquisition sources.
 - Configure page-view, click, and automatic click tracking. The form-tracking field is reserved for an integration; the bundled tracker does not currently read it.
 - Choose whether every region needs consent, set the default consent region and policy version, and configure the retention period.
-- Exclude paths and CSS selectors from tracking, and set the public beacon route prefix when it conflicts with your application's routes.
+- Exclude paths and CSS selectors from tracking. The public beacon route prefix is set in deployment configuration.
 
 ## Where to find it
 
@@ -21,11 +21,15 @@ Go to **Insights** under **Monitoring** in the admin. The page requires the `Vie
 
 Each bundled widget is also restricted to the configured admin or super-admin roles and its dashboard visibility setting. Granting `View:InsightsPage` alone does not make a hidden widget visible. The overview, popular pages, trending pages, top actions, and acquisition widgets use the active dashboard date range and site context. **Live statistics** is installation-wide, and **Recent journeys** applies the date range but not the selected site. Those two widgets can expose paths and visit identifiers from other sites, so do not enable them for site-limited operators until the consuming application adds site scoping.
 
-## Runtime configuration boundary
+## Saved settings and deployment configuration
 
-The settings screen persists `InsightsSettings`, but the current tracker and event/consent Actions read the published `capell-insights` configuration for enablement, tracking toggles, consent rules, hashing, ignored paths/selectors, and the route prefix. The purge Action is the exception: it reads the saved retention setting when available. A saved admin change is therefore not sufficient for the other runtime controls unless the consuming application explicitly maps those settings into config. Apply the matching deployment configuration and rebuild cached configuration and routes after changing the beacon prefix.
+The saved `InsightsSettings` control enablement, the page-view, click and automatic-click toggles, consent for all regions, the default consent region, the policy version, visitor hashing, ignored paths, ignored selectors and retention. The tracker, the event and consent endpoints, and the purge command read them on every request. Saving the settings clears cached public pages, so visitors get the new tracker configuration on their next page load.
 
-The **Track forms** value is not passed to the bundled browser script. With click tracking and automatic click tracking enabled, a submit button can still appear as a `form_submit` click action, but the package does not listen for form submission events or capture field values.
+The matching `capell-insights` configuration values seed these settings when the package is installed or upgraded. After that, the configuration is used only if the settings cannot be loaded, such as before the settings migrations have run. To change a control on a running site, save it in the admin; changing the configuration alone has no effect.
+
+The beacon route prefix and the hash salt stay in deployment configuration only. Routes register before settings can be read, and the salt is a secret. After changing the prefix, rebuild cached configuration and routes.
+
+The bundled browser script does not listen for form submission events or capture field values. With click tracking and automatic click tracking on, a submit button can still appear as a `form_submit` click action.
 
 ## Collection and delivery
 

@@ -208,7 +208,7 @@ it('reuses an existing visit when the insights visit cookie is present', functio
 });
 
 it('stores hmac visitor hashes when visitor data hashing is enabled', function (): void {
-    config()->set('capell-insights.hash_visitor_data', true);
+    $this->saveInsightsSettings(['hash_visitor_data' => true]);
     config()->set('capell-insights.hash_salt', 'insights-test-salt');
 
     $response = $this
@@ -249,7 +249,7 @@ it('derives visitor hash salt from the application key when no private salt is c
     $applicationKey = 'base64:' . base64_encode(str_repeat('i', 32));
 
     config()->set('app.key', $applicationKey);
-    config()->set('capell-insights.hash_visitor_data', true);
+    $this->saveInsightsSettings(['hash_visitor_data' => true]);
     config()->set('capell-insights.hash_salt');
 
     $response = $this
@@ -278,7 +278,7 @@ it('derives visitor hash salt from the application key when no private salt is c
 });
 
 it('stores null visitor hashes when visitor data hashing is disabled', function (): void {
-    config()->set('capell-insights.hash_visitor_data', false);
+    $this->saveInsightsSettings(['hash_visitor_data' => false]);
 
     $response = $this
         ->withServerVariables([

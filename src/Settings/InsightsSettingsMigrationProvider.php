@@ -16,6 +16,7 @@ final class InsightsSettingsMigrationProvider implements SettingsMigrationProvid
         return [
             '2026_05_10_190856_01_create_insights_settings',
             '2026_06_14_000001_rename_insights_form_tracking_setting',
+            '2026_11_18_000001_make_insights_settings_authoritative',
         ];
     }
 

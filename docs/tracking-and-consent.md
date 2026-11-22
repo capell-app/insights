@@ -1,6 +1,6 @@
 # Tracking And Consent
 
-Insights records first-party activity through public policy, consent and event endpoints and a frontend render hook. The package should stay invisible to admin pages, Livewire traffic, debug surfaces, and any path listed in `capell-insights.ignored_paths`.
+Insights records first-party activity through public policy, consent and event endpoints and a frontend render hook. The package should stay invisible to admin pages, Livewire traffic, debug surfaces, and any path listed in the saved **Ignored paths** setting.
 
 ## Runtime Flow
 
@@ -75,13 +75,14 @@ The package upgrade migration invalidates frontend output caches before the frag
 
 ## Config Keys
 
+Enablement, the tracking toggles, consent for all regions, the policy version, hashing, ignored paths and ignored selectors are saved settings. Their config keys below seed those settings on install or upgrade and apply only when the settings cannot be loaded.
+
 | Key                                               | Use                                                                                                                                                                     |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `capell-insights.enabled`                         | Turns tracker registration on or off.                                                                                                                                   |
 | `capell-insights.route_prefix`                    | Prefix for beacon and consent routes.                                                                                                                                   |
 | `capell-insights.track_page_views`                | Records page-view events when enabled.                                                                                                                                  |
 | `capell-insights.track_clicks`                    | Records click events when enabled.                                                                                                                                      |
-| `capell-insights.track_forms`                     | Reserved switch for package-level form tracking integrations.                                                                                                           |
 | `capell-insights.automatic_click_tracking`        | Lets the frontend tracker capture clicks automatically.                                                                                                                 |
 | `capell-insights.require_consent_for_all_regions` | Blocks tracking until consent exists, regardless of detected region.                                                                                                    |
 | `capell-insights.edge_country_server_parameter`   | Trusted request FastCGI parameter name; defaults to `CAPELL_EDGE_COUNTRY`. `HTTP_*` names and process-environment values are rejected; FPM must keep `clear_env = yes`. |

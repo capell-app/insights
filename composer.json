@@ -19,8 +19,8 @@
     ],
     "require": {
         "php": "^8.4",
-        "capell-app/admin": "^1.0.66",
-        "capell-app/core": "^1.0.78",
+        "capell-app/admin": "^1.0.78",
+        "capell-app/core": "^1.0.79",
         "capell-app/frontend": "^1.0.72",
         "lorisleiva/laravel-actions": "^2.8",
         "spatie/laravel-data": "^4.5",

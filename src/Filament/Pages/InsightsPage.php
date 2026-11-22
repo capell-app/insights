@@ -11,15 +11,19 @@ use Capell\Admin\Support\SiteScope;
 use Capell\Core\Models\Language;
 use Capell\Core\Models\Site;
 use Capell\Insights\Actions\BuildInsightsWorkspaceAction;
+use Capell\Insights\Actions\ExportInsightsDigestCsvAction;
 use Capell\Insights\Data\InsightsWindowData;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
 use Carbon\CarbonImmutable;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Override;
 use Spatie\Permission\PermissionRegistrar;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class InsightsPage extends Page
 {
@@ -101,6 +105,37 @@ final class InsightsPage extends Page
         $this->resetErrorBag();
     }
 
+    public function downloadDigestCsv(): ?StreamedResponse
+    {
+        abort_unless(self::canAccess(), 403);
+        $site = SiteScope::applyForCurrentActor(Site::query(), 'id', denyWhenMissingActor: true)
+            ->with('language')
+            ->find($this->siteId);
+
+        if (! $site instanceof Site) {
+            Notification::make()->title(__('capell-insights::workspace.export_needs_site'))->warning()->send();
+
+            return null;
+        }
+
+        $languageIds = $site->languages()->pluck($site->languages()->getRelated()->qualifyColumn('id'))->push($site->language?->id)->filter()->all();
+        $filters = $this->validatedFilters($site, $languageIds);
+
+        if ($filters === null) {
+            Notification::make()->title(__('capell-insights::workspace.export_invalid_filters'))->warning()->send();
+
+            return null;
+        }
+
+        [$window, $funnelSteps] = $filters;
+        $csv = ExportInsightsDigestCsvAction::run($window, $funnelSteps);
+        $filename = sprintf('insights-digest-%s-to-%s.csv', $window->startsAt->toDateString(), $window->endsAt->toDateString());
+
+        return response()->streamDownload(static function () use ($csv): void {
+            echo $csv;
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
     /** @return array<string, mixed> */
     #[Override]
     protected function getViewData(): array
@@ -122,11 +157,42 @@ final class InsightsPage extends Page
             return $viewData;
         }
 
+        $filters = $this->validatedFilters($site, $languages->pluck('id')->all());
+
+        if ($filters === null) {
+            return $viewData;
+        }
+
+        [$window, $funnelSteps] = $filters;
+        $workspace = BuildInsightsWorkspaceAction::run($window, $this->compare, $this->trendMetric, $funnelSteps);
+
+        return array_replace($viewData, ['workspace' => $workspace, 'sections' => $workspace->sections]);
+    }
+
+    /** @return array<int, Action> */
+    #[Override]
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('exportDigestCsv')
+                ->label(__('capell-insights::workspace.export_digest_csv'))
+                ->icon(Heroicon::OutlinedArrowDownTray)
+                ->color('gray')
+                ->action(fn (): ?StreamedResponse => $this->downloadDigestCsv()),
+        ];
+    }
+
+    /**
+     * @param  array<int, mixed>  $languageIds
+     * @return array{0: InsightsWindowData, 1: list<string>}|null
+     */
+    private function validatedFilters(Site $site, array $languageIds): ?array
+    {
         try {
             $this->validate([
                 'startsOn' => ['required', 'date_format:Y-m-d'],
                 'endsOn' => ['required', 'date_format:Y-m-d', 'after_or_equal:startsOn', 'before_or_equal:today'],
-                'languageId' => ['nullable', Rule::in($languages->pluck('id')->all())],
+                'languageId' => ['nullable', Rule::in($languageIds)],
                 'trendMetric' => ['required', Rule::in(['unique-visits', 'page-views', 'clicks'])],
                 'funnelSteps' => ['string', 'max:1000'],
             ]);
@@ -143,16 +209,9 @@ final class InsightsPage extends Page
         } catch (ValidationException $validationException) {
             $this->setErrorBag($validationException->validator->errors());
 
-            return $viewData;
+            return null;
         }
 
-        $workspace = BuildInsightsWorkspaceAction::run(
-            new InsightsWindowData($startsAt, $endsAt, $site->id, $this->languageId),
-            $this->compare,
-            $this->trendMetric,
-            $funnelSteps,
-        );
-
-        return array_replace($viewData, ['workspace' => $workspace, 'sections' => $workspace->sections]);
+        return [new InsightsWindowData($startsAt, $endsAt, $site->id, $this->languageId), $funnelSteps];
     }
 }

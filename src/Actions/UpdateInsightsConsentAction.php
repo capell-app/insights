@@ -87,7 +87,7 @@ final class UpdateInsightsConsentAction
 
     private function hashVisitorValue(?string $value, ?int $siteId): ?string
     {
-        if (config('capell-insights.hash_visitor_data', true) !== true) {
+        if (! ResolveInsightsRuntimeSettingsAction::run()->hashVisitorData) {
             return null;
         }
 
@@ -102,9 +102,7 @@ final class UpdateInsightsConsentAction
 
     private function policyVersion(): string
     {
-        $policyVersion = config('capell-insights.policy_version', '1.0');
-
-        return is_string($policyVersion) && $policyVersion !== '' ? $policyVersion : '1.0';
+        return ResolveInsightsRuntimeSettingsAction::run()->policyVersion;
     }
 
     private function hashSalt(?int $siteId): ?string

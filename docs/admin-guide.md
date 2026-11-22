@@ -30,10 +30,9 @@ against their end date, not today's date. Allow for the displayed aggregate
 cache interval and queue delay. A quiet or empty report does not prove nobody
 visited: consent and tracking choices affect what can be recorded.
 
-"Tracking is disabled" describes the effective runtime configuration. Existing
-reports remain available while collection is off. Saved settings are preserved;
-the consuming installation must apply its matching runtime configuration, as
-explained in [the operator reference](overview.admin.md).
+"Tracking is disabled" means **Enable insights** is off in the Insights
+settings. Existing reports remain available while collection is off. Turn it
+back on and save to resume recording from the next page load.
 
 ### Explore a question
 
@@ -60,9 +59,9 @@ statistics widgets remain available on the main admin dashboard.
 
 1. Go to **Settings** in the admin and find the **Insights** section.
 2. Turn on **Enable insights**.
-3. Expand **Advanced > Collection** and choose what to record using **Track page views**, **Track clicks**, and **Track forms**.
-4. Under **Advanced > Developer: endpoint, hashing and exclusions**, use **Ignored paths** to leave certain pages out of measurement, and **Ignored selectors** to leave out specific page elements from click tracking.
-5. Save the settings.
+3. Expand **Advanced > Collection** and choose what to record using **Track page views**, **Track clicks** and **Automatic click tracking**.
+4. Under **Advanced > Developer: hashing and exclusions**, use **Ignored paths** to leave certain pages out of measurement, and **Ignored selectors** to leave out specific page elements from click tracking.
+5. Save the settings. Changes apply from each visitor's next page load.
 
 ![A site owner configures tracking, consent, retention, and beacon behaviour.](screenshots/insights-settings-screen.png)
 
@@ -70,7 +69,7 @@ statistics widgets remain available on the main admin dashboard.
 
 1. Go to **Settings > Insights**.
 2. Review the recommended **Require consent for all regions** choice beside **Enable insights**. Existing values are not changed automatically. Find **Default consent region** under **Advanced > Consent and retention**.
-3. Under **Advanced > Developer: endpoint, hashing and exclusions**, turn on **Hash visitor data** to store visitor details in a disguised form, and set a **Hash salt** if your developer asks you to.
+3. Under **Advanced > Developer: hashing and exclusions**, turn on **Hash visitor data** to store visitor details only in a disguised form. When it is off, no visitor identifier is stored.
 4. Update the **Policy version** when your privacy notice changes, so returning visitors are asked again.
 5. Save the settings. Visitors see a consent banner where they can accept analytics, reject non-essential tracking, or manage their choices before anything is recorded.
 

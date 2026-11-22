@@ -152,7 +152,7 @@ it('shows tracking disabled consent and stale states without discarding historic
     $settings->enabled = false;
     $settings->require_consent_for_all_regions = true;
     $settings->save();
-    config(['capell-insights.enabled' => false, 'capell-insights.require_consent_for_all_regions' => true]);
+    $this->saveInsightsSettings(['enabled' => false, 'require_consent_for_all_regions' => true]);
     Livewire::test(InsightsPage::class)
         ->assertSee('Tracking is disabled')
         ->assertSee('Consent is required in every region')
@@ -211,6 +211,8 @@ it('keeps the workspace query count bounded as visits grow', function (): void {
         insightsWorkspaceEvent($visit, '/bounded-' . $index, '2026-09-03 10:00:00');
     }
 
+    // Saved settings load once per request; keep that one-off read out of the growth comparison.
+    resolve(InsightsSettings::class)->enabled;
     DB::enableQueryLog();
     BuildInsightsWorkspaceAction::run($window, true, 'page-views', ['signup']);
     $initialCount = count(DB::getQueryLog());
@@ -246,17 +248,14 @@ function insightsWorkspaceEvent(InsightsVisit $visit, string $path, string $at, 
     ]);
 }
 
-it('reports effective tracking configuration even when saved preferences differ', function (): void {
+it('reports the saved tracking settings even when deployment config differs', function (): void {
     $site = Site::factory()->create();
-    $settings = resolve(InsightsSettings::class);
-    $settings->enabled = false;
-    $settings->require_consent_for_all_regions = true;
-    $settings->save();
+    $this->saveInsightsSettings(['enabled' => false, 'require_consent_for_all_regions' => true]);
     config(['capell-insights.enabled' => true, 'capell-insights.require_consent_for_all_regions' => false]);
     $window = new InsightsWindowData(CarbonImmutable::today(), CarbonImmutable::today()->endOfDay(), $site->id);
     $report = BuildInsightsWorkspaceAction::run($window, false, 'page-views');
-    expect($report->trackingEnabled)->toBeTrue()
-        ->and($report->consentRequiredEverywhere)->toBeFalse();
+    expect($report->trackingEnabled)->toBeFalse()
+        ->and($report->consentRequiredEverywhere)->toBeTrue();
 });
 
 it('evaluates historical freshness at the end of the selected window', function (): void {

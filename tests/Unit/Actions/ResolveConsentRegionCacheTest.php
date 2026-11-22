@@ -14,7 +14,7 @@ use Torann\GeoIP\GeoIP;
 beforeEach(function (): void {
     config()->set('cache.default', 'array');
     config()->set('geoip.service', 'returning');
-    config()->set('capell-insights.require_consent_for_all_regions', false);
+    $this->saveInsightsSettings(['require_consent_for_all_regions' => false]);
 
     app()->instance('request', Request::create('/capell/insights/consent-policy', server: ['REMOTE_ADDR' => '8.8.8.8']));
 });

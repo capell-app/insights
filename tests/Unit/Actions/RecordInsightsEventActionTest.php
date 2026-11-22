@@ -14,7 +14,7 @@ use Capell\Insights\Models\InsightsEvent;
 use Capell\Insights\Models\InsightsVisit;
 
 it('skips events when the package is disabled', function (): void {
-    config()->set('capell-insights.enabled', false);
+    $this->saveInsightsSettings(['enabled' => false]);
 
     $visit = InsightsVisit::factory()->create([
         'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,
@@ -104,7 +104,7 @@ it('skips uk or europe events when insights consent is expired', function (): vo
 });
 
 it('skips uk or europe events when insights consent belongs to an old policy version', function (): void {
-    config()->set('capell-insights.policy_version', '2026-06');
+    $this->saveInsightsSettings(['policy_version' => '2026-06']);
 
     $visit = InsightsVisit::factory()->create([
         'consent_region' => InsightsConsentRegion::UkOrEurope,
@@ -126,7 +126,7 @@ it('skips uk or europe events when insights consent belongs to an old policy ver
 });
 
 it('requires consent for outside-region events when configured globally', function (): void {
-    config()->set('capell-insights.require_consent_for_all_regions', true);
+    $this->saveInsightsSettings(['require_consent_for_all_regions' => true]);
 
     $visit = InsightsVisit::factory()->create([
         'consent_region' => InsightsConsentRegion::OutsideUkOrEurope,

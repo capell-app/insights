@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
+use Capell\Core\Data\Rendering\RenderHookContext;
 use Capell\Frontend\Contracts\FrontendContextReader;
 use Capell\Frontend\Data\FrontendRenderContextData;
-use Capell\Frontend\Data\RenderHookContext;
 use Capell\Frontend\Enums\FrontendRenderAudience;
 use Capell\Frontend\Enums\RenderHookLocation;
 use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\PublicViewQueryGuard;
 use Capell\Frontend\Support\Render\RenderHookRegistry;
+use Capell\Insights\Actions\ResolveInsightsRuntimeSettingsAction;
+use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Capell\Tests\Fixtures\Models\User;
 use Illuminate\Cache\CacheManager;
@@ -25,10 +27,10 @@ use Sinnbeck\DomAssertions\Asserts\AssertElement;
 use Torann\GeoIP\GeoIP;
 
 it('injects the frontend insights tracker at the end of the body', function (): void {
-    config()->set('capell-insights.ignored_selectors', [
+    $this->saveInsightsSettings(['ignored_selectors' => [
         '[data-capell-insights-ignore]',
         '[wire\\:click]',
-    ]);
+    ]]);
 
     /** @var RenderHookRegistry<RenderHookContext> $registry */
     $registry = resolve(RenderHookRegistry::class);
@@ -106,12 +108,14 @@ it('renders the public tracker without querying the configured database cache st
         $table->integer('expiration');
     });
 
+    // Settings are hydrated by the render hook before the view runs.
+    $runtimeSettings = ResolveInsightsRuntimeSettingsAction::run();
     $queries = [];
     DB::listen(static function (QueryExecuted $query) use (&$queries): void {
         $queries[] = $query->sql;
     });
 
-    $html = view('capell-insights::tracker')->render();
+    $html = view('capell-insights::tracker', ['runtimeSettings' => $runtimeSettings])->render();
 
     expect($queries)->toBe([])
         ->and($html)
@@ -143,9 +147,7 @@ it('keeps geography out of preparation and guarded public rendering', function (
         'cache.stores.database.connection' => 'sqlite',
         'cache.stores.database.table' => 'insights_geoip_cache',
         'capell-insights.default_consent_region' => $configuredRegion,
-        'capell-insights.require_consent_for_all_regions' => $forceConsent,
         'capell-insights.require_signed_beacons' => $signed,
-        'capell-insights.ignored_paths' => ['/admin*'],
         'capell-frontend.public_view_query_guard.enabled' => true,
         'capell-frontend.public_view_query_guard.mode' => 'exception',
         'capell-frontend.public_view_query_guard.ignored_connections' => [],
@@ -175,6 +177,11 @@ it('keeps geography out of preparation and guarded public rendering', function (
 
     $renderContext = new FrontendRenderContextData(null, null, null, null, null);
     $guard = resolve(PublicViewQueryGuard::class);
+    // Saved settings load once per request; measure only geography and render work.
+    $settings = resolve(InsightsSettings::class);
+    $settings->require_consent_for_all_regions = $forceConsent;
+    $settings->ignored_paths = ['/admin*'];
+    $settings->save();
     $queries = [];
     DB::listen(static function (QueryExecuted $query) use (&$queries): void {
         $queries[] = $query->sql;
@@ -252,7 +259,7 @@ it('renders identical shared HTML for different edge visitor countries', functio
 
 it('does not inject the frontend insights tracker on ignored admin paths', function (): void {
     app()->instance('request', Request::create('/admin/pages', Symfony\Component\HttpFoundation\Request::METHOD_GET));
-    config()->set('capell-insights.ignored_paths', ['/admin*']);
+    $this->saveInsightsSettings(['ignored_paths' => ['/admin*']]);
 
     /** @var RenderHookRegistry<RenderHookContext> $registry */
     $registry = resolve(RenderHookRegistry::class);

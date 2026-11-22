@@ -45,8 +45,6 @@ final class InsightsSettingsSchema implements HasSchema
                                     ->label(__('capell-insights::settings.track_page_views')),
                                 Toggle::make('track_clicks')
                                     ->label(__('capell-insights::settings.track_clicks')),
-                                Toggle::make('track_forms')
-                                    ->label(__('capell-insights::settings.track_forms')),
                                 Toggle::make('automatic_click_tracking')
                                     ->label(__('capell-insights::settings.automatic_click_tracking')),
                             ]),
@@ -73,10 +71,6 @@ final class InsightsSettingsSchema implements HasSchema
                                 Toggle::make('hash_visitor_data')
                                     ->label(__('capell-insights::settings.hash_visitor_data'))
                                     ->helperText(__('capell-insights::settings.hash_visitor_data_helper')),
-                                TextInput::make('hash_salt')
-                                    ->label(__('capell-insights::settings.hash_salt'))
-                                    ->helperText(__('capell-insights::settings.hash_salt_helper'))
-                                    ->nullable(),
                                 Textarea::make('ignored_paths')
                                     ->label(__('capell-insights::settings.ignored_paths'))
                                     ->helperText(__('capell-insights::settings.ignored_paths_helper'))
@@ -89,10 +83,6 @@ final class InsightsSettingsSchema implements HasSchema
                                     ->formatStateUsing(self::listToTextarea(...))
                                     ->dehydrateStateUsing(self::textareaToList(...))
                                     ->rows(3),
-                                TextInput::make('route_prefix')
-                                    ->label(__('capell-insights::settings.route_prefix'))
-                                    ->helperText(__('capell-insights::settings.route_prefix_helper'))
-                                    ->required(),
                             ]),
                         ]),
                 ]),

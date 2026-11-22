@@ -28,7 +28,7 @@ final class MirrorInsightsConsentToPrivacyCenterAction
 
     public function handle(InsightsConsent $consent): int
     {
-        if (! $this->privacyCenterIsAvailable()) {
+        if (! CapellCore::isPackageAvailable('capell-app/privacy-center')) {
             return 0;
         }
 
@@ -43,17 +43,12 @@ final class MirrorInsightsConsentToPrivacyCenterAction
         return $recorded;
     }
 
-    private function privacyCenterIsAvailable(): bool
-    {
-        return CapellCore::isPackageInstalled('capell-app/privacy-center')
-            && class_exists(RecordConsentAction::class)
-            && class_exists(ConsentRecordData::class)
-            && class_exists(ConsentDecision::class)
-            && class_exists(CookieCategory::class);
-    }
-
     private function recordConsent(InsightsConsent $consent, string $insightsCategory, string $privacyCategory): bool
     {
+        if (! CapellCore::isPackageAvailable('capell-app/privacy-center')) {
+            return false;
+        }
+
         $cookieCategoryClass = CookieCategory::class;
         $consentDecisionClass = ConsentDecision::class;
         $consentRecordDataClass = ConsentRecordData::class;

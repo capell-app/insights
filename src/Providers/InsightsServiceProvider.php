@@ -12,10 +12,13 @@ use Capell\Core\Support\Packages\AbstractPackageServiceProvider;
 use Capell\Core\Support\Privacy\PrivacySubjectRegistry;
 use Capell\Core\Support\TableName;
 use Capell\Frontend\Enums\RenderHookLocation;
+use Capell\Frontend\Events\FrontendRenderPreparing;
 use Capell\Frontend\Support\Render\FrontendHookRegistrar;
+use Capell\Insights\Actions\ResolveInsightsRuntimeSettingsAction;
 use Capell\Insights\Console\Commands\PurgeInsightsDataCommand;
 use Capell\Insights\Console\Commands\RebuildInsightsDailyRollupsCommand;
 use Capell\Insights\Filament\Settings\InsightsSettingsSchema;
+use Capell\Insights\Listeners\InvalidatePublicPagesAfterInsightsSettingsSaved;
 use Capell\Insights\Metrics\InsightsTrafficMetricsCollector;
 use Capell\Insights\Models\InsightsConsent;
 use Capell\Insights\Models\InsightsDailyRollup;
@@ -28,9 +31,11 @@ use Capell\Insights\Support\RenderHooks\RegisterInsightsTrackerHook;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use Override;
 use ReflectionProperty;
 use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelSettings\Events\SettingsSaved;
 
 final class InsightsServiceProvider extends AbstractPackageServiceProvider
 {
@@ -81,6 +86,13 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
     {
         $this->loadTranslationsFrom(__DIR__ . '/../../resources/lang', self::$name);
         $this->publishSettingsMigrations();
+        Event::listen(SettingsSaved::class, InvalidatePublicPagesAfterInsightsSettingsSaved::class);
+        Event::listen(FrontendRenderPreparing::class, static function (FrontendRenderPreparing $event): void {
+            $event->context->setFrontendData(
+                RegisterInsightsTrackerHook::RUNTIME_SETTINGS_FRONTEND_DATA_KEY,
+                ResolveInsightsRuntimeSettingsAction::run(),
+            );
+        });
         // Late activation may run inside a foreign route group.
         $router = $this->app->make(Router::class);
         $groups = new ReflectionProperty(Router::class, 'groupStack');
@@ -92,7 +104,8 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
             $groups->setValue($router, $previous);
         }
 
-        if (config('capell-insights.enabled', true) === true && $this->app->bound(FrontendHookRegistrar::class)) {
+        // The hook checks the saved enable setting at render time, so it is always contributed.
+        if ($this->app->bound(FrontendHookRegistrar::class)) {
             resolve(FrontendHookRegistrar::class)->contribute(
                 location: RenderHookLocation::BodyEnd,
                 extension: new RegisterInsightsTrackerHook,
@@ -137,6 +150,7 @@ final class InsightsServiceProvider extends AbstractPackageServiceProvider
         $this->publishes([
             $provider->path() . '/2026_05_10_190856_01_create_insights_settings.php' => database_path('settings/2026_05_10_190856_01_create_insights_settings.php'),
             $provider->path() . '/2026_06_14_000001_rename_insights_form_tracking_setting.php' => database_path('settings/2026_06_14_000001_rename_insights_form_tracking_setting.php'),
+            $provider->path() . '/2026_11_18_000001_make_insights_settings_authoritative.php' => database_path('settings/2026_11_18_000001_make_insights_settings_authoritative.php'),
         ], 'capell-insights-settings');
     }
 

@@ -8,9 +8,9 @@ Visitors in the UK, the European Economic Area and Switzerland are asked first. 
 
 The Insights page in the admin lets you pick a site, a language and a date range, and compare it with the period before. It shows popular and trending pages, where visitors came from and how many visitors took each action you name. Records older than a year are deleted for you, and you can change that.
 
-- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/extensions/insights).
-- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/extensions/insights).
-- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
+- **Price and availability:** Check current availability and price on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/insights).
+- **Licence:** Check the licence terms on the [Capell Marketplace listing](https://capell.app/marketplace/extensions/insights).
+- **Requires:** `PHP ^8.4`, `capell-app/admin ^1.0.78`, `capell-app/core ^1.0.79`, `capell-app/frontend ^1.0.72`, `lorisleiva/laravel-actions ^2.8`, `spatie/laravel-data ^4.5`, `spatie/laravel-package-tools ^1.14.1`.
 - **Install:** `composer require capell-app/insights`.
 
 ## Quick Start
@@ -30,7 +30,7 @@ Typed Actions handle beacon validation, event storage, rollups, consent, and ret
 
 ## Limits And Pitfalls
 
-- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.66`, `capell-app/core ^1.0.78`, `capell-app/frontend ^1.0.72`.
+- Install the required Capell packages at the versions in `composer.json`: `capell-app/admin ^1.0.78`, `capell-app/core ^1.0.79`, `capell-app/frontend ^1.0.72`.
 - Run migrations before opening package resources or public routes.
 - Review middleware, throttling, signatures, and public-output safety in `routes/web.php` before exposing routes.
 - Keep the host Laravel scheduler running so package-registered schedules can execute: `insights:purge (monthly; package registered)`, `insights:rollups:rebuild (daily; package registered)`.

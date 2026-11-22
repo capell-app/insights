@@ -48,8 +48,11 @@ it('confirms the frontend tracker render hook emits tracker output', function ()
     $check = new InsightsHealthCheck;
 
     expect($check->hasFrontendTrackerRenderHook())->toBeTrue()
-        ->and($check->frontendTrackerRenderHookCheck()->passed)->toBeTrue()
-        ->and($check->hasFrontendTrackerRenderHook(new RenderHookRegistry))->toBeFalse();
+        ->and($check->frontendTrackerRenderHookCheck()->passed)->toBeTrue();
+
+    app()->instance(RenderHookRegistry::class, new RenderHookRegistry);
+
+    expect($check->hasFrontendTrackerRenderHook())->toBeFalse();
 });
 
 it('confirms the retention purge command is scheduled monthly', function (): void {

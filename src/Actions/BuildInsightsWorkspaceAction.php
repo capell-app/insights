@@ -83,14 +83,16 @@ final class BuildInsightsWorkspaceAction
             throw new OverflowException('The insight count difference exceeds the integer range.');
         }
 
+        $runtimeSettings = ResolveInsightsRuntimeSettingsAction::run();
+
         return new InsightsWorkspaceData(
             digest: $digest,
             metrics: $metrics,
             sections: ['content' => [$popular, $trending], 'journeys' => [$journeys, $actions], 'acquisition' => [$acquisition], 'funnel' => [$funnel]],
             latestEventAt: $latestEventAt,
             stale: $latestEventAt instanceof CarbonImmutable && $latestEventAt->lessThan($window->endsAt->min(CarbonImmutable::now())->subDay()),
-            trackingEnabled: (bool) config('capell-insights.enabled', true),
-            consentRequiredEverywhere: (bool) config('capell-insights.require_consent_for_all_regions', false),
+            trackingEnabled: $runtimeSettings->enabled,
+            consentRequiredEverywhere: $runtimeSettings->requireConsentForAllRegions,
             trendChange: $trendChange,
         );
     }

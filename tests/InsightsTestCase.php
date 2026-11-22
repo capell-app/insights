@@ -10,6 +10,7 @@ use Capell\Core\Facades\CapellCore;
 use Capell\Frontend\Contracts\SettingsMigrationProviderInterface;
 use Capell\Frontend\Providers\FrontendServiceProvider;
 use Capell\Insights\Providers\InsightsServiceProvider;
+use Capell\Insights\Settings\InsightsSettings;
 use Capell\Insights\Settings\InsightsSettingsMigrationProvider;
 use Capell\PrivacyCenter\Providers\PrivacyCenterServiceProvider;
 use Capell\Tests\AbstractTestCase;
@@ -52,6 +53,18 @@ class InsightsTestCase extends AbstractTestCase
             $insightsSettingsMigrationProvider->getSettingMigrations(),
             $insightsSettingsMigrationProvider->path(),
         );
+    }
+
+    /**
+     * Save Insights settings for a test; saved settings drive tracking and consent.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    public function saveInsightsSettings(array $values): void
+    {
+        $settings = resolve(InsightsSettings::class);
+        $settings->fill($values);
+        $settings->save();
     }
 
     protected function getPackageServiceName(): string
