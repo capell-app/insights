@@ -26,6 +26,9 @@
         "spatie/laravel-data": "^4.5",
         "spatie/laravel-package-tools": "^1.14.1"
     },
+    "suggest": {
+        "capell-app/privacy-center": "Mirrors visitor consent decisions into Privacy Center."
+    },
     "conflict": {
         "capell-app/privacy-center": "<1.1.10"
     },
