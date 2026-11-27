@@ -6,6 +6,7 @@
     "kind": "package",
     "capellApiVersion": "^1.0",
     "version": "1.0.0",
+    "launchStatus": "preview",
     "description": "Counts page views, clicks and campaign visits on your own site, asks UK, EEA and Swiss visitors for consent, and shows the results in the admin.",
     "product": {
         "group": "Capell Marketing & Growth",
